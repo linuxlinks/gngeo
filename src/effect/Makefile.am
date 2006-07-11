@@ -1,9 +1,5 @@
 noinst_LIBRARIES = libeffect.a
 
-if USE_GP2X
-libeffect_a_SOURCES =
-libeffect_a_LIBADD =
-else
 libeffect_a_SOURCES = sai.c  scale2x.c  scanline.c scale2x.h scale3x.h \
 		      hq2x.c hq2x.h hq2x.dat interp.h interp.c lq2x.c lq2x.h \
 		      lq2x.dat hq3x.c hq3x.h hq3x.dat lq3x.c lq3x.h lq3x.dat \
@@ -24,6 +20,5 @@ hq2x16.o : hq2x16.asm
 
 hq3x16.o : hq3x16.asm
 	nasm -f elf hq3x16.asm
-endif
 
 EXTRA_DIST = 2xsaimmx.asm effect_i386.asm hq2x16.asm hq3x16.asm 
