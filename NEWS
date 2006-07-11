@@ -1,0 +1,282 @@
+ change in 0.6.12
+	. Add an option to under/overclock the z80: --z80clock=-20 will 
+	  underclock it by 20%
+	. Rename the overclock option to 68kclock
+	. Add GP2X optimisation for zoomed sprites.
+	. GP2X: Optimised ClearScreen.
+	. Update dumpgfx for crypted roms support [Anonymous]
+	. Correctly draw char in crypted roms [Anonymous]
+	. Fix crashing when the romset isn't supported.
+	. GP2X: Hotkeys support bound to L and R (default configuration L=A+B R=C+D)
+	. Command line now override any configuration made in gngeorc/<game>.cf
+	. Add a --bench option. It will run gngeo for 5000 frames, the quit and show the 
+	  average fps. Thanks to Artemio for the idea.
+
+ change in 0.6.11
+	. Add Drz80 support for arm processor
+	. Fix memory leek in generator68k [Donald Liew]
+	. Fix blitter/effect list help messages [littletux]
+
+ change in 0.6.10
+	. GP2X: Fix miexchng slowdown
+	. Memcard support (only one available, saved in ~/.gngeo/memcard )
+	. Unibios settings are now saved
+	. GP2X: Now, gngeo will create a gfx dump automaticaly if the selected rom is too
+	large to fit in memory. See README.GP2X for details.
+	. GP2X: Add overclocking control. ie. --cpu_speed 266
+	. GP2X: Suppress --no-selector option. I replace it with --frontend=<command> where command is
+	  the frontend that gngeo have to relaunch when it exit. By defaut --frontend=gngeo2x.gpe so that
+	  gngeo restart Selector at exit. 
+	. Update the romrc with some newer hacked roms.
+	. GP2X: Sound is now complete in garou, last blade 2 etc.
+
+ change in 0.6.9
+	. GP2X: Center the screen
+	. Add universal bios support. Use --system=unibios to activate it (uni-bios.rom is needed)
+	. Fix kof99 with Cyclone enabled.
+
+ change in 0.6.8
+	. Update the game list that need sram protection hack
+	. GP2X: Optimize a little sound mixing routine
+	. GP2X: By default, return to selector after exit (use --no-selector to disable it)
+	. GP2X: Add sound volume support.
+	. GP2X: some optimisation here&there
+
+ change in 0.6.7
+	. Update romrc to reflect mame romset
+	. GP2X: Add big rom support. See Readme.GP2X
+	. GP2X: Push L to go to the bios setting screen (blood in mslug, yeah ;)
+	. Improved frameskip
+
+ change in 0.6.6a
+	. GP2X: Now use case 2 from DaveC joy configuration
+	. GP2X: Bug fix in cyclone init code
+
+ change in 0.6.6
+	. Fix for gcc 4 compilation
+	. Fixed point timer in the ym2610 emulation
+	. GP2X port. Read the readme.gp2x for more info
+
+ change in 0.6.5beta
+	. support for a romrc.d directory, in which you can define romrc-like
+	files for each game (eg: kof2003.romrc). This makes it easier to
+	release romrc sections for new games (just tell the user to download
+	the file to his romrc.d dir). Eventually the big romrc file could be
+	split. [Renato Sousa]
+
+	. Add support for a special, per-game bios (eg: kof2003 has its own
+	bios) in romrc and emulator [Renato Sousa]
+
+	. remove useless patches over BIOS (bios runs cleanly now). Added code
+	to select bios according to country configuration. Also load the aes
+	bios if configured to run as console, but this bios is extremely
+	buggy. [Renato Sousa]
+
+	. add global configuration entries for country [Renato Sousa]
+
+	. now the bankswitcher (memory handler for the bankswitching area) is
+	selected when the CPU is initialized for a game. added an option for
+	this in romrc [Renato Sousa]
+
+	. change all long handlers code to a LONG_FETCH/LONG_STORE macro,
+	since they are all similar. [Renato Sousa]
+
+	. Explicitly size most variables, including Uintptr to an "integer of
+	the size of a pointer" [Renato Sousa]
+
+	. autodetect driver for rom, when rom has more than one driver (was
+	only working for directories, not for zip files) [Renato Sousa]
+
+	. support bios/game vector changing. Right now it saves the entire
+	vector (128 bytes) to the savestate file. It could possibly be
+	optimized to just save whether it is the bios or the game vector. 
+	[Renato Sousa]
+
+	. remove some code duplication [Renato Sousa]
+
+	. support kof2003 bankswitcher [Renato Sousa]
+
+	. Joystick Hat support [Sheng Long Gradilla]
+	
+	. romrc update.
+
+ change in 0.6.4
+	. Add support for NeoRageX style hotkeys [ Ugenn ]
+
+ change in 0.6.3
+	. Bug Fix: explicitly declare INT8,16,32 as signed
+          This fix the crash on LinuxPPC [ Tatu Kilappa ]
+	. Suppress some Warning [ Tatu Kilappa ]
+
+ change in 0.6.2
+	. Add support for newer BIOS
+	. Use -falign instead of -malign with GCC 3.x
+	. Correct a bug with command line parsing: --romrc didn't work correctly
+	. Correct a bug that prevent gngeo to compile on some distribution 
+	  (now use #include "SDL.h" instead of #include <SDL/SDL.h>).
+	. Add mmx optimised hq2x and hq3x effects
+	. Add an alternative opengl blitter (configure --enable-gl2). This blitter can
+	  correct some bug with some opengl implementation (need texture size limit >256x256).
+	  This blitter seems more "stable" than the original one, but may be slower.
+	. Clean up fileio.c
+
+ change in 0.6.1
+	. Add hq2x hq3x lq2x and lq3x effect.
+
+ change in 0.6
+	NOTE: You HAVE TO update your gngeorc for this release!
+	. Fix a bug in game loading: "gngeo mslug" or "gngeo samsho" did not work.
+	. Add scale=3 support for soft blitter.
+	. Use generic optimisations for unknow platform.
+	. Add overclock option. ex: "overclock 50" will overclock the 68k by 50% (18Mhz
+	  instead of 12Mhz)
+	. Remove the invertjoy option, and add p1joydev,p2joydev option to select the
+	  joy's device for p1 and p2. ex: --p1joydev=2 tell gngeo to use /dev/js2 for
+	  the player 1
+	. Add the possibility to invert joystick's axes individualy (see sample_gngeorc for
+	  explanation)
+	. Fix some bug in save state (some old, some introduced with the last snapshot)
+	. Update README
+	. Only compil the gui if enabled. Side note concerning the GUI: Currently I privilege
+	  frontends integrations over native GUI. The gui complicates the code and is redondant
+	  with Frontends. If someone want to continue it, he is welcome (The preferred solution
+	  is to put it out of gngeo, and make it a frontend)
+
+ change in 20031018
+	. Add per game configuration file. The conf file must be in $HOME/.gngeo/ and named
+	  mame_name.cf (mame_name is the Mame name of the game, --listgame for the list)
+	  ex: `echo "screen320 false" >~/.gngeo/mslug.cf` will force MetalSlug to use 304x224
+	  mode (can be overriden on the command line).
+	. Fix most of the bug with Generator68k (don't correctly set up cpu bank at startup + SDIV bug)
+	. Temporatly desactivate mmx scale2x (strange bug here and there when enabled)
+	. Better accuracy in cycle counting.
+	. Rewrite the driver part.
+	. 320x224 is now the default res. Use --no-screen320 to switch back to 304x224
+	. Correct some potential graphic glitch
+	. Add alternate romset driver for SuperDodgeBall, Pop'nBounce and kof99
+	. Change default keyboard setting to QWERTY
+	. Add experimental GUI. Very crude at the moment (./configure --enable-gui)
+
+ change in 0.5.9a:
+	. Correct a stupid bug in the opengl code
+	. Fix Twinkle Star Sprites
+	. You can now take a screenshot with F2 (screenshots are save in BMP under your
+	  home)
+	. Add forcepc option to force the startup PC to a correct value. Use it if you
+	  have a game that seem to freeze after loading.
+	. Add --disable-i386asm option to the configure script
+
+ change in 0.5.9:
+	. The romrc file is now installed in $prefix/share/gngeo/ after a make install
+	  This directory is now the default path for romset and romrc
+	. Add mmx scale2x effect.
+	. Add scale3x effect.
+	. Add scale4x effect.
+	. Correct a bug in puzzle bubble driver (update your romrc)
+	. You can now pass a zip file on the command line insted of the game name.
+	  gngeo will scan all the romrc file to find the suitable driver.
+	  ex: > gngeo /cdrom/neogeo/rom/Blazing\ Star.zip
+	      will act as 
+	      > gngeo blazstar
+	. Now use getopt_long for command line parsing (--help for a list).
+	. Rewrite the configuration code. Now every option are available from gngeorc and
+	  the command line (You have to update your gngeorc).
+	. Clean up a little fileio.c and main.c
+	. Add a simple inline m68k debuger (option -D).
+	. Fix a dependencie bug in generator68k
+	. Fix a bug in the rom loading code (prevent some crash)
+	. better support for crypted rom (bankswitching and char drawing)
+	  again, only mslug3n have a driver and is reported to work (freeze sometimes :(
+	  (Update your romrc).
+	. Initial save state support (functionnal, but some game have minor graphic/sound glitch,
+	  and you can't use a save state create under a little endian machine on a big endian one)
+	. blitter and effect are now selected by their name (instead of number)
+	  Please upgrade your gngeorc.
+	. Clean up video.c (now use a template system for tile drawing function generation)
+	. Add transparency pack support with raster effect enabled
+	. Write i386 asm version of the raster drawing routine (todo: 25% transparency)
+	. Correct some bug with the raster interrupt (ssidecki2,3,4 work correctly)
+	. Add mmx interpolation code.
+	. Add doublex effect. It double only the X resolution (I personaly use it with a vga2tv
+	  circuit, because my card doesn't support interlace nor 320x240 pal mode, so I'm stick
+	  with 640x240 resolution... More information about the circuit here:
+	  http://www.priesch.at/marcus/Linux/XonTV-micro-HOWTO)
+
+ change in 0.5.1:
+	. bug fix in game loading.
+
+ change in 0.5:
+	. Clean up the code (mainly memory.c)
+	. Add driver for the folowing mgd2 dump:
+	  - 3countb
+	  - alpham2
+	  - androdun
+	  - lresort
+	  - mcombat
+	  - sengoku2
+	  - sengoku
+	. Some game have a strange initial PC. Patched.
+	  correct maglord, aodk, bjourney, nincombat etc...
+	. Correct a bug that prevent sound to work with tpgolf
+	. gngeo now use autoconf. installation is now done with:
+	  ./configure && make && make install
+	. Switch the C 68K core to the generator one. It's faster
+	  than musashi
+	. Optimize the memory handler of the mamez80 core.
+	  this 2 points give a significant boost on non i386 platform.
+	. the -f flags work correctly again.
+	. correct some possible segfault here and there.
+	. start to add crypted rom support (currently only mslug3n).
+	  need to add bankswitch and char drawing support.
+
+
+ change in 0.4.5c:
+	. Correct a stupid mistake that prevent some game to work.
+
+
+ change in 0.4.5b:
+	. libGL now load at runtime (configure by libGL_path in gngeorc).
+	. add 2 new effect: scale2x with 50% scanline and scale2x 
+	  with 75% scanline.
+	. check if the selected effect and/or blitter is valid
+
+
+ change in 0.4.5 (unreleased):
+	. New blitting and effect system by Espinetez:
+	  New blitters: Opengl and YUV (resizable).
+	  New effects: scanline,scanline50%,scale2x,Sai,superSai and superEagle.
+	  Possibility to scale the screen by 2 with the soft blitter.
+	  Interpolation system: the last frame is merge with the current -> the
+	   animation is smoother and blinking sprite (to simulate transparency)
+	   are now really transparent.
+	  See sample_gngeorc for configuration example.
+	
+
+ change in 0.4.4 (unreleased):
+	. Add support for Nebula/Kawaks Transparency pack (option -t filename)
+	. Add i386 asm version of tile and char drawing function -> speed increase
+	. Premilinary support for scanline rendering: supersidekick4 work. (option -r)
+	  This mode is experimental and some game don't work for now, ex: supersidkick2
+	. optimize the musashi interface -> gngeo is a lot faster on Sparc now.
+
+	
+ change in 0.4.3 (unreleased):
+	. Fix a bug in game loading (gngeo mslug tried to load msulgx)
+	. Switch to starscream 0.26c -> slowing down bug fixed
+	  ( genital68k is always available -> edit the makefile)
+	. Add a C 68000 emulator (MUSASHI from Karl Stenerud)
+	. Add a C z80 emulator (the z80 core of mame)
+	  -> compile and work on sun sparc with solaris8 (need optimization).
+	. Create driver for all the current mame romset
+	  (exculding crypted one) and the old mame romset.
+	  (Note:some games are untested)
+	. Add the possibility to have different romset for a game.
+	  The first working romset will be used
+
+ change in 0.4.1 (unreleased):
+	. Fix a bug that crash the emulator if you invert joy order and you
+	  only have one joy.
+
+
+
+

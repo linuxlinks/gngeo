@@ -1,0 +1,44 @@
+
+#ifndef _SCREEN_H_
+#define _SCREEN_H_
+
+#include "SDL.h"
+#include "list.h"
+
+typedef struct RGB2YUV
+{
+  Uint16 y;
+  Uint8  u;
+  Uint8  v;
+  Uint32 yuy2;
+}RGB2YUV;
+
+extern RGB2YUV rgb2yuv[65536];
+
+void init_rgb2yuv_table(void);
+
+SDL_Surface *screen;
+SDL_Rect visible_area;
+
+Uint8 interpolation;
+Uint8 nblitter;
+Uint8 neffect;
+Uint8 scale;
+Uint8 fullscreen;
+
+Uint8 get_effect_by_name(char *name);
+Uint8 get_blitter_by_name(char *name);
+void print_blitter_list(void);
+void print_effect_list(void);
+void screen_change_blitter_and_effect(char *bname,char *ename);
+LIST* create_effect_list(void);
+LIST* create_blitter_list(void);
+
+SDL_bool screen_init();
+SDL_bool screen_resize(int w, int h);
+void screen_update();
+void screen_close();
+
+void screen_fullscreen();
+
+#endif

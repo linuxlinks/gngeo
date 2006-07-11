@@ -1,0 +1,239 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH GNGEO 1 "June 26, 2003"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+gngeo \- emulate a SNK Neo-Geo game system
+.SH SYNOPSIS
+.B gngeo
+.RI [ options ]
+.RI ROMSET
+.SH DESCRIPTION
+.PP
+\fBgngeo\fP is a program that emulates the SNK Neo-Geo game system.
+It uses SDL and optimized assembly CPU emulation cores on i386 platforms.
+.SH OPERATION
+A Neo-Geo BIOS image set is required to play commercially-released games.
+Unfortunately, the BIOS images are copyrighted and may not be distributed
+with gngeo.
+.PP
+Like MAME, the memory layout of each game is defined by a driver, which
+is simply a plain text description of the game's characteristics needed
+by the emulator.  The driver database is installed in /usr/local/share/gngeo/romrc.
+If a new program is wanted to be run in gngeo, it must be added to that
+database.
+.PP
+The simplest form of operation is the following:
+.br
+$ gngeo <game>
+.br
+where <game> is the MAME name of a Neo-Geo ROM set corresponding to a game.
+.br
+Examples: \fImslug\fP, \fIgarou\fP, \fIkof99\fP
+.PP
+You can also use the folowing form of operation:
+.br
+$ gngeo <file>
+.br
+where <file> point to a zip that contain the Neo-Geo ROM set.
+.PP
+However, it is more likely that you will need some of the following command line
+options in order to properly locate your ROM collection and Neo-Geo BIOS images.
+.PP
+By default, gngeo looks for the BIOS images and ROM collection in /usr/share/gngeo.
+This can be changed with the \fB-i\fP or \fB--rompath\fP option.  For example:
+.br
+$ gngeo -i /home/flurbly/neogeo/roms mslug2
+
+.PP
+The ROM location, as well as any other options, can be persistently set in the
+$HOME/.gngeo/gngeorc.  A sample gngeorc can be found in /usr/share/doc/gngeo;
+copy it into your .gngeo directory and adapt it to your needs.
+.SH OPTIONS
+These programs follow the usual GNU command line syntax, with long
+options starting with two dashes (`-').
+.PP
+All boolean options can be disabled with --no-OPTION
+(Ex: --no-sound turns sound off)
+.PP
+.TP
+.B \-l, \-\-listgame
+.br
+List all games that gngeo has recognized and are available to play.
+.TP
+.B \-\-autoframeskip
+.br
+Enable auto frameskipping.  The program will determine the best frameskip value
+to avoid lagging the gameplay on a machine that is too slow to emulate at full
+speed.
+.TP
+.B \-b, \-\-blitter=STRING
+.br
+Use the specified blitter. \fB-b help\fP will provide a list of available
+blitters.  \fBsoft\fP, \fBopengl\fP, and \fByuv\fP are typical choices.
+.TP
+.B \-c, \-\-convtile
+.br
+Convert graphics tiles into internal format at load time (default on).
+.TP
+.B \-\-country=STRING
+.br
+Set the country code to \fBjapan\fP, \fBusa\fP, or \fBeurope\fP.
+.TP
+.B \-D, \-\-debug
+.br
+Enable gngeo's internal debugger, for hacking, cheating, or fixing bugs.
+.TP
+.B \-e, \-\-effect=STRING
+.br
+Use the specified video effect. \fB-e help\fP will provide a list of available
+effects.
+.TP
+.B \-f, \-\-fullscreen
+.br
+Start gngeo in fullscreen mode.
+.TP
+.B \-H, \-\-hwsurface
+.br
+Use a SDL hardware surface for the emulator's video.  This can improve
+performance if your video hardware/drivers are fast.
+.TP
+.B \-I, \-\-interpolation
+.br
+Enable interpolation from one frame to the next.  This can make the display
+look "smoother", but has a performance penalty.
+.TP
+.B \-\-invertjoy
+.br
+Invert joystick order. (need more details)
+.TP
+.B \-\-joystick
+.br
+Enable joystick support.
+.TP
+.B \-\-libglpath=[path]
+.br
+Use STRING as libGL (default should normally be okay).
+.TP
+.B \-P, \-\-pal
+.br
+Use PAL timings.  This currently has bugs.
+.TP
+.B \-\-p1key=ARRAY
+.TP
+.B \-\-p2key=ARRAY
+.TP
+.B \-\-p1joy=ARRAY
+.TP
+.B \-\-p2joy=ARRAY
+.br
+Player 1 and Player 2 keyboard and joystick mappings, respectively.
+(need more details)
+.TP
+.B \-r, \-\-raster
+.br
+Enable the raster interrupt. (need more details)
+.TP
+.B \-i, \-\-rompath=[path]
+.br
+Give the path to locate the ROM collection.  The default is to look
+in /usr/share/gngeo, but your ROM collection is most likely not there. :)
+.TP
+.B \-d, \-\-romrc=[path]
+.br
+Give the path to locate the romrc file.  This defines the layout of the games
+and is required to run any Neo-Geo games.
+.TP
+.B \-\-sound
+.br
+Enable sound emulation.
+.TP
+.B \-\-showfps
+.br
+When the emulator is started, show a frames-per-second count.  This can be
+used to gauge a baseline performance for the emulation.
+.TP
+.B \-\-sleepidle
+.br
+Enabling this option will cause the emulator to give up time to the system
+when it is idle.  It can incur a performance penalty, but can also make the
+emulator "nicer" to the rest of the system.
+.TP
+.B \-\-system=STRING
+.br
+This option allows you to set the type of the emulated system to \fBhome\fP or \fBarcade\fP,
+depending on how you prefer to play your games.  There are some differences in many games
+if they detect a home system instead of an arcade system.
+.TP
+.B \-\-scale=N
+.br
+Upscale the resolution by N.  For example, if N is 3, the Neo-Geo output, which is normally
+320x224, will become 960x448.  You may encounter a mode which is not hardware accelerated
+when using this option.
+.TP
+.B \-\-samplerate=N
+.br
+Set the sound sample rate to N.  N will typically be 11025, 22050, 32000, or 44100.
+.TP
+.B \-t, \-\-transpack=STRING
+.br
+Use the specified transparency pack (need more details)
+.TP
+.B \-h, \-\-help
+.br
+Show summary of options.
+.SH HARDWARE
+The SNK Neo-Geo system was cartridge-based and was sold to arcades as well as
+homes.  It has a 68000 CPU, a Z80 for sound, and custom graphics hardware, and
+its main claim to fame was that it has the highest megabit count of any
+cartridge-based system in history, allowing for detailed animation and huge
+sprites.
+.PP
+MVS, the arcade system, had mainboards which could accept up to six cartridges
+at once.  The user could choose one of the games to play by simply moving the
+joystick.  This allowed arcade operators to maximize the choice of games
+available to players without taking up floor space with more dedicated
+cabinets.
+.PP
+AES, the "Advanced Entertainment System", was the home Neo-Geo system.  It
+sold for hundreds of dollars at launch and the cartridges generally cost around
+$200 a piece.  However, there was no truer way for players to have the "arcade
+at home" experience in 1990.  The joysticks were authentic arcade joysticks
+and the cartridges were huge.  The cartridges, while shaped differently, had
+the exact same data stored in them as the MVS arcade cartridges.  Some
+companies sold adapters to use MVS cartridges (which typically could be found
+cheaply on the used market) on the AES console.
+.PP
+The Neo-Geo introduced the idea of a memory card, which could be shared
+between the MVS and AES systems (as the hardware was essentially identical).
+The user could take his/her high scores and other saved data between the
+arcade and home.
+.PP
+Some later cartridges used some hardware bootleg protection that had to be
+first understood and then worked around.  New software is still released even today
+for the MVS and AES systems, though SNK itself finally went bankrupt in 2001.
+.SH NOTES
+gngeo is fast, but still has some bugs.  Visit the homepage at:
+.br
+http://m.peponas.free.fr/gngeo/
+.br
+if you would like to help development or submit bug reports.
+.PP
+Some planned features are netplay support, better game compatibility, and better
+portability, as well as more i386-specific optimizations.
+.SH AUTHOR
+This manual page was written by Ryan Underwood <nemesis@dbz.icequake.net>,
+for the Debian project (but may be used by others).

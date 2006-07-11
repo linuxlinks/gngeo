@@ -1,0 +1,66 @@
+
+Here is the port of gngeo to the GP2X.
+
+Compilation from source:
+# ./configure --build=i386 --host=arm-linux --target=arm-linux --enable-gp2x=yes --disable-i386asm --enable-cyclone 
+# make
+
+Instalation:
+- Just unzip the dist in a dir call gngeo or whatever
+- Put a neogeo bios (unzip it!) in the roms dir
+- Edit the conf/gngeorc if you want.
+- Put your favorites roms anywhere
+
+Launch gngeo by chossing gngeo2x from the games menu.
+While in the game select screen, push Y to enable sound (see the bottom of the screen)
+
+Jostick configuration:
+For now, it's not configurable, and don't support macro
+
+Quit: R and StickPush
+BIOS: L
+
+Neogeo             | GP2X
+__________________________
+Start              : Start
+Insert Coin/select : Select
+A                  : X
+B                  : B
+C                  : A
+D                  : Y
+Stick              : Stick :)
+
+BIG ROM Support:
+**** NEW ****
+Gngeo 0.6.10 can now automaticaly dump the gfx file if the selected roms is to large to fit in memory.
+You just have to select a game in Selector, then gngeo will create the needed gfx file and exit. Just re-launch 
+the game to enjoy it.
+Dumping gfx is a very slooowww process, so be patient :)
+
+Old method (still valid):
+Gngeo 0.6.7 add Big roms support on the gp2x. The principe is simply to mmap a special dump file and use
+it as gfx memory. This file have to be created on your box before.
+I'm pleasently surprised by the result. On my modest SD, games like rbff1 are playable. A fast SD is still
+recomended
+Please note that newer (encrypted) roms support is very limited in gngeo. But some hacked one made for
+NeoRageX work.
+
+Here is a little tutorial to enable big rom support.
+- The first things to do is to compile the dumpgfx utilitie for your platform. A version is available for linux. Help is wanted to port it on other platform (especialy MacOS & Windows)
+ .  Untar the dumpgfx.tgz available in the source package of gngeo,
+    or here http://m.peponas.free.fr/gngeo/download/dumpgfx.tgz
+ .  go to the dumpgfx dir
+ .  Compilation is a simple "gcc *.c -o dumpgfx -lz"
+- Now, Create a dump with "./dumpgfx games.zip" where games.zip is the game you want to dump.
+- A .gfx should have been created
+- Copy this gfx file in the gngeo's roms dir on your sdcard
+- Don't forget to copy the rom too ;)
+- Now you can launch the rom as usually, and enjoy.
+
+
+Compatibility/issue :
+- Sound is not optimized, and make the emulation slow.
+- Sound volume is fixed.
+- I'm a newbie in arm asm, so my sprite drawing optimisation may not be optimum
+
+That's all folk

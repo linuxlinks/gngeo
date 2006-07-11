@@ -1,0 +1,103 @@
+; RAZE - register definitions
+
+;----------------------------------------------------------------------------;
+; Flags
+%define FLAG_C   01h         ; carry
+%define FLAG_N   02h         ; negative
+%define FLAG_P   04h         ; parity/overflow
+%define FLAG_3   08h         ; bit 3
+%define FLAG_H   10h         ; half-carry
+%define FLAG_5   20h         ; bit 5
+%define FLAG_Z   40h         ; zero
+%define FLAG_S   80h         ; sign
+
+; set the register mappings.
+; we avoid bugs this way and make it simpler.
+
+; 16-bit registers
+%define zAF ax
+%define zHL bx
+%define zBC cx
+%define zDE word [_z80_DE]
+%define zPC si
+%define zSP word [_z80_SP]
+%define zIX word [_z80_IX]
+%define zIY word [_z80_IY]
+
+; 16-bit registers, zero-extended to 32-bit
+; for when a dword transfer is better
+%define ezAF eax
+%define ezHL ebx
+%define ezBC ecx
+%define ezDE dword [_z80_DE]
+%define ezPC esi
+%define ezSP dword [_z80_SP]
+%define ezIX dword [_z80_IX]
+%define ezIY dword [_z80_IY]
+
+; 8-bit registers
+%define zF ah
+%define zA al
+%define zB ch
+%define zC cl
+%define zD byte [_z80_DE+1]
+%define zE byte [_z80_DE]
+%define zH bh
+%define zL bl
+%define zIXh byte [_z80_IX+1]
+%define zIXl byte [_z80_IX]
+%define zIYh byte [_z80_IY+1]
+%define zIYl byte [_z80_IY]
+
+; 8-bit registers, (accessible by 16-bit registers with l or h)
+%define hzAF zA
+%define lzAF zF
+%define hzBC zB
+%define lzBC zC
+%define hzDE zD
+%define lzDE zE
+%define hzHL zH
+%define lzHL zL
+%define hzIX zIXh
+%define lzIX zIXl
+%define hzIY zIYh
+%define lzIY zIYl
+%define hzSP byte [_z80_SP+1]
+%define lzSP byte [_z80_SP]
+
+; 16-bit registers (prime)
+%define zAF2 word [_z80_AF2]
+%define zHL2 word [_z80_HL2]
+%define zBC2 word [_z80_BC2]
+%define zDE2 word [_z80_DE2]
+
+; 16-bit registers (prime), zero-extended to 32-bit
+; for when a dword transfer is better
+%define ezAF2 dword [_z80_AF2]
+%define ezHL2 dword [_z80_HL2]
+%define ezBC2 dword [_z80_BC2]
+%define ezDE2 dword [_z80_DE2]
+
+; Misc
+%define zI byte [_z80_I]
+%define zR ebp
+
+; get/set reg values
+%define Z80_REG_AF         0
+%define Z80_REG_BC         1
+%define Z80_REG_DE         2
+%define Z80_REG_HL         3
+%define Z80_REG_IX         4
+%define Z80_REG_IY         5
+%define Z80_REG_PC         6
+%define Z80_REG_SP         7
+%define Z80_REG_AF2        8
+%define Z80_REG_BC2        9
+%define Z80_REG_DE2       10
+%define Z80_REG_HL2       11
+%define Z80_REG_IFF1      12
+%define Z80_REG_IFF2      13
+%define Z80_REG_IR        14
+%define Z80_REG_IM        15
+%define Z80_REG_IRQVector 16
+%define Z80_REG_IRQLine   17

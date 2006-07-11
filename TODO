@@ -1,0 +1,21 @@
+TODO,BUG (in no particular order):
+Graphic glitch with superdodge ball and raster interrupt (pb with char drawing)
+Savage reign doesn't work with generator68k [FIXED]
+Correct some bug introduce with generator68k (mainly, the presentation of garou) [FIXED]
+gururin has graphic glitch
+pulstar doesn't work (copy protection)
+Automatic sprite animation is sometime too fast (terry 3rd round stage in garou, mslug2 background...)
+viewpoin make unaligned word access (??) -> crash under sparc...
+Optimize the raster code (Partialy done for i386 with mmx).
+Optimize the 25% trancparency drawing code (write a i386 asm version).
+Add 25% and 50% drawing routine for raster effect [DONE].
+Write a sparc (maybe i386) dynamic recompiler backend for generator68k.
+Rewrite the sound part.
+Check compilation with gcc3.x (DONE for 3.0)
+Check mmx support.
+Write a better doc.
+Add network support.
+Effect doesn't work with Hardware surface
+Gowcaizer is slow with raster
+OverTop freeze with raster
+...

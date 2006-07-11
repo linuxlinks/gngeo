@@ -1,0 +1,125 @@
+-- General question --
+1. What is Gngeo?
+	Gngeo is a neogeo emulator for Linux.
+	
+2. What are the requirement?
+	Gngeo depend on the folowing libs:
+	 . libSDL (1.2.x) from http://www.libsdl.org
+	 . zlib   from http://www.zlib.org
+	Also, if you're under a Pentium class processor, I recommend you to
+	install nasm (0.98), so you can profit of i386asm and mmx optimisation.
+	If you want opengl blitter, you need opengl dev header.
+	Of course, you need a NeoGeo bios. A neogeo bios consist of the folowing
+	files: neo-geo.rom, ng-sfix.rom and ng-lo.rom
+	
+3. Which platform are supported?
+	The principal devellopement platform is linux for i386. But gngeo
+	is portable, and it should compile on different architecture and OS.
+	Actually, Gngeo is regulary tested on UltraSPARC (linux and solaris).
+		
+4. Which features does Gngeo have?
+	. Relatively fast emulation (PII 300 in enougth in most case)
+	. Emulate arcade and home system
+	. Raster effect (use in super side kick 2,3,4 and some other game)
+	. Nebula/Kawaks transparency pack support
+	. Interpolation between frame (smoother animation)
+	. Soft, Opengl and YUV blitters
+	. Many different effects (scanline, scale2x etc.)
+	. Save state
+	. Free as in free speech
+
+-- Installation/configuration --
+
+5. How do I install gngeo?
+	First, you have to install the folowing lib: libsdl and zlib.
+	This lib are available in nearly every distribution (you may have
+	to install a separate devel package ). If it's not the case, you can
+	grab the source at http://www.libsdl.org and http://www.zlib.org
+	If you are under an i386 compatible platform, then install nasm
+	(http://www.web-sites.co.uk/nasm) for asm optimisation.
+	Now you can compile gngeo with the folowing command (do not type the $ ):
+	$ ./configure
+	$ make
+	
+	Then, as a super user:
+	# make install
+
+	Next step is the installation of the neogeo bios. The default place is
+	$prefix/share/gngeo, but you can install it every where, if you tell
+	gngeo where to search. To install the bios, just copy the 3 rom
+	(neo-geo.rom, ng-sfix.rom and ng-lo.rom) to the desired location.
+	Ex: You have your bios in /home/plop/neorom and you want to start
+		viewpoint (also in /home/plop/neorom)
+
+	$ gngeo -i /home/plop/neorom /home/plop/neorom/viewpoin.zip
+	
+	The option -i tell to Gngeo to search roms in /home/plop/neorom
+	
+	For mame lovers, you can also use the folowing command line :
+	$ gngeo -i /home/plop/neorom viewpoin
+	Gngeo will search the rom in /home/plop/neorom
+	
+6. How do I configure it?
+	All the configuration of Gngeo is done in one file: $HOME/.gngeo/gngeorc
+	A sample file is provide in the source distribution: sample_gngeorc
+	To configure Gngeo copy this file to $HOME/.gngeo/gngeorc and edit it.
+	Every option are also accessible on the command line (please refer to
+	man page).
+	Generaly, the option you may first look at is rompath : this define the
+	path where gngeo search the neogeo bios (-i on the command line).
+
+	Keyboard configuration:
+	The easiest way to configure your keyboard is with the folowing method:
+	- start gngeo with a game (no matter wich one)
+	- press the F4 key.
+	- Now, every time you press a key, its scancode is print one the screen.
+	- So, you just have to press successively the press you want to use, and
+	  note the associated scancode somewhere.
+	- Now edit your gngeorc file at the line p1key (or p2key), and modify
+	  the default scancode with yours
+
+	You can do exactly the same with joystick configuration (p1joy & p2joy).
+	p1joy corespond to /dev/js0 and p2joy to /dev/js1 (you can invert this
+	order with the option --invertjoy)
+
+-- Troublshooting --
+
+9. Some game does nothing. I got only a blank screen...
+	Some game doesn't have a valid initial PC. Try to start gngeo with th
+	--forcepc option, it should correct your problem. If it's not the case,
+	please make a bug report.
+	
+-- Misc --
+
+10. What is a transparency pack, and how I use it?
+	Transparency pack have been introduced with Nebula and Kawaks.
+	This is basicly a file that define which sprite should be draw with
+	transparency. For example, explosion in Blazing Star or special effect
+	move in King Of Fighters.
+	You can find some pack in the nebula distribution (they	have .bld extension)
+	It's pretty simple to use it with Gngeo, you just have to use the -t 
+	option (ex: gngeo -t /mnt/dos/nebula/config/kof96DS.bld kof96)
+
+11. What is raster effect?
+	It's a special effect often use to simulate perspective 
+	(for ex. in SuperSideKick  II,III and IV) or wave effect (Samy logo in
+	Viewpoint or The fire stage in LastBlade2). Such effect need the
+	emulation of HBlank interrupt, and thus, need a little more CPU power.
+	Since this effect is use only by some game, raster effect are not 
+	enable by default. You can enable it with the -r command line, or by 
+	setting the raster option to true in your gngeorc.
+
+12. What interpolation is for?
+	Since NeoGeo hardware lack transparency support, programmers generally
+	use blinking sprite to simulate it. By interpolating the current frame
+	with the last one, sprite doesn't blink anymore and become transparent.
+
+13. How can I get further help
+	A Mailing list for Gngeo is available. This mailing list can be use to
+	ask help to other people (including me). Please read the archive to
+	verify that your question has not been already answered before you post.
+	To subscribe to the list, send a mail to gngeo-request@ml.free.fr with
+	subscribe in the subject.
+	Tha mailing list archive is available at http://www.mail-archive.com/....
+	
+	

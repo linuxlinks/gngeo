@@ -1,0 +1,144 @@
+# GNGEO resource file for the GP2X
+
+# unused
+# libglpath /usr/lib/libGL.so
+
+# Where your rom (and bios) are?
+# /usr/games/lib/xmame
+rompath ./roms
+
+# and the driver file (copy it from the gngeo archive) ?
+romrc ./romrc
+
+# Play in fullscreen?
+fullscreen false
+
+# Which blitter? GP2X only support soft mode
+# soft
+# opengl
+# yuv
+blitter soft
+
+# Which effect? GP2X don't support effect
+# none	
+# scanline
+# scanline50
+# scale2x
+# scale2x50
+# scale2x75
+# doublex
+# sai
+# supersai
+# eagle
+effect none
+
+# Enable the raster interrupt?
+raster false
+
+# scale the output image. Don't use anything else on your GP2X :) 
+scale 1
+
+# Have interpolation?
+interpolation false
+
+# Have sound?
+sound false
+
+# Shown FPS
+showfps false
+
+# autoframeskip control
+autoframeskip true
+sleepidle false
+
+# enable joystick support ?
+joystick true
+
+# enable the 68k inline debuger? (disable the sound)
+debug false
+
+# Use hardware surface for the screen? The GP2X use only hwsurface
+hwsurface true
+
+# Convert all tile at loading time (insted on the fly)
+convtile true
+
+# Use PAL timing? (buggy)
+pal false
+
+# invert joystick order ?
+invertjoy false
+
+# Sample rate
+samplerate 22050
+
+# country?
+# japan, usa, europe
+country europe
+
+# system type? arcade or home
+system arcade
+
+# Hotkey are currently not implemented on the GP2X
+# NRX-style hotkey configuration
+# Up to 4 hotkeys per player can be defined (
+# Only fire buttons (A-D) can be combined
+# A = 1, B = 2, C = 4, D = 8
+
+# Samples:
+# Map CD to P1 hotkey 0
+p1hotkey0 4,8
+# Map BC to P1 hotkey 1
+p1hotkey1 2,4
+#Map ABC to P1 hotkey 2
+p1hotkey2 1,2,4
+#p1hotkey3
+#p2hotkey0
+#p2hotkey1
+#p2hotkey2
+#p2hotkey3
+
+# The rest of this file is unuseful for the GP2X...
+
+# Joystick configuration
+# Joystick mapping
+# 0 <-> /dev/js0, 1 <-> /dev/js1, etc..
+p1joydev 0
+p2joydev 1
+
+# Buttons/Axes configuration
+# order : A,B,C,D,START,COIN,AXE_X,AXE_Y,AXE_X_DIR,AXE_Y_DIR
+# AXE_X_DIR and AXE_Y_DIR is use to invert an axe
+# ex: some joystick have the Y axe inverted (up <-> down). For them,
+# use -1 for AXE_Y_DIR will solve the problem.
+# hotkeys are optional (ie need not be mapped to buttons)
+# use -1 to "unmap" a hotkey.
+# Samples:
+# hotkey0 = button 3, hotkey1 = button 0,
+# p1joy     4,1,5,2,9,8,0,1,1,1,3,0
+# No hotkeys
+# p1joy     4,1,5,2,9,8,0,1,1,1
+
+p1joy     2,3,0,1,5,4,0,1,1,1
+p2joy     1,0,3,2,7,6,0,1,1,1
+
+# Key configuration
+# order : A,B,C,D,START,COIN,UP,DOWN,LEFT,RIGHT
+# please see SDL_keysym.h for key definition
+# or push F4 during game : the keysym code of
+# keys will be printed (also work for joysticks) 
+# same thing as joypads for hotkeys
+
+
+# Azerty configuration: 
+# p1: w,x,q,s,&,",up,down,left,right
+# p2: l,m,o,p,é,',NUM 8,NUM 5,NUM 4,NUM 6
+#p1key    119,120,113,115,38,34,273,274,276,275
+#p2key    108,109,111,112,233,39,264,261,260,262
+
+# Qwerty configuration:
+# p1: z,x,a,s,1,3,up,down,left,right
+# p2: l,;,o,p,2,4,NUM 8,NUM 5,NUM 4,NUM 6
+p1key    122,120,97,115,49,51,273,274,276,275
+p2key    108,59,111,112,50,52,264,261,260,262
+

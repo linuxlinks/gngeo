@@ -1,0 +1,17 @@
+gngeo : 
+ . Main authors: Mathieu PEPONAS <pepone@altern.org>
+ . Blitter, Effect, bug-fix and suggestion : Espinetes
+ . PPC Port : Tatu Kilappa
+ . NRX style hotkeys: Ugenn
+
+68000 Emulation :
+ . Starscream 680x0 emulation library by Neill Corlett
+   (corlett@elwha.nrrc.ncsu.edu)
+ . 68k core from the generator genesis emulator by James Ponder
+
+Z80 Emulation :
+ . Raze by Richard Mitton.
+ . Z80 Mame core from the Mame project.
+
+YM2610 emulation:
+ . Tatsuyuki Satoh

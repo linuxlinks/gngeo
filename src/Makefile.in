@@ -1,0 +1,479 @@
+# Makefile.in generated automatically by automake 1.4-p6 from Makefile.am
+
+# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+SHELL = @SHELL@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
+
+DESTDIR =
+
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
+
+top_builddir = ..
+
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+transform = @program_transform_name@
+
+NORMAL_INSTALL = :
+PRE_INSTALL = :
+POST_INSTALL = :
+NORMAL_UNINSTALL = :
+PRE_UNINSTALL = :
+POST_UNINSTALL = :
+host_alias = @host_alias@
+host_triplet = @host@
+CC = @CC@
+HAVE_LIB = @HAVE_LIB@
+LIB = @LIB@
+LTLIB = @LTLIB@
+MAKEINFO = @MAKEINFO@
+NASM = @NASM@
+PACKAGE = @PACKAGE@
+RANLIB = @RANLIB@
+SDL_CONFIG = @SDL_CONFIG@
+VERSION = @VERSION@
+@USE_STARSCREAM_TRUE@m68k_subdir = star
+@USE_STARSCREAM_FALSE@@USE_GENERATOR68K_TRUE@m68k_subdir = generator68k
+@USE_STARSCREAM_FALSE@@USE_GENERATOR68K_FALSE@@USE_CYCLONE_TRUE@m68k_subdir = cyclone
+@USE_STARSCREAM_TRUE@m68k_lib = star/libstar.a
+@USE_STARSCREAM_FALSE@@USE_GENERATOR68K_TRUE@m68k_lib = generator68k/libgenerator68k.a
+@USE_STARSCREAM_FALSE@@USE_GENERATOR68K_FALSE@@USE_CYCLONE_TRUE@m68k_lib = cyclone/libcyclone.a
+@USE_RAZE_TRUE@z80_subdir = raze
+@USE_RAZE_FALSE@@USE_MAMEZ80_TRUE@z80_subdir = mamez80
+@USE_RAZE_FALSE@@USE_MAMEZ80_FALSE@@USE_DRZ80_TRUE@z80_subdir = drz80
+@USE_RAZE_TRUE@z80_lib = raze/libraze.a
+@USE_RAZE_FALSE@@USE_MAMEZ80_TRUE@z80_lib = mamez80/libmamez80.a
+@USE_RAZE_FALSE@@USE_MAMEZ80_FALSE@@USE_DRZ80_TRUE@z80_lib = drz80/libdrz80.a
+
+@USE_GUI_TRUE@gui_lib = gui/libgui.a
+@USE_GUI_TRUE@gui_subdir = gui
+@HAVE_NASM_TRUE@asm_lib = screen_i386.o video_i386.o
+@HAVE_NASM_FALSE@@USE_GP2X_TRUE@asm_lib = video_arm.o memcpy.o
+@HAVE_NASM_FALSE@@USE_GP2X_FALSE@asm_lib = 
+
+INCLUDES = -DDATA_DIRECTORY='"${pkgdatadir}"'
+
+SUBDIRS = effect blitter ym2610 $(m68k_subdir) $(z80_subdir) $(gui_subdir)
+
+bin_PROGRAMS = gngeo
+gngeo_SOURCES = fileio.c         pd4990a.c        streams.c         gngeo_icon.h    		sound.h          video.c          fileio.h          profiler.c      		main.c           pd4990a.h        star_interf.c     video.h         		memory.c         profiler.h       streams.h         mamez80_interf.c 		blitter.h        font.h           memory.h          raze_interf.c   		timer.c          effect.h         frame_skip.c      messages.c      		screen.c         timer.h          emu.c             frame_skip.h    		messages.h       screen.h         unzip.c           emu.h           		neocrypt.c       sound.c          unzip.h           generator68k_interf.c 		debug.c          debug.h          neocrypt.h	    state.c         		state.h          video_template.h conf.c            conf.h          		transpack.h      transpack.c      pbar.h            pbar.c          		driver.h         driver.c         list.c            list.h	    		gui_interf.c     gui_interf.h     videogl.c	    videogl.h       		cyclone_interf.c gp2x.h		  gp2x.c	    drz80_interf.c  		menu.c		 menu.h
+
+
+EXTRA_DIST = c32.mac screen_i386.asm video_i386.asm video_i386.inc getopt.h video_arm.s memcpy.S
+@USE_GP2X_TRUE@gngeo_LDADD = blitter/libblitter.a ym2610/libym2610.a $(m68k_lib) $(z80_lib) $(asm_lib) $(gui_lib) #$(LIBOBJS)
+@USE_GP2X_FALSE@gngeo_LDADD = effect/libeffect.a blitter/libblitter.a ym2610/libym2610.a $(m68k_lib) $(z80_lib) $(asm_lib) $(gui_lib) #$(LIBOBJS)
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = ../config.h
+CONFIG_CLEAN_FILES = 
+PROGRAMS =  $(bin_PROGRAMS)
+
+
+DEFS = @DEFS@ -I. -I$(srcdir) -I..
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+gngeo_OBJECTS =  fileio.o pd4990a.o streams.o video.o profiler.o main.o \
+star_interf.o memory.o mamez80_interf.o raze_interf.o timer.o \
+frame_skip.o messages.o screen.o emu.o unzip.o neocrypt.o sound.o \
+generator68k_interf.o debug.o state.o conf.o transpack.o pbar.o \
+driver.o list.o gui_interf.o videogl.o cyclone_interf.o gp2x.o \
+drz80_interf.o menu.o
+@HAVE_NASM_TRUE@@USE_GP2X_FALSE@gngeo_DEPENDENCIES =  effect/libeffect.a \
+@HAVE_NASM_TRUE@@USE_GP2X_FALSE@blitter/libblitter.a ym2610/libym2610.a \
+@HAVE_NASM_TRUE@@USE_GP2X_FALSE@screen_i386.o video_i386.o
+@HAVE_NASM_TRUE@@USE_GP2X_TRUE@gngeo_DEPENDENCIES =  \
+@HAVE_NASM_TRUE@@USE_GP2X_TRUE@blitter/libblitter.a ym2610/libym2610.a \
+@HAVE_NASM_TRUE@@USE_GP2X_TRUE@screen_i386.o video_i386.o
+@HAVE_NASM_FALSE@@USE_GP2X_FALSE@gngeo_DEPENDENCIES =  \
+@HAVE_NASM_FALSE@@USE_GP2X_FALSE@effect/libeffect.a \
+@HAVE_NASM_FALSE@@USE_GP2X_FALSE@blitter/libblitter.a \
+@HAVE_NASM_FALSE@@USE_GP2X_FALSE@ym2610/libym2610.a
+@HAVE_NASM_FALSE@@USE_GP2X_TRUE@gngeo_DEPENDENCIES =  \
+@HAVE_NASM_FALSE@@USE_GP2X_TRUE@blitter/libblitter.a ym2610/libym2610.a \
+@HAVE_NASM_FALSE@@USE_GP2X_TRUE@video_arm.o memcpy.o
+gngeo_LDFLAGS = 
+CFLAGS = @CFLAGS@
+COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
+DIST_COMMON =  Makefile.am Makefile.in
+
+
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
+
+TAR = tar
+GZIP_ENV = --best
+DIST_SUBDIRS =  effect blitter ym2610 star generator68k cyclone raze \
+mamez80 drz80 gui
+SOURCES = $(gngeo_SOURCES)
+OBJECTS = $(gngeo_OBJECTS)
+
+all: all-redirect
+.SUFFIXES:
+.SUFFIXES: .S .c .o .s
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu --include-deps src/Makefile
+
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+
+mostlyclean-binPROGRAMS:
+
+clean-binPROGRAMS:
+	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+
+distclean-binPROGRAMS:
+
+maintainer-clean-binPROGRAMS:
+
+install-binPROGRAMS: $(bin_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(bindir)
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo "  $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`"; \
+	     $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
+	  else :; fi; \
+	done
+
+uninstall-binPROGRAMS:
+	@$(NORMAL_UNINSTALL)
+	list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
+	done
+
+.c.o:
+	$(COMPILE) -c $<
+
+.s.o:
+	$(COMPILE) -c $<
+
+.S.o:
+	$(COMPILE) -c $<
+
+mostlyclean-compile:
+	-rm -f *.o core *.core
+
+clean-compile:
+
+distclean-compile:
+	-rm -f *.tab.c
+
+maintainer-clean-compile:
+
+gngeo: $(gngeo_OBJECTS) $(gngeo_DEPENDENCIES)
+	@rm -f gngeo
+	$(LINK) $(gngeo_LDFLAGS) $(gngeo_OBJECTS) $(gngeo_LDADD) $(LIBS)
+
+# This directory's subdirectories are mostly independent; you can cd
+# into them and run `make' without going through this Makefile.
+# To change the values of `make' variables: instead of editing Makefiles,
+# (1) if the variable is set in `config.status', edit `config.status'
+#     (which will cause the Makefiles to be regenerated when you run `make');
+# (2) otherwise, pass the desired values on the `make' command line.
+
+@SET_MAKE@
+
+all-recursive install-data-recursive install-exec-recursive \
+installdirs-recursive install-recursive uninstall-recursive  \
+check-recursive installcheck-recursive info-recursive dvi-recursive:
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	target=`echo $@ | sed s/-recursive//`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    dot_seen=yes; \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done; \
+	if test "$$dot_seen" = "no"; then \
+	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
+	fi; test -z "$$fail"
+
+mostlyclean-recursive clean-recursive distclean-recursive \
+maintainer-clean-recursive:
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	rev=''; list='$(SUBDIRS)'; for subdir in $$list; do \
+	  rev="$$subdir $$rev"; \
+	  test "$$subdir" != "." || dot_seen=yes; \
+	done; \
+	test "$$dot_seen" = "no" && rev=". $$rev"; \
+	target=`echo $@ | sed s/-recursive//`; \
+	for subdir in $$rev; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done && test -z "$$fail"
+tags-recursive:
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) tags); \
+	done
+
+tags: TAGS
+
+ID: $(HEADERS) $(SOURCES) $(LISP)
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	here=`pwd` && cd $(srcdir) \
+	  && mkid -f$$here/ID $$unique $(LISP)
+
+TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
+	tags=; \
+	here=`pwd`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+   if test "$$subdir" = .; then :; else \
+	    test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
+   fi; \
+	done; \
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
+	  || (cd $(srcdir) && etags -o $$here/TAGS $(ETAGS_ARGS) $$tags  $$unique $(LISP))
+
+mostlyclean-tags:
+
+clean-tags:
+
+distclean-tags:
+	-rm -f TAGS ID
+
+maintainer-clean-tags:
+
+distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
+
+subdir = src
+
+distdir: $(DISTFILES)
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
+	  if test -d $$d/$$file; then \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
+	  else \
+	    test -f $(distdir)/$$file \
+	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	    || cp -p $$d/$$file $(distdir)/$$file || :; \
+	  fi; \
+	done
+	for subdir in $(DIST_SUBDIRS); do \
+	  if test "$$subdir" = .; then :; else \
+	    test -d $(distdir)/$$subdir \
+	    || mkdir $(distdir)/$$subdir \
+	    || exit 1; \
+	    chmod 777 $(distdir)/$$subdir; \
+	    (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) top_distdir=../$(top_distdir) distdir=../$(distdir)/$$subdir distdir) \
+	      || exit 1; \
+	  fi; \
+	done
+conf.o: conf.c ../config.h getopt.h conf.h fileio.h driver.h list.h \
+	emu.h
+cyclone_interf.o: cyclone_interf.c ../config.h cyclone/Cyclone.h \
+	memory.h video.h ym2610/2610intf.h ym2610/fm.h \
+	ym2610/ymdeltat.h ym2610/../emu.h ym2610/ay8910.h state.h \
+	driver.h list.h gp2x.h emu.h debug.h conf.h
+debug.o: debug.c memory.h ../config.h video.h ym2610/2610intf.h \
+	ym2610/fm.h ym2610/ymdeltat.h ym2610/../emu.h ym2610/ay8910.h \
+	state.h driver.h list.h gp2x.h
+driver.o: driver.c ../config.h getopt.h unzip.h driver.h list.h conf.h \
+	pbar.h memory.h video.h ym2610/2610intf.h ym2610/fm.h \
+	ym2610/ymdeltat.h ym2610/../emu.h ym2610/ay8910.h state.h \
+	gp2x.h neocrypt.h menu.h
+drz80_interf.o: drz80_interf.c ../config.h emu.h memory.h video.h \
+	ym2610/2610intf.h ym2610/fm.h ym2610/ymdeltat.h ym2610/../emu.h \
+	ym2610/ay8910.h state.h driver.h list.h gp2x.h drz80/DrZ80.h
+emu.o: emu.c ../config.h emu.h memory.h video.h ym2610/2610intf.h \
+	ym2610/fm.h ym2610/ymdeltat.h ym2610/../emu.h ym2610/ay8910.h \
+	state.h driver.h list.h gp2x.h frame_skip.h pd4990a.h \
+	messages.h profiler.h debug.h timer.h streams.h sound.h \
+	screen.h neocrypt.h conf.h gui_interf.h menu.h
+fileio.o: fileio.c ../config.h getopt.h unzip.h memory.h video.h \
+	ym2610/2610intf.h ym2610/fm.h ym2610/ymdeltat.h ym2610/../emu.h \
+	ym2610/ay8910.h state.h driver.h list.h gp2x.h emu.h fileio.h \
+	neocrypt.h screen.h conf.h pbar.h sound.h
+frame_skip.o: frame_skip.c ../config.h getopt.h frame_skip.h messages.h \
+	emu.h conf.h
+generator68k_interf.o: generator68k_interf.c
+gp2x.o: gp2x.c ../config.h conf.h getopt.h gp2x.h menu.h list.h
+gui_interf.o: gui_interf.c
+list.o: list.c list.h
+main.o: main.c ../config.h getopt.h streams.h emu.h ym2610/2610intf.h \
+	ym2610/fm.h ym2610/ymdeltat.h ym2610/../emu.h ym2610/ay8910.h \
+	font.h fileio.h video.h screen.h list.h sound.h messages.h \
+	memory.h state.h driver.h gp2x.h debug.h blitter.h effect.h \
+	conf.h transpack.h gngeo_icon.h menu.h
+mamez80_interf.o: mamez80_interf.c
+memory.o: memory.c ../config.h emu.h video.h memory.h ym2610/2610intf.h \
+	ym2610/fm.h ym2610/ymdeltat.h ym2610/../emu.h ym2610/ay8910.h \
+	state.h driver.h list.h gp2x.h pd4990a.h transpack.h
+menu.o: menu.c menu.h ../config.h list.h messages.h screen.h video.h \
+	gp2x.h
+messages.o: messages.c ../config.h messages.h video.h emu.h timer.h \
+	frame_skip.h screen.h list.h
+neocrypt.o: neocrypt.c ../config.h memory.h video.h ym2610/2610intf.h \
+	ym2610/fm.h ym2610/ymdeltat.h ym2610/../emu.h ym2610/ay8910.h \
+	state.h driver.h list.h gp2x.h pbar.h
+pbar.o: pbar.c ../config.h messages.h screen.h list.h
+pd4990a.o: pd4990a.c pd4990a.h memory.h ../config.h video.h \
+	ym2610/2610intf.h ym2610/fm.h ym2610/ymdeltat.h ym2610/../emu.h \
+	ym2610/ay8910.h state.h driver.h list.h gp2x.h
+profiler.o: profiler.c ../config.h profiler.h
+raze_interf.o: raze_interf.c
+screen.o: screen.c ../config.h screen.h list.h emu.h video.h conf.h \
+	blitter.h effect.h
+sound.o: sound.c ../config.h streams.h emu.h memory.h video.h \
+	ym2610/2610intf.h ym2610/fm.h ym2610/ymdeltat.h ym2610/../emu.h \
+	ym2610/ay8910.h state.h driver.h list.h gp2x.h profiler.h
+star_interf.o: star_interf.c
+state.o: state.c ../config.h getopt.h memory.h video.h ym2610/2610intf.h \
+	ym2610/fm.h ym2610/ymdeltat.h ym2610/../emu.h ym2610/ay8910.h \
+	state.h driver.h list.h gp2x.h fileio.h screen.h
+streams.o: streams.c ../config.h emu.h sound.h
+timer.o: timer.c ../config.h emu.h timer.h state.h ym2610/fm.h \
+	ym2610/ymdeltat.h ym2610/../emu.h
+transpack.o: transpack.c ../config.h transpack.h
+unzip.o: unzip.c getopt.h unzip.h
+video.o: video.c ../config.h video.h memory.h ym2610/2610intf.h \
+	ym2610/fm.h ym2610/ymdeltat.h ym2610/../emu.h ym2610/ay8910.h \
+	state.h driver.h list.h gp2x.h emu.h messages.h screen.h \
+	frame_skip.h transpack.h pbar.h video_template.h
+videogl.o: videogl.c
+
+info-am:
+info: info-recursive
+dvi-am:
+dvi: dvi-recursive
+check-am: all-am
+check: check-recursive
+installcheck-am:
+installcheck: installcheck-recursive
+install-exec-am: install-binPROGRAMS
+install-exec: install-exec-recursive
+
+install-data-am:
+install-data: install-data-recursive
+
+install-am: all-am
+	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
+install: install-recursive
+uninstall-am: uninstall-binPROGRAMS
+uninstall: uninstall-recursive
+all-am: Makefile $(PROGRAMS)
+all-redirect: all-recursive
+install-strip:
+	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
+installdirs: installdirs-recursive
+installdirs-am:
+	$(mkinstalldirs)  $(DESTDIR)$(bindir)
+
+
+mostlyclean-generic:
+
+clean-generic:
+
+distclean-generic:
+	-rm -f Makefile $(CONFIG_CLEAN_FILES)
+	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+
+maintainer-clean-generic:
+mostlyclean-am:  mostlyclean-binPROGRAMS mostlyclean-compile \
+		mostlyclean-tags mostlyclean-generic
+
+mostlyclean: mostlyclean-recursive
+
+clean-am:  clean-binPROGRAMS clean-compile clean-tags clean-generic \
+		mostlyclean-am
+
+clean: clean-recursive
+
+distclean-am:  distclean-binPROGRAMS distclean-compile distclean-tags \
+		distclean-generic clean-am
+
+distclean: distclean-recursive
+
+maintainer-clean-am:  maintainer-clean-binPROGRAMS \
+		maintainer-clean-compile maintainer-clean-tags \
+		maintainer-clean-generic distclean-am
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+
+maintainer-clean: maintainer-clean-recursive
+
+.PHONY: mostlyclean-binPROGRAMS distclean-binPROGRAMS clean-binPROGRAMS \
+maintainer-clean-binPROGRAMS uninstall-binPROGRAMS install-binPROGRAMS \
+mostlyclean-compile distclean-compile clean-compile \
+maintainer-clean-compile install-data-recursive \
+uninstall-data-recursive install-exec-recursive \
+uninstall-exec-recursive installdirs-recursive uninstalldirs-recursive \
+all-recursive check-recursive installcheck-recursive info-recursive \
+dvi-recursive mostlyclean-recursive distclean-recursive clean-recursive \
+maintainer-clean-recursive tags tags-recursive mostlyclean-tags \
+distclean-tags clean-tags maintainer-clean-tags distdir info-am info \
+dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
+install-exec install-data-am install-data install-am install \
+uninstall-am uninstall all-redirect all-am all installdirs-am \
+installdirs mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+
+
+video_i386.o : video_i386.asm video_i386.inc
+	nasm -f elf  video_i386.asm -o video_i386.o
+
+screen_i386.o : screen_i386.asm
+	nasm -f elf  screen_i386.asm -o screen_i386.o
+
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:
