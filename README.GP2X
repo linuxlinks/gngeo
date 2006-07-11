@@ -2,23 +2,29 @@
 Here is the port of gngeo to the GP2X.
 
 Compilation from source:
-# ./configure --build=i386 --host=arm-linux --target=arm-linux --enable-gp2x=yes --disable-i386asm --enable-cyclone 
+# ./configure --build=i386 --host=arm-linux --target=arm-linux --enable-gp2x=yes --disable-i386asm --enable-cyclone --enable-drz80
 # make
 
 Instalation:
 - Just unzip the dist in a dir call gngeo or whatever
-- Put a neogeo bios (unzip it!) in the roms dir
-- Edit the conf/gngeorc if you want.
-- Put your favorites roms anywhere
+- Put a neogeo bios unjzipped in the roms dir. You should have the folowing files:
+  vs-bios.rom, usa_2slt.bin, asia-s3.rom, sp-s2.sp1, sfix.sfx and 000-lo.lo
+  If you want to play in AES mode, you will need also aes-bios.bin
+  If you want to use the universal bios, you will need uni-bios.rom
 
-Launch gngeo by chossing gngeo2x from the games menu.
+- Put your favorites roms in the roms folder
+- Edit the conf/gngeorc if you want.
+- Optional: Install Rage2x, a nice frontend dedicated to gngeo http://archive.gp2x.de/cgi-bin/cfiles.cgi?0,0,0,0,5,1294
+
+- If you don't use Rage2x, launch gngeo by chossing gngeo2x from the games menu.
 While in the game select screen, push Y to enable sound (see the bottom of the screen)
 
+- If you have Rage2x, just launch it ;) You can configure almost everything by pressing Select
+
 Jostick configuration:
-For now, it's not configurable, and don't support macro
 
 Quit: R and StickPush
-BIOS: L
+BIOS: L and StickPush (do not work with the universal bios)
 
 Neogeo             | GP2X
 __________________________
@@ -28,6 +34,8 @@ A                  : X
 B                  : B
 C                  : A
 D                  : Y
+Macro 1            : L
+Macro 2            : R
 Stick              : Stick :)
 
 BIG ROM Support:
@@ -59,8 +67,6 @@ Here is a little tutorial to enable big rom support.
 
 
 Compatibility/issue :
-- Sound is not optimized, and make the emulation slow.
-- Sound volume is fixed.
-- I'm a newbie in arm asm, so my sprite drawing optimisation may not be optimum
+- Check the wiki for a good compatibility list: http://wiki.gp2x.org/wiki/GnGeo2x
 
 That's all folk
