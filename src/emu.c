@@ -363,29 +363,31 @@ void update_p1_key(void) {
 	}
 
 	if (joy_button[0][GP2X_UP]) {
-		memory.intern_p1 &= 0xFE;return;
+		memory.intern_p1 &= 0xFE;
 	}
 	if (joy_button[0][GP2X_DOWN]) {
-		memory.intern_p1 &= 0xFD;return;
+		memory.intern_p1 &= 0xFD;
 	}
 	if (joy_button[0][GP2X_LEFT]) {
-		memory.intern_p1 &= 0xFB;return;
+		memory.intern_p1 &= 0xFB;
 	}
 	if (joy_button[0][GP2X_RIGHT]) {
-		memory.intern_p1 &= 0xF7;return;
+		memory.intern_p1 &= 0xF7;
 	}
-	//DIAGONAL
-	if (joy_button[0][GP2X_UP_LEFT]) {
-		memory.intern_p1 &= 0xFA;
-	}
-	if (joy_button[0][GP2X_DOWN_LEFT]) {
-		memory.intern_p1 &= 0xF9;
-	}
-	if (joy_button[0][GP2X_UP_RIGHT]) {
-		memory.intern_p1 &= 0xF6;
-	}
-	if (joy_button[0][GP2X_DOWN_RIGHT]) {
-		memory.intern_p1 &= 0xF5;
+	//DIAGONAL. Use them only if no ordinal has been pressed (to avoid diagonal bias)
+	if ((memory.intern_p1&0xF)==0xF) {
+		if (joy_button[0][GP2X_UP_LEFT]) {
+			memory.intern_p1 &= 0xFA;
+		}
+		if (joy_button[0][GP2X_DOWN_LEFT]) {
+			memory.intern_p1 &= 0xF9;
+		}
+		if (joy_button[0][GP2X_UP_RIGHT]) {
+			memory.intern_p1 &= 0xF6;
+		}
+		if (joy_button[0][GP2X_DOWN_RIGHT]) {
+			memory.intern_p1 &= 0xF5;
+		}
 	}
 }
 void update_p2_key(void) {

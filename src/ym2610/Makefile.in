@@ -188,19 +188,6 @@ distdir: $(DISTFILES)
 	    || cp -p $$d/$$file $(distdir)/$$file || :; \
 	  fi; \
 	done
-2610intf.o: 2610intf.c ../../config.h ay8910.h ../emu.h fm.h ymdeltat.h \
-	2610intf.h ../streams.h ../emu.h ../memory.h ../video.h \
-	../ym2610/2610intf.h ../state.h ../driver.h ../list.h ../gp2x.h \
-	../timer.h
-ay8910.o: ay8910.c ../../config.h ay8910.h ../emu.h ../streams.h \
-	../emu.h ../memory.h ../video.h ../ym2610/2610intf.h \
-	../ym2610/fm.h ../ym2610/ymdeltat.h ../ym2610/../emu.h \
-	../ym2610/ay8910.h ../state.h ../driver.h ../list.h ../gp2x.h
-fm.o: fm.c ../sound.h ay8910.h ../../config.h ../emu.h fm.h ymdeltat.h \
-	2610intf.h ../state.h
-ymdeltat.o: ymdeltat.c fm.h ymdeltat.h ../emu.h ../../config.h \
-	../state.h
-
 info-am:
 info: info-am
 dvi-am:

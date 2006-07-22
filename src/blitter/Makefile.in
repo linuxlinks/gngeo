@@ -187,12 +187,6 @@ distdir: $(DISTFILES)
 	    || cp -p $$d/$$file $(distdir)/$$file || :; \
 	  fi; \
 	done
-opengl.o: opengl.c ../../config.h
-overlay.o: overlay.c ../../config.h ../emu.h ../screen.h ../list.h \
-	../video.h ../conf.h
-soft.o: soft.c ../../config.h ../emu.h ../screen.h ../list.h ../video.h \
-	../effect.h ../conf.h ../gp2x.h
-
 info-am:
 info: info-am
 dvi-am:

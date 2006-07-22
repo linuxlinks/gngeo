@@ -71,11 +71,11 @@ SDL_CONFIG = @SDL_CONFIG@
 VERSION = @VERSION@
 
 noinst_LIBRARIES = libeffect.a
-@USE_GP2X_TRUE@libeffect_a_SOURCES = 
-@USE_GP2X_FALSE@libeffect_a_SOURCES = sai.c  scale2x.c  scanline.c scale2x.h scale3x.h 		      hq2x.c hq2x.h hq2x.dat interp.h interp.c lq2x.c lq2x.h 		      lq2x.dat hq3x.c hq3x.h hq3x.dat lq3x.c lq3x.h lq3x.dat 		      hqx_common.c hqx_common.h
 
-@USE_GP2X_TRUE@libeffect_a_LIBADD = 
-@USE_GP2X_FALSE@@HAVE_NASM_TRUE@libeffect_a_LIBADD = 2xsaimmx.o effect_i386.o hq2x16.o hq3x16.o
+libeffect_a_SOURCES = sai.c  scale2x.c  scanline.c scale2x.h scale3x.h 		      hq2x.c hq2x.h hq2x.dat interp.h interp.c lq2x.c lq2x.h 		      lq2x.dat hq3x.c hq3x.h hq3x.dat lq3x.c lq3x.h lq3x.dat 		      hqx_common.c hqx_common.h
+
+
+@HAVE_NASM_TRUE@libeffect_a_LIBADD = 2xsaimmx.o effect_i386.o hq2x16.o hq3x16.o
 
 EXTRA_DIST = 2xsaimmx.asm effect_i386.asm hq2x16.asm hq3x16.asm 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -88,12 +88,10 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I../..
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-@USE_GP2X_TRUE@libeffect_a_DEPENDENCIES = 
-@USE_GP2X_FALSE@@HAVE_NASM_TRUE@libeffect_a_DEPENDENCIES =  2xsaimmx.o \
-@USE_GP2X_FALSE@@HAVE_NASM_TRUE@effect_i386.o hq2x16.o hq3x16.o
-@USE_GP2X_TRUE@libeffect_a_OBJECTS = 
-@USE_GP2X_FALSE@libeffect_a_OBJECTS =  sai.o scale2x.o scanline.o hq2x.o \
-@USE_GP2X_FALSE@interp.o lq2x.o hq3x.o lq3x.o hqx_common.o
+@HAVE_NASM_TRUE@libeffect_a_DEPENDENCIES =  2xsaimmx.o effect_i386.o \
+@HAVE_NASM_TRUE@hq2x16.o hq3x16.o
+libeffect_a_OBJECTS =  sai.o scale2x.o scanline.o hq2x.o interp.o lq2x.o \
+hq3x.o lq3x.o hqx_common.o
 AR = ar
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -197,7 +195,6 @@ distdir: $(DISTFILES)
 	    || cp -p $$d/$$file $(distdir)/$$file || :; \
 	  fi; \
 	done
-
 info-am:
 info: info-am
 dvi-am:
@@ -268,17 +265,17 @@ distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
 
 
-@USE_GP2X_FALSE@2xsaimmx.o : 2xsaimmx.asm
-@USE_GP2X_FALSE@	nasm -f elf 2xsaimmx.asm
+2xsaimmx.o : 2xsaimmx.asm
+	nasm -f elf 2xsaimmx.asm
 
-@USE_GP2X_FALSE@effect_i386.o : effect_i386.asm
-@USE_GP2X_FALSE@	nasm -f elf effect_i386.asm
+effect_i386.o : effect_i386.asm
+	nasm -f elf effect_i386.asm
 
-@USE_GP2X_FALSE@hq2x16.o : hq2x16.asm
-@USE_GP2X_FALSE@	nasm -f elf hq2x16.asm
+hq2x16.o : hq2x16.asm
+	nasm -f elf hq2x16.asm
 
-@USE_GP2X_FALSE@hq3x16.o : hq3x16.asm
-@USE_GP2X_FALSE@	nasm -f elf hq3x16.asm
+hq3x16.o : hq3x16.asm
+	nasm -f elf hq3x16.asm
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
