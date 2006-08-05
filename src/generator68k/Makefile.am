@@ -25,7 +25,7 @@ INCLUDES = -I../ -I.
 #def68k-proto.h:	def68k def68k.def
 #	./def68k
 def68k-proto.h def68k-funcs.h def68k-iibs.h : def68k def68k.def
-	cp $(srcdir)/def68k.def .
+	if [ ! -f def68k.def ] ; then cp $(srcdir)/def68k.def . ;fi
 	./def68k
 
 cpu68k.c : def68k-proto.h
