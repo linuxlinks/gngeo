@@ -36,6 +36,7 @@ unsigned MDIV,PDIV,SCALE;
 volatile unsigned *arm940code;
 //static int fclk;
 static int cpufreq;
+static Uint32 tvoutfix_sav;
 static char name[256];
 /*
   void cpuctrl_init()
@@ -84,6 +85,26 @@ unsigned short get_920_Div()
 
 void gp2x_video_RGB_setscaling(int W, int H)
 {
+#if 1
+	printf("Some TV out Regs\n");
+	printf("TV-Out?       %04x\n",gp2x_memregs[0x2800>>1]&0x100);
+	printf("horizontal    %04x\n",gp2x_memregs[0x2906>>1]);
+	printf("vertical      %08x\n",gp2x_memregl[0x2908>>2]);
+	printf("RGB Width     %04x\n",gp2x_memregs[0x290C>>1]);
+	printf("RGB Windows   %04x\n",gp2x_memregs[0x28E2>>1]);
+	printf("MLC_DPC_X_MAX %04x\n",gp2x_memregs[0x2816>>1]);
+	printf("MLC_DPC_Y_MAX %04x\n",gp2x_memregs[0x2818>>1]);
+	// C000 28E4h / C000 28ECh / C000 28F4h / C000 28FCh
+
+	printf("STL1 ENDX     %04x\n",gp2x_memregs[0x28E4>>1]);
+	printf("STL2 ENDX     %04x\n",gp2x_memregs[0x28EC>>1]);
+	printf("STL3 ENDX     %04x\n",gp2x_memregs[0x28F4>>1]);
+	printf("STL4 ENDX     %04x\n",gp2x_memregs[0x28FC>>1]);
+
+	//gp2x_memregs[0x28E4>>1]=gp2x_memregs[0x290C>>1];
+
+	//gp2x_memregs[0x290C>>1]*=2;
+#else
  float escalaw,escalah;
  int bpp=(gp2x_memregs[0x28DA>>1]>>9)&0x3;
 
@@ -106,6 +127,7 @@ void gp2x_video_RGB_setscaling(int W, int H)
  // scale vertical
  gp2x_memregl[0x2908>>2]=(unsigned long)((float)escalah *bpp *(H/240.0));
 
+#endif
 }
 
 //volatile Uint32 *gp2x_ram;
@@ -172,7 +194,8 @@ void gp2x_quit(void) {
 
 	sync();
 	SDL_Quit();
-	
+	gp2x_video_RGB_setscaling(0,0);
+
 	if (strcmp("null",CF_STR(cf_get_item_by_name("frontend")))!=0) {
 		execl(CF_STR(cf_get_item_by_name("frontend")),
 		      CF_STR(cf_get_item_by_name("frontend")),NULL);
@@ -476,6 +499,11 @@ void gp2x_init(void) {
 	volatile unsigned int *secbuf = (unsigned int *)malloc (204800);
 
 	gp2x_ram_init();
+
+	/* Fix tvout */
+	tvoutfix_sav=gp2x_memregs[0x28E4>>1];
+	gp2x_memregs[0x28E4>>1]=gp2x_memregs[0x290C>>1];
+
 	if (CF_BOOL(cf_get_item_by_name("sound"))) {
 		gp2x_mixer=open("/dev/mixer", O_RDWR);
 		if (gp2x_mixer==-1) {

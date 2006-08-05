@@ -307,7 +307,7 @@ void open_bios(void)
     FILE *f;
     char *romfile;
     char *missedfiles=NULL;
-    char *path = CF_STR(cf_get_item_by_name("rompath"));//conf.rom_path;
+    char *path = CF_STR(cf_get_item_by_name("biospath"));//conf.rom_path;
     int len = strlen(path) + 15;
 
     if (conf.game!=NULL) free_bios_memory();
@@ -336,6 +336,10 @@ void open_bios(void)
     romfile = (char *) malloc(len);
     memset(romfile, 0, len);
 
+    missedfiles = (char *) alloca((len+2)*4);
+    memset(missedfiles, 0, len);
+
+
     if (!conf.special_bios) {
       memory.bios = (Uint8 *) malloc(0x20000);
       CHECK_ALLOC(memory.bios);
@@ -361,10 +365,8 @@ void open_bios(void)
       }
       f = fopen(romfile, "rb");
       if (f == NULL) {
-	      missedfiles = (char *) malloc((len+2)*4);
-	      memset(missedfiles, 0, len);
-
 	      sprintf(missedfiles,"%s\n %s",missedfiles, romfile);
+	      //sprintf(missedfiles,"%s",romfile);
       } else {
 	      fread(memory.bios, 1, 0x20000, f);
 	      fclose(f);
@@ -394,7 +396,7 @@ void open_bios(void)
 	    gn_popup_error(" Error! :","The following bios files\n"
 			   "are missing:\n %s",missedfiles);
 #else
-	    printf("The following bios files are missing :\n %s",missedfiles);
+	    printf("The following bios files are missing :\n %s\n",missedfiles);
 #endif
 	    exit(1);
     }

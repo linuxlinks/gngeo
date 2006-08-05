@@ -101,9 +101,9 @@ all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu --include-deps src/raze/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu src/raze/Makefile
 
-Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
@@ -116,9 +116,6 @@ clean-noinstLIBRARIES:
 distclean-noinstLIBRARIES:
 
 maintainer-clean-noinstLIBRARIES:
-
-.c.o:
-	$(COMPILE) -c $<
 
 .s.o:
 	$(COMPILE) -c $<
@@ -149,6 +146,11 @@ distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 subdir = src/raze
 
 distdir: $(DISTFILES)
+	here=`cd $(top_builddir) && pwd`; \
+	top_distdir=`cd $(top_distdir) && pwd`; \
+	distdir=`cd $(distdir) && pwd`; \
+	cd $(top_srcdir) \
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu src/raze/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
@@ -228,21 +230,28 @@ distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
 
 
+#raze.asmu : raze.asm
+#	$(srcdir)/strip_ raze.asm raze.asmu
+
+#raze.incu : raze.inc
+#	$(srcdir)/strip_ raze.inc raze.incu
+
+#raze.regu : raze.reg
+#	$(srcdir)/strip_ raze.reg raze.regu
+
 raze.asmu : raze.asm
-	./strip_ raze.asm raze.asmu
-
+	$(srcdir)/strip_ $< $@
 raze.incu : raze.inc
-	./strip_ raze.inc raze.incu
-
+	$(srcdir)/strip_ $< $@
 raze.regu : raze.reg
-	./strip_ raze.reg raze.regu
+	$(srcdir)/strip_ $< $@
 
 raze2.asm: raze.asmu raze.incu raze.regu
-	nasm -w+orphan-labels -e $< -o $@
+	nasm -w+orphan-labels -I $(srcdir)/ -e $< -o $@
 
 # This assembles the file, once it's been pre-processed
 raze.o: raze2.asm
-	nasm -w+orphan-labels -f elf $< -o $@ -praze.regu
+	nasm -w+orphan-labels -f elf -I $(srcdir)/ $< -o $@ -praze.regu
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

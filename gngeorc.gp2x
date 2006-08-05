@@ -8,7 +8,8 @@
 rompath ./roms
 
 # and the driver file (copy it from the gngeo archive) ?
-romrc ./romrc
+# romrc ./romrc
+romrcdir ./romrc.d
 
 # Play in fullscreen?
 fullscreen false

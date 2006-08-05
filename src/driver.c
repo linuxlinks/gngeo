@@ -192,7 +192,8 @@ static void add_driver(FILE *f)
     }
 
 
-    driver_list=list_prepend(driver_list,dr);
+    //driver_list=list_prepend(driver_list,dr);
+    driver_list=list_append(driver_list,dr);
 }
 
 static void print_driver(void *data) {

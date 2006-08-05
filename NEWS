@@ -1,3 +1,13 @@
+ change in xxxxx
+	. Fix various automake stuff to allow Multi-Architecture Builds (still some work to do)
+	. Romrc.d officially replace the big romrc file. Every game have a unique file (ie: mslug.rc)
+	  that go to $(prefix)/share/gngeo/romrc.d by default. The path is configurable via the romrcdir
+	  option
+	. Add biospath option. This option tel where the bios is. Now you can have your roms and your bios
+	  in different place
+	. GP2X: Fix TVout with Selector (still some work to do)
+	. Fix a bug with error handling when a bios file isn't present.
+
  change in 0.6.12
 	. Add an option to under/overclock the z80: --z80clock=-20 will 
 	  underclock it by 20%

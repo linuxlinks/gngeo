@@ -5565,7 +5565,7 @@ _ACEOF
 #                    -ffast-math -malign-functions=4 -malign-jumps=4 \
 #                    -malign-loops=4 -g -pg"
 
-                                                                                                                                  ac_config_files="$ac_config_files Makefile src/Makefile src/raze/Makefile src/star/Makefile src/mamez80/Makefile src/generator68k/Makefile src/cyclone/Makefile src/drz80/Makefile src/effect/Makefile src/blitter/Makefile src/ym2610/Makefile src/gui/Makefile data/Makefile"
+                                                                                                                                            ac_config_files="$ac_config_files Makefile src/Makefile src/raze/Makefile src/star/Makefile src/mamez80/Makefile src/generator68k/Makefile src/cyclone/Makefile src/drz80/Makefile src/effect/Makefile src/blitter/Makefile src/ym2610/Makefile src/gui/Makefile romrc.d/Makefile data/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -6114,6 +6114,7 @@ do
   "src/blitter/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/blitter/Makefile" ;;
   "src/ym2610/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/ym2610/Makefile" ;;
   "src/gui/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/gui/Makefile" ;;
+  "romrc.d/Makefile" ) CONFIG_FILES="$CONFIG_FILES romrc.d/Makefile" ;;
   "data/Makefile" ) CONFIG_FILES="$CONFIG_FILES data/Makefile" ;;
   "default-1" ) CONFIG_COMMANDS="$CONFIG_COMMANDS default-1" ;;
   "config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;

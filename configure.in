@@ -271,6 +271,7 @@ AC_CONFIG_FILES([Makefile
 	 src/blitter/Makefile
 	 src/ym2610/Makefile
 	 src/gui/Makefile
+	 romrc.d/Makefile
 	 data/Makefile])
 AC_OUTPUT
 

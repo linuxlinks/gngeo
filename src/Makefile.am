@@ -76,9 +76,12 @@ else
 gngeo_LDADD = effect/libeffect.a blitter/libblitter.a ym2610/libym2610.a $(m68k_lib) $(z80_lib) $(asm_lib) $(gui_lib) #$(LIBOBJS)
 endif
 
-video_i386.o : video_i386.asm video_i386.inc
-	nasm -f elf  video_i386.asm -o video_i386.o
+#video_i386.o : video_i386.asm video_i386.inc
+#	nasm -f elf  video_i386.asm -o video_i386.o
 
-screen_i386.o : screen_i386.asm
-	nasm -f elf  screen_i386.asm -o screen_i386.o
+#screen_i386.o : screen_i386.asm
+#	nasm -f elf  screen_i386.asm -o screen_i386.o
 
+video_i386.o : video_i386.inc
+video_i386.o screen_i386.o : %.o: %.asm
+	nasm -f elf -I $(srcdir)/ $<  -o $@ 

@@ -4,11 +4,11 @@ EXTRA_DIST =  star.c  starcpu.h  stardoc.txt  strip_
 libstar_a_LIBADD = star.o
 
 mkstar : star.c starcpu.h
-	$(CC)  star.c -o mkstar
+	$(CC)  $(srcdir)/star.c -o mkstar
 
 star.asm : mkstar
 	./mkstar _star.asm -hog
-	./strip_ _star.asm star.asm
+	$(srcdir)/strip_ _star.asm star.asm
 
-star.o : star.asm
-	nasm -f elf star.asm
+star.o : %.o: %.asm
+	nasm -f elf -I $(srcdir)/ $<

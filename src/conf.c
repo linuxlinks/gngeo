@@ -333,6 +333,7 @@ void cf_init(void)
     cf_create_string_item("country","Set the contry to japan, asia, usa or europe",0,"europe");
     cf_create_string_item("system","Set the system to home or arcade",0,"arcade");
     cf_create_string_item("rompath","Use STRING as rom path",'i',DATA_DIRECTORY);
+    cf_create_string_item("biospath","Use STRING as bios path",'B',DATA_DIRECTORY);
     cf_create_string_item("romrc","Use STRING as romrc file",'d',DATA_DIRECTORY"/romrc");
     cf_create_string_item("romrcdir","Use STRING as romrc.d directory",0,DATA_DIRECTORY"/romrc.d");
     cf_create_string_item("libglpath","Use STRING as libGL",0,"/usr/lib/libGL.so");

@@ -252,7 +252,9 @@ int main(int argc, char *argv[])
     //nopt=cf_get_non_opt_index(argc,argv);
     rom_name=cf_parse_cmd_line(argc,argv); /* First pass */
 
-    dr_load_driver(CF_STR(cf_get_item_by_name("romrc")));
+    /* First try to suppress the romrc in favor of romrc.d */
+    //dr_load_driver(CF_STR(cf_get_item_by_name("romrc")));
+
     dr_load_driver_dir(CF_STR(cf_get_item_by_name("romrcdir")));
 
     /* print effect/blitter list if asked by user */

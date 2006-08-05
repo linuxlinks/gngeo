@@ -55,11 +55,12 @@ blitter_soft_init()
 #ifdef GP2X
 	//screen = SDL_SetVideoMode(width, height, 16, sdl_flags);
 
+	//gp2x_video_RGB_setscaling(320, 240);
 	screen = SDL_SetVideoMode(320, 240, 16, sdl_flags);
 	
 	
 	//screen = SDL_SetVideoMode(304, 224, 16, sdl_flags);
-	//gp2x_video_RGB_setscaling(320, 240);
+
 
 	if (width!=320) {
 		screen_rect.x=8;

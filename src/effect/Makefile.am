@@ -9,16 +9,20 @@ if HAVE_NASM
 libeffect_a_LIBADD = 2xsaimmx.o effect_i386.o hq2x16.o hq3x16.o
 endif
 
-2xsaimmx.o : 2xsaimmx.asm
-	nasm -f elf 2xsaimmx.asm
 
-effect_i386.o : effect_i386.asm
-	nasm -f elf effect_i386.asm
+#2xsaimmx.o : 2xsaimmx.asm
+#	nasm -f elf -I $(srcdir)/ $(srcdir)/2xsaimmx.asm && mv $(srcdir)/
 
-hq2x16.o : hq2x16.asm
-	nasm -f elf hq2x16.asm
+#effect_i386.o : effect_i386.asm
+#	nasm -f elf -I $(srcdir)/ $(srcdir)/effect_i386.asm  -o $(srcdir)/%.o
 
-hq3x16.o : hq3x16.asm
-	nasm -f elf hq3x16.asm
+#hq2x16.o : hq2x16.asm
+#	nasm -f elf -I $(srcdir)/ $(srcdir)/hq2x16.asm  -o $(srcdir)/%.o
+
+#hq3x16.o : hq3x16.asm
+#	nasm -f elf -I $(srcdir)/ $(srcdir)/hq3x16.asm  -o $(srcdir)/%.o
+
+2xsaimmx.o effect_i386.o hq2x16.o hq3x16.o: %.o: %.asm
+	nasm -f elf -I $(srcdir)/ $< -o $@ 
 
 EXTRA_DIST = 2xsaimmx.asm effect_i386.asm hq2x16.asm hq3x16.asm 
