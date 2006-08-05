@@ -66,14 +66,14 @@ MOSTLYCLEANFILES = ${BUILT_SOURCES} ${head_SOURCES}
 
 #def68k : def68k.c
 #	gcc def68k.c tab68k.c -o def68k -I .. -I ../.. -I . `sdl-config --cflags`
-tab68k.o def68k.o gen68k.o: %.o : %.c
+def68k.o gen68k.o: %.o : %.c
 	$(CC_FOR_BUILD) -c $< -o $@ -I .. -I ../.. -I . `sdl-config --cflags`
 
-def68k : def68k.o tab68k.o
-	$(CC_FOR_BUILD) def68k.o tab68k.o -o $@ 
+def68k : def68k.o
+	$(CC_FOR_BUILD) def68k.o -o $@ 
 
-gen68k : gen68k.o tab68k.o
-	$(CC_FOR_BUILD) gen68k.o tab68k.o -o $@
+gen68k : gen68k.o
+	$(CC_FOR_BUILD) gen68k.o -o $@
 
 #compile.o : compile.c 
 #	$(COMPILE) -c $< -o $@

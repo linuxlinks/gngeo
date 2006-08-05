@@ -10,7 +10,13 @@ AM_CONFIG_HEADER(config.h)
 # devel version
 AM_INIT_AUTOMAKE(gngeo,20060711)
 
+# it's not optimal, but at least, it work
+if test -z "$CC_FOR_BUILD"; then
+  CC_FOR_BUILD=gcc
+fi
+AC_SUBST(CC_FOR_BUILD)
 
+# Humm is this a good idea?
 CFLAGS=""
 
  #echo $CC
@@ -19,10 +25,7 @@ CFLAGS=""
 AC_PROG_CC
 AC_PROG_RANLIB
 
-if test -z "$CC_FOR_BUILD"; then
-  CC_FOR_BUILD=$CC
-fi
-AC_SUBST(CC_FOR_BUILD)
+
 
 #echo $CC
 

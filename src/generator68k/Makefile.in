@@ -368,7 +368,7 @@ maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 #def68k-proto.h:	def68k def68k.def
 #	./def68k
 def68k-proto.h def68k-funcs.h def68k-iibs.h : def68k def68k.def
-	cp $(srcdir)/def68k.def .
+	if [ ! -f def68k.def ] ; then cp $(srcdir)/def68k.def . ;fi
 	./def68k
 
 cpu68k.c : def68k-proto.h
@@ -381,14 +381,14 @@ cpu68k.c : def68k-proto.h
 
 #def68k : def68k.c
 #	gcc def68k.c tab68k.c -o def68k -I .. -I ../.. -I . `sdl-config --cflags`
-tab68k.o def68k.o gen68k.o: %.o : %.c
+def68k.o gen68k.o: %.o : %.c
 	$(CC_FOR_BUILD) -c $< -o $@ -I .. -I ../.. -I . `sdl-config --cflags`
 
-def68k : def68k.o tab68k.o
-	$(CC_FOR_BUILD) def68k.o tab68k.o -o $@ 
+def68k : def68k.o
+	$(CC_FOR_BUILD) def68k.o -o $@ 
 
-gen68k : gen68k.o tab68k.o
-	$(CC_FOR_BUILD) gen68k.o tab68k.o -o $@
+gen68k : gen68k.o
+	$(CC_FOR_BUILD) gen68k.o -o $@
 
 $(CPU_SOURCE) : gen68k
 	./gen68k
