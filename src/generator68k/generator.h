@@ -1,4 +1,6 @@
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
 
 #ifndef _GENERATOR_H_
 #define _GENERATOR_H_

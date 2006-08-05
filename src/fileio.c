@@ -336,10 +336,6 @@ void open_bios(void)
     romfile = (char *) malloc(len);
     memset(romfile, 0, len);
 
-    missedfiles = (char *) alloca((len+2)*4);
-    memset(missedfiles, 0, len);
-
-
     if (!conf.special_bios) {
       memory.bios = (Uint8 *) malloc(0x20000);
       CHECK_ALLOC(memory.bios);
@@ -365,6 +361,10 @@ void open_bios(void)
       }
       f = fopen(romfile, "rb");
       if (f == NULL) {
+	      if (!missedfiles) {
+		          missedfiles = (char *) malloc((len+2)*4);
+			  memset(missedfiles, 0, len);
+	      }
 	      sprintf(missedfiles,"%s\n %s",missedfiles, romfile);
 	      //sprintf(missedfiles,"%s",romfile);
       } else {
@@ -376,6 +376,10 @@ void open_bios(void)
     sprintf(romfile, "%s/sfix.sfx", path);
     f = fopen(romfile, "rb");
     if (f == NULL) {
+	    if (!missedfiles) {
+		    missedfiles = (char *) malloc((len+2)*4);
+		    memset(missedfiles, 0, len);
+	    }
 	    sprintf(missedfiles,"%s\n %s",missedfiles, romfile);
     } else {
 	    fread(memory.sfix_board, 1, 0x20000, f);
@@ -385,6 +389,10 @@ void open_bios(void)
     sprintf(romfile, "%s/000-lo.lo", path);
     f = fopen(romfile, "rb");
     if (f == NULL) {
+	    if (!missedfiles) {
+		    missedfiles = (char *) malloc((len+2)*4);
+		    memset(missedfiles, 0, len);
+	    }
 	    sprintf(missedfiles,"%s\n %s",missedfiles, romfile);
     } else {
 	    fread(memory.ng_lo, 1, 0x10000, f);

@@ -19,6 +19,11 @@ CFLAGS=""
 AC_PROG_CC
 AC_PROG_RANLIB
 
+if test -z "$CC_FOR_BUILD"; then
+  CC_FOR_BUILD=$CC
+fi
+AC_SUBST(CC_FOR_BUILD)
+
 #echo $CC
 
 CC_VERSION=`$CC -dumpversion`

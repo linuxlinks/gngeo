@@ -18,11 +18,14 @@ INCLUDES = -I../ -I.
 
 #head$(EXEEXT):	def68k-iibs.h def68k-funcs.h def68k-proto.h
 
-def68k-iibs.h:	def68k def68k.def
-	./def68k
-def68k-funcs.h:	def68k def68k.def
-	./def68k
-def68k-proto.h:	def68k def68k.def
+#def68k-iibs.h:	def68k def68k.def
+#	./def68k
+#def68k-funcs.h:	def68k def68k.def
+#	./def68k
+#def68k-proto.h:	def68k def68k.def
+#	./def68k
+def68k-proto.h def68k-funcs.h def68k-iibs.h : def68k def68k.def
+	cp $(srcdir)/def68k.def .
 	./def68k
 
 cpu68k.c : def68k-proto.h
@@ -40,14 +43,14 @@ libgenerator68k_a_SOURCES = cpu68k.c reg68k.c registers.h diss68k.c \
 libgenerator68k_a_LIBADD = cpu68k-0.o cpu68k-1.o cpu68k-2.o cpu68k-3.o \
                           cpu68k-4.o cpu68k-5.o cpu68k-6.o cpu68k-7.o \
                           cpu68k-8.o cpu68k-9.o cpu68k-a.o cpu68k-b.o \
-                          cpu68k-c.o cpu68k-d.o cpu68k-e.o cpu68k-f.o compile.o
+                          cpu68k-c.o cpu68k-d.o cpu68k-e.o cpu68k-f.o #compile.o
 
 
 libgenerator68k_a_DEPENDENCIES = cpu68k-0.o cpu68k-1.o cpu68k-2.o cpu68k-3.o \
                           cpu68k-4.o cpu68k-5.o cpu68k-6.o cpu68k-7.o \
                           cpu68k-8.o cpu68k-9.o cpu68k-a.o cpu68k-b.o \
                           cpu68k-c.o cpu68k-d.o cpu68k-e.o cpu68k-f.o \
-			  def68k-iibs.h compile.o
+			  def68k-iibs.h #compile.o
 
 EXTRA_DIST = def68k.def compile.cg ccg/alpha ccg/asm-i386.h ccg/asm-sparc.h \
 		ccg/asm-ppc.h ccg/asm-cache.h ccg/asm-common.h ccg/ccg.c \
@@ -55,84 +58,104 @@ EXTRA_DIST = def68k.def compile.cg ccg/alpha ccg/asm-i386.h ccg/asm-sparc.h \
 
 MOSTLYCLEANFILES = ${BUILT_SOURCES} ${head_SOURCES}
 
-ccg/ccg : ccg/ccg.c
-	$(COMPILE) -DCCGVERSION="\"1.1\""  ccg/ccg.c -o ccg/ccg
+#ccg/ccg : ccg/ccg.c
+#	$(COMPILE) -DCCGVERSION="\"1.1\""  ccg/ccg.c -o ccg/ccg
 
-compile.c : compile.cg ccg/ccg
-	./ccg/ccg -o compile.c compile.cg
+#compile.c : compile.cg ccg/ccg
+#	./ccg/ccg -o compile.c compile.cg
 
-def68k : def68k.c
-	gcc def68k.c tab68k.c -o def68k -I .. -I ../.. -I . `sdl-config --cflags`
+#def68k : def68k.c
+#	gcc def68k.c tab68k.c -o def68k -I .. -I ../.. -I . `sdl-config --cflags`
+tab68k.o def68k.o gen68k.o: %.o : %.c
+	$(CC_FOR_BUILD) -c $< -o $@ -I .. -I ../.. -I . `sdl-config --cflags`
 
-gen68k : gen68k.c
-	gcc gen68k.c tab68k.c -o gen68k -I .. -I ../.. -I .  `sdl-config --cflags`
+def68k : def68k.o tab68k.o
+	$(CC_FOR_BUILD) def68k.o tab68k.o -o $@ 
 
-compile.o : compile.c 
-	$(COMPILE) -c compile.c
+gen68k : gen68k.o tab68k.o
+	$(CC_FOR_BUILD) gen68k.o tab68k.o -o $@
 
-cpu68k-0.c:	gen68k
-	./gen68k
-cpu68k-1.c:	gen68k
-	./gen68k
-cpu68k-2.c:	gen68k
-	./gen68k
-cpu68k-3.c:	gen68k
-	./gen68k
-cpu68k-4.c:	gen68k
-	./gen68k
-cpu68k-5.c:	gen68k
-	./gen68k
-cpu68k-6.c:	gen68k
-	./gen68k
-cpu68k-7.c:	gen68k
-	./gen68k
-cpu68k-8.c:	gen68k
-	./gen68k
-cpu68k-9.c:	gen68k
-	./gen68k
-cpu68k-a.c:	gen68k
-	./gen68k
-cpu68k-b.c:	gen68k
-	./gen68k
-cpu68k-c.c:	gen68k
-	./gen68k
-cpu68k-d.c:	gen68k
-	./gen68k
-cpu68k-e.c:	gen68k
-	./gen68k
-cpu68k-f.c:	gen68k
+#compile.o : compile.c 
+#	$(COMPILE) -c $< -o $@
+
+CPU_SOURCE = cpu68k-0.c  cpu68k-1.c  cpu68k-2.c  cpu68k-3.c  \
+	     cpu68k-4.c  cpu68k-5.c  cpu68k-6.c  cpu68k-7.c  \
+	     cpu68k-8.c  cpu68k-9.c  cpu68k-a.c  cpu68k-b.c  \
+	     cpu68k-c.c  cpu68k-d.c  cpu68k-e.c  cpu68k-f.c
+
+CPU_OBJ    = cpu68k-0.o  cpu68k-1.o  cpu68k-2.o  cpu68k-3.o  \
+	     cpu68k-4.o  cpu68k-5.o  cpu68k-6.o  cpu68k-7.o  \
+	     cpu68k-8.o  cpu68k-9.o  cpu68k-a.o  cpu68k-b.o  \
+	     cpu68k-c.o  cpu68k-d.o  cpu68k-e.o  cpu68k-f.o
+
+$(CPU_SOURCE) : gen68k
 	./gen68k
 
-cpu68k-0.o: cpu68k-0.c
-	$(COMPILE) -c cpu68k-0.c
-cpu68k-1.o: cpu68k-1.c
-	$(COMPILE) -c cpu68k-1.c
-cpu68k-2.o: cpu68k-2.c
-	$(COMPILE) -c cpu68k-2.c
-cpu68k-3.o: cpu68k-3.c
-	$(COMPILE) -c cpu68k-3.c
-cpu68k-4.o: cpu68k-4.c
-	$(COMPILE) -c cpu68k-4.c
-cpu68k-5.o: cpu68k-5.c
-	$(COMPILE) -c cpu68k-5.c
-cpu68k-6.o: cpu68k-6.c
-	$(COMPILE) -c cpu68k-6.c
-cpu68k-7.o: cpu68k-7.c
-	$(COMPILE) -c cpu68k-7.c
-cpu68k-8.o: cpu68k-8.c
-	$(COMPILE) -c cpu68k-8.c
-cpu68k-9.o: cpu68k-9.c
-	$(COMPILE) -c cpu68k-9.c
+$(CPU_OBJ) : %.o : %.c
+	$(COMPILE) -c $< -o $@
 
-cpu68k-a.o: cpu68k-a.c
-	$(COMPILE) -c cpu68k-a.c
-cpu68k-b.o: cpu68k-b.c
-	$(COMPILE) -c cpu68k-b.c
-cpu68k-c.o: cpu68k-c.c
-	$(COMPILE) -c cpu68k-c.c
-cpu68k-d.o: cpu68k-d.c
-	$(COMPILE) -c cpu68k-d.c
-cpu68k-e.o: cpu68k-e.c
-	$(COMPILE) -c cpu68k-e.c
-cpu68k-f.o: cpu68k-f.c
-	$(COMPILE) -c cpu68k-f.c
+#cpu68k-0.c:	gen68k
+#	./gen68k
+#cpu68k-1.c:	gen68k
+#	./gen68k
+#cpu68k-2.c:	gen68k
+#	./gen68k
+#cpu68k-3.c:	gen68k
+#	./gen68k
+#cpu68k-4.c:	gen68k
+#	./gen68k
+#cpu68k-5.c:	gen68k
+#	./gen68k
+#cpu68k-6.c:	gen68k
+#	./gen68k
+#cpu68k-7.c:	gen68k
+#	./gen68k
+#cpu68k-8.c:	gen68k
+#	./gen68k
+#cpu68k-9.c:	gen68k
+#	./gen68k
+#cpu68k-a.c:	gen68k
+#	./gen68k
+#cpu68k-b.c:	gen68k
+#	./gen68k
+#cpu68k-c.c:	gen68k
+#	./gen68k
+#cpu68k-d.c:	gen68k
+#	./gen68k
+#cpu68k-e.c:	gen68k
+#	./gen68k
+#cpu68k-f.c:	gen68k
+#	./gen68k
+
+#cpu68k-0.o: cpu68k-0.c
+#	$(COMPILE) -c cpu68k-0.c
+#cpu68k-1.o: cpu68k-1.c
+#	$(COMPILE) -c cpu68k-1.c
+#cpu68k-2.o: cpu68k-2.c
+#	$(COMPILE) -c cpu68k-2.c
+#cpu68k-3.o: cpu68k-3.c
+#	$(COMPILE) -c cpu68k-3.c
+#cpu68k-4.o: cpu68k-4.c
+#	$(COMPILE) -c cpu68k-4.c
+#cpu68k-5.o: cpu68k-5.c
+#	$(COMPILE) -c cpu68k-5.c
+#cpu68k-6.o: cpu68k-6.c
+#	$(COMPILE) -c cpu68k-6.c
+#cpu68k-7.o: cpu68k-7.c
+#	$(COMPILE) -c cpu68k-7.c
+#cpu68k-8.o: cpu68k-8.c
+#	$(COMPILE) -c cpu68k-8.c
+#cpu68k-9.o: cpu68k-9.c
+#	$(COMPILE) -c cpu68k-9.c
+#cpu68k-a.o: cpu68k-a.c
+#	$(COMPILE) -c cpu68k-a.c
+#cpu68k-b.o: cpu68k-b.c
+#	$(COMPILE) -c cpu68k-b.c
+#cpu68k-c.o: cpu68k-c.c
+#	$(COMPILE) -c cpu68k-c.c
+#cpu68k-d.o: cpu68k-d.c
+#	$(COMPILE) -c cpu68k-d.c
+#cpu68k-e.o: cpu68k-e.c
+#	$(COMPILE) -c cpu68k-e.c
+#cpu68k-f.o: cpu68k-f.c
+#	$(COMPILE) -c cpu68k-f.c
