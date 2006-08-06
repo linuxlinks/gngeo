@@ -7,6 +7,7 @@
 	  in different place
 	. GP2X: Fix TVout with Selector (still some work to do)
 	. Fix a bug with error handling when a bios file isn't present.
+	. GP2X: Change key combination to quit to L & R & VOL_UP & VOL_DOWN
 
  change in 0.6.12
 	. Add an option to under/overclock the z80: --z80clock=-20 will 

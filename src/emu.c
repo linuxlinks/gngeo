@@ -765,7 +765,9 @@ void main_loop(void)
 			conf.test_switch = 1;
 			break;
 		}
-		if ((joy_button[0][GP2X_PUSH]) && (joy_button[0][GP2X_R])) {
+		//if ((joy_button[0][GP2X_PUSH]) && (joy_button[0][GP2X_R])) {
+		if (joy_button[0][GP2X_R] && joy_button[0][GP2X_L] &&
+		    joy_button[0][GP2X_VOL_DOWN] && joy_button[0][GP2X_VOL_UP]) {
 			//run_menu();
 			neo_emu_done = 1;
 			break;
