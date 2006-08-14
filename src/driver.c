@@ -55,13 +55,13 @@ static LIST *driver_list=NULL;
 static SDL_bool goto_next_driver(FILE * f)
 {
     char buf[512];
-    char game[10], type[10];
+    char game[12], type[10];
     long pos;
 
     while (!feof(f)) {
 	pos=ftell(f);
-	fgets(buf, 510, f);
-	if (sscanf(buf, "game %10s %10s", game, type) >= 2) {
+	my_fgets(buf, 510, f);
+	if (sscanf(buf, "game %12s %10s", game, type) >= 2) {
 	    fseek(f,pos,SEEK_SET);
 	    return SDL_TRUE;
 	}
@@ -99,10 +99,10 @@ static void add_driver_section(Uint32 s, SECTION *sec,FILE *f) {
     //  printf("SECTION size=%x\n",sec->size);
     while (1) {
         SECTION_ITEM *item;
-        fgets(buf, 511, f);
-        if (strcmp(buf, "END\n") == 0)
+        my_fgets(buf, 511, f);
+        if (strcmp(buf, "END") == 0)
             break;
-        sscanf(buf, "%s %x %x %s\n", a, &offset, &size, b);
+        sscanf(buf, "%s %x %x %s", a, &offset, &size, b);
         item=malloc(sizeof(SECTION_ITEM));
 	CHECK_ALLOC(item);
 
@@ -116,46 +116,53 @@ static void add_driver_section(Uint32 s, SECTION *sec,FILE *f) {
 }
 
 /* add driver define in f */
-static void add_driver(FILE *f)
+static void add_driver(FILE *f,char *fullname)
 {
-    DRIVER *dr;
+	DRIVER *dr;
     char buf[512], a[64], b[64];
     Uint32 s, size, offset;
     int sec;
-    char game[10], type[10];
+    char game[12], type[10];
     char *t;
 
     dr=malloc(sizeof(DRIVER));
     CHECK_ALLOC(dr);
 
     /* TODO: driver creation */
-    fgets(buf, 510, f);
-    sscanf(buf, "game %10s %10s", game, type);
+    my_fgets(buf, 510, f);
+    sscanf(buf, "game %12s %10s", game, type);
     dr->name=strdup(game);
     dr->rom_type=get_romtype_by_name(type);
     dr->special_bios=0;
     dr->banksw_type=BANKSW_NORMAL;
     dr->sfix_bank=0;
+
+#if 0
     t = strchr(buf, '"');
     if (t) {
-	char *e;
-	t+=1;
-	e=strchr(t, '"');
-	if (e) {
-	    e[0]=0;
-	    dr->longname=strdup(t);
-	} else
-	    dr->longname=NULL;
+	    char *e;
+	    t+=1;
+	    e=strchr(t, '"');
+	    if (e) {
+		    e[0]=0;
+		    dr->longname=strdup(t);
+	    } else
+		    dr->longname=NULL;
     }
     else dr->longname=NULL;
+#endif
+    if (fullname)
+	    dr->longname=strdup(fullname);
+    else
+	    dr->longname=NULL;
 
     //printf("Add %8s | %s \n",dr->name,dr->longname);
 
     while (1) {
-	fgets(buf, 511, f);
-	if (strcmp(buf, "END\n") == 0)
+	my_fgets(buf, 511, f);
+	if (strcmp(buf, "END") == 0)
 	    break;
-	sscanf(buf, "%s %x\n", a, &s);
+	sscanf(buf, "%s %x", a, &s);
 	sec=get_sec_by_name(a);
 	if (sec==-1) {
 	    int b=0;
@@ -166,10 +173,10 @@ static void add_driver(FILE *f)
 		dr->banksw_type=s;
 		if(s==BANKSW_SCRAMBLE) {
 		    /* not implemented yet */
-		    fgets(buf,511,f);
+		    my_fgets(buf,511,f);
 		    sscanf(buf,"%x",&dr->banksw_addr);
-		    fgets(buf, 511, f);
-		    sscanf(buf, "%d %d %d %d %d %d\n",
+		    my_fgets(buf, 511, f);
+		    sscanf(buf, "%d %d %d %d %d %d",
 			   (int *) &dr->banksw_unscramble[0],
 			   (int *) &dr->banksw_unscramble[1],
 			   (int *) &dr->banksw_unscramble[2],
@@ -177,10 +184,10 @@ static void add_driver(FILE *f)
 			   (int *) &dr->banksw_unscramble[4],
 			   (int *) &dr->banksw_unscramble[5]);
 		    while (1) {
-			fgets(buf, 511, f);
-			if (strcmp(buf, "END\n") == 0)
+			my_fgets(buf, 511, f);
+			if (strcmp(buf, "END") == 0)
 			    break;
-			sscanf(buf,"%x\n", &dr->banksw_off[b]);
+			sscanf(buf,"%x", &dr->banksw_off[b]);
 			b++;
 		    }
 		}
@@ -234,15 +241,25 @@ SDL_bool dr_load_driver_dir(char *dirname) {
 SDL_bool dr_load_driver(char *filename) {
     FILE *f;
     LIST *i;
-
+    char buf[512],*fullname;
 
     f=fopen(filename,"r");
     if (!f) {
 	printf("Couldn't find %s\n",filename);
 	return SDL_FALSE;
     }
+    /* fill game information */
+    my_fgets(buf, 510, f);
+    
+    if (strncmp(buf,"longname ",9)==0) {
+	    fullname=buf+9; /* hummm, caca... */
+	    //chomp(fullname);
+    } else {
+	    fullname=NULL;
+    }
+
     while(goto_next_driver(f)==SDL_TRUE) {
-	add_driver(f);
+	add_driver(f,fullname);
     }
 
     //list_foreach(driver_list,print_driver);
@@ -852,7 +869,7 @@ void dr_list_all(void) {
     }
     for(l=t;l;l=l->next) {
 	DRIVER *dr=l->data;
-	printf("%-8s : %s\n",dr->name,dr->longname);
+	printf("%-12s : %s\n",dr->name,dr->longname);
     }
 }
 

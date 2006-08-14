@@ -50,6 +50,33 @@ Uint8 *current_buf;
 //extern Uint8 fix_buffer[0x20000];
 char *rom_file;
 
+void chomp(char *str) {
+	int i=0;
+	if (str) {
+		while (str[i]!=0) {printf(" %d ",str[i]);i++;}
+		printf("\n");
+		if (str[i-1]==0x0A || str[i-1] == 0x0D) str[i-1]=0;
+		if (str[i-2]==0x0A || str[i-2] == 0x0D) str[i-2]=0;
+		
+	}
+}
+
+/* like standard fgets, but work with unix/dos line ending */
+char *my_fgets(char *s, int size, FILE *stream) {
+	int i=0;
+	int ch;
+	while (i<size && !feof(stream)) {
+		ch=fgetc(stream);//printf("ch=%d\n",ch);
+		if (ch==0x0D) continue;
+		if (ch==0x0A) {
+			s[i]=0; return s;
+		}
+		s[i]=ch;
+		i++;
+	}
+	return s;
+}
+
 char *file_basename(char *filename) {
     char *t;
     t=strrchr(filename,'/');

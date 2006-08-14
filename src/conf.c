@@ -42,6 +42,7 @@
 #include "fileio.h"
 #include "driver.h"
 #include "emu.h"
+#include "fileio.h"
 
 /*
 static CONF_ITEM *cf_hash[128];
@@ -258,7 +259,7 @@ static  int print_help(CONF_ITEM *self) {
 
 static int show_all_game(CONF_ITEM *self) {
     dr_load_driver_dir(CF_STR(cf_get_item_by_name("romrcdir")));
-    dr_load_driver(CF_STR(cf_get_item_by_name("romrc")));
+    //dr_load_driver(CF_STR(cf_get_item_by_name("romrc")));
     dr_list_all();//list_game();
     return 0;
 }
@@ -277,7 +278,7 @@ static int scan_dir(CONF_ITEM *self) {
     struct stat filestat;
     struct dirent **namelist;
 
-    dr_load_driver(CF_STR(cf_get_item_by_name("romrc")));
+    //dr_load_driver(CF_STR(cf_get_item_by_name("romrc")));
     dr_load_driver_dir(CF_STR(cf_get_item_by_name("romrcdir")));
 
 
@@ -377,6 +378,9 @@ SDL_bool discard_line(char *buf)
 	return SDL_TRUE;
     if (buf[0] == '\n')
 	return SDL_TRUE;
+    if (buf[0] == 0)
+	return SDL_TRUE;
+    
     return SDL_FALSE;
 }
 
@@ -416,10 +420,10 @@ SDL_bool cf_open_file(char *filename)
 
     while (!feof(f)) {
 	i = 0;
-	fgets(buf, 510, f);
+	my_fgets(buf, 510, f);
 	if (discard_line(buf))
 	    continue;
-	sscanf(buf, "%s %s\n", name, val);
+	sscanf(buf, "%s %s", name, val);
 	cf=cf_get_item_by_name(name);
 	if (cf) {
 	    /*printf("Option %s\n",cf->name);*/

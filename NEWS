@@ -1,4 +1,7 @@
  change in xxxxx
+	. Add longname option in the romrc.d files to describe tha full name of a driver
+	  (must be the first line of the .rc file)
+	. Support dos line ending in the rom.rc files and in the gngeorc file
 	. Fix various automake stuff to allow Multi-Architecture Builds (still some work to do)
 	. Romrc.d officially replace the big romrc file. Every game have a unique file (ie: mslug.rc)
 	  that go to $(prefix)/share/gngeo/romrc.d by default. The path is configurable via the romrcdir

@@ -179,7 +179,7 @@ maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 install-data-local:
 	tar -xzf $(srcdir)/romrc.d.tgz
 	mkdir -p $(DESTDIR)$(pkgdatadir)/romrc.d
-	$(INSTALL_DATA) $(srcdir)/*.rc $(DESTDIR)$(pkgdatadir)/romrc.d
+	$(INSTALL_DATA) *.rc $(DESTDIR)$(pkgdatadir)/romrc.d
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

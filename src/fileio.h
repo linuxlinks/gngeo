@@ -31,6 +31,7 @@ void save_memcard(char *name);
 void list_game(void);
 
 char *get_gngeo_dir(void);
-
+void chomp(char *str);
+char *my_fgets(char *s, int size, FILE *stream);
 
 #endif
