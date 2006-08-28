@@ -196,6 +196,7 @@ void init_sdl(void /*char *rom_name*/)
     }
     buffer = SDL_CreateRGBSurface(surface_type, 352, 256, 16, 0xF800, 0x7E0,
 				  0x1F, 0);
+    SDL_FillRect(buffer,NULL,SDL_MapRGB(buffer->format,0xE5,0xE5,0xE5));
 #endif
 
     fontbuf = SDL_CreateRGBSurfaceFrom(font_image.pixel_data, font_image.width, font_image.height
@@ -241,11 +242,11 @@ int main(int argc, char *argv[])
     /* faut bien le mettre quelque part */
 
     cf_init(); /* must be the first thing to do */
-#ifdef GP2X
-    cf_open_file("conf/gngeorc");
-#else
+//#ifdef GP2X
+//    cf_open_file("conf/gngeorc");
+//#else
     cf_open_file(NULL);
-#endif
+//#endif
     cf_init_cmd_line();
 
 
@@ -276,15 +277,19 @@ int main(int argc, char *argv[])
 #ifdef GP2X
     gp2x_init();
     init_sdl();
+
     sdl_set_title(NULL);
     SDL_textout(screen, 1, 231, "Patching MMU ... ");SDL_Flip(screen);
-    if (hackpgtable()==0) {
+
+    //   if (hackpgtable()==0) {
+    if (hack_the_mmu()==0) {
 	    SDL_textout(screen, 1, 231, "Patching MMU ... OK!");SDL_Flip(screen);
     } else {
 	    SDL_textout(screen, 1, 231, "Patching MMU ... FAILED :(");SDL_Flip(screen);
     }
     SDL_Delay(200);
     //benchmark ((void*)screen->pixels);
+    gn_init_skin();
 #endif
 
  
@@ -298,8 +303,8 @@ int main(int argc, char *argv[])
     if(!dr) {
 #ifdef GP2X
 	    gn_popup_error("Bad roms!",
-			   "Unknow or unsupported romset.\n"
-			   "Check it and your romrc");
+			   "Unknow or unsupported romset. "
+ 			   "Check it and your romrc");
 #else
 	    printf("Unknow or unsupported romset.\n");
 #endif
@@ -315,9 +320,11 @@ int main(int argc, char *argv[])
 
 
 #ifdef GP2X
+    gp2x_init_mixer();
     gp2x_set_cpu_speed();
     SDL_FillRect(screen,NULL,0);
 
+       
     if (init_game(rom_name)!=SDL_TRUE) {
             exit(1);
     }    
@@ -343,6 +350,20 @@ int main(int argc, char *argv[])
 	debug_loop();
     else
 	main_loop();
+
+#if 0
+    CF_ARRAY(cf_get_item_by_name("p1hotkey0"))[1]=99;
+    CF_VAL(cf_get_item_by_name("samplerate"))=111111;
+    //CF_STR(cf_get_item_by_name("system"))=strdup("Plop");
+    sprintf(CF_STR(cf_get_item_by_name("system")),"Plop");
+    CF_BOOL(cf_get_item_by_name("pal"))=SDL_TRUE;
+    cf_item_has_been_changed(cf_get_item_by_name("p1hotkey0"));
+    cf_item_has_been_changed(cf_get_item_by_name("samplerate"));
+    cf_item_has_been_changed(cf_get_item_by_name("system"));
+    cf_item_has_been_changed(cf_get_item_by_name("pal"));
+
+    cf_save_file(NULL,0);
+#endif
 
     save_nvram(conf.game);
     save_memcard(conf.game);

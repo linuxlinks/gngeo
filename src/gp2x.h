@@ -9,6 +9,7 @@ int gp2x_gfx_dump;
 int gp2x_mixer;
 
 volatile Uint8 *gp2x_ram;
+volatile Uint8 *gp2x_ram2;
 volatile Uint16 *gp2x_memregs;
 volatile Uint32 *gp2x_memregl;
 

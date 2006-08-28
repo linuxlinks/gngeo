@@ -30,9 +30,11 @@
 #ifdef GP2X
 #include "messages.h"
 #include "screen.h"
-
+#include "menu.h"
+/*
 static int y=8;
 static SDL_Rect pbar={0,0,0,0};
+*/
 
 #endif
 
@@ -44,6 +46,7 @@ static Uint32 oldpos=0;
 void create_progress_bar(char *desc) {
     int i;
 #ifdef GP2X
+    /*
     SDL_textout(screen, 8, y, desc);
     pbar.x=120;pbar.w=182;
     pbar.y=y+1;pbar.h=6;
@@ -53,6 +56,8 @@ void create_progress_bar(char *desc) {
     SDL_FillRect(screen,&pbar,0);
 
     SDL_Flip(screen);
+    */
+    gn_init_pbar(desc);
 #else
 #ifdef USE_GUI
     loading_pbar_set_label(desc);
@@ -73,11 +78,15 @@ void create_progress_bar(char *desc) {
 void update_progress_bar(Uint32 current_pos,Uint32 size) {
 #ifdef GP2X
 	if (((current_pos-oldpos)*100.0/(float)size)>=5.0) {
-		pbar.x=121;pbar.w=(current_pos*180)/size;
-		pbar.y=y+2;pbar.h=4;
-		SDL_FillRect(screen,&pbar,0x02FF);
+		/*
+		  pbar.x=121;pbar.w=(current_pos*180)/size;
+		  pbar.y=y+2;pbar.h=4;
+		  SDL_FillRect(screen,&pbar,0x02FF);
+		  oldpos=current_pos;
+		  SDL_Flip(screen);
+		*/
+		gn_update_pbar(current_pos,size);
 		oldpos=current_pos;
-		SDL_Flip(screen);
 	}	
 #else
 #ifdef USE_GUI
@@ -102,11 +111,18 @@ void update_progress_bar(Uint32 current_pos,Uint32 size) {
 
 void terminate_progress_bar(void) {
 #ifdef GP2X
+	/*
 	pbar.x=121;pbar.w=180;
 	pbar.y=y+2;pbar.h=4;
 	SDL_FillRect(screen,&pbar,0x02FF);
 	SDL_Flip(screen);
 	y+=8;
+	if (y>220) { 
+		y=8; 
+		SDL_FillRect(screen,NULL,0);
+	}
+	*/
+	gn_terminate_pbar();
 #else
 #ifdef USE_GUI
     loading_pbar_set_label(NULL);

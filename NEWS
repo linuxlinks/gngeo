@@ -1,16 +1,22 @@
- change in xxxxx
+ change in 0.7
+	. GP2X/ARM Save state support for cyclone and drz80
+	. GP2X: Change the exit sequence to L&R&Select or L&R&Start. Actually it's not
+	  really an exit sequence anymore...
+	. GP2X: Add a minimal menu system (access it via the "exit" sequence ;)
 	. Add longname option in the romrc.d files to describe tha full name of a driver
 	  (must be the first line of the .rc file)
 	. Support dos line ending in the rom.rc files and in the gngeorc file
-	. Fix various automake stuff to allow Multi-Architecture Builds (still some work to do)
-	. Romrc.d officially replace the big romrc file. Every game have a unique file (ie: mslug.rc)
-	  that go to $(prefix)/share/gngeo/romrc.d by default. The path is configurable via the romrcdir
-	  option
-	. Add biospath option. This option tel where the bios is. Now you can have your roms and your bios
-	  in different place
+	. Fix various automake stuff to allow Multi-Architecture Builds
+	. Romrc.d officially replace the big romrc file. Every game have a unique file
+	  (ie: mslug.rc) that go to $(prefix)/share/gngeo/romrc.d by default.
+	  The path is configurable via the romrcdir option
+	. Add biospath option. This option tel where the bios is. Now you can have your
+	  roms and your bios in different place
 	. GP2X: Fix TVout with Selector (still some work to do)
 	. Fix a bug with error handling when a bios file isn't present.
-	. GP2X: Change key combination to quit to L & R & VOL_UP & VOL_DOWN
+	. GP2X: Add Squidge's MMU Hack (via mmuhack.o module, more stable).
+	. GP2X: Fix the bug that prevent volume change when using a .cf file
+	. Fix miexchng slowdown, again :D
 
  change in 0.6.12
 	. Add an option to under/overclock the z80: --z80clock=-20 will 
@@ -38,21 +44,23 @@
 	. GP2X: Now, gngeo will create a gfx dump automaticaly if the selected rom is too
 	large to fit in memory. See README.GP2X for details.
 	. GP2X: Add overclocking control. ie. --cpu_speed 266
-	. GP2X: Suppress --no-selector option. I replace it with --frontend=<command> where command is
-	  the frontend that gngeo have to relaunch when it exit. By defaut --frontend=gngeo2x.gpe so that
-	  gngeo restart Selector at exit. 
+	. GP2X: Suppress --no-selector option. I replace it with --frontend=<command>
+	  where command is the frontend that gngeo have to relaunch when it exit. 
+	  By defaut --frontend=gngeo2x.gpe so that gngeo restart Selector at exit. 
 	. Update the romrc with some newer hacked roms.
 	. GP2X: Sound is now complete in garou, last blade 2 etc.
 
  change in 0.6.9
 	. GP2X: Center the screen
-	. Add universal bios support. Use --system=unibios to activate it (uni-bios.rom is needed)
+	. Add universal bios support. Use --system=unibios to activate it (uni-bios.rom
+	  is needed)
 	. Fix kof99 with Cyclone enabled.
 
  change in 0.6.8
 	. Update the game list that need sram protection hack
 	. GP2X: Optimize a little sound mixing routine
-	. GP2X: By default, return to selector after exit (use --no-selector to disable it)
+	. GP2X: By default, return to selector after exit (use --no-selector to 
+	  disable it)
 	. GP2X: Add sound volume support.
 	. GP2X: some optimisation here&there
 
@@ -77,41 +85,29 @@
 	release romrc sections for new games (just tell the user to download
 	the file to his romrc.d dir). Eventually the big romrc file could be
 	split. [Renato Sousa]
-
 	. Add support for a special, per-game bios (eg: kof2003 has its own
 	bios) in romrc and emulator [Renato Sousa]
-
 	. remove useless patches over BIOS (bios runs cleanly now). Added code
 	to select bios according to country configuration. Also load the aes
 	bios if configured to run as console, but this bios is extremely
 	buggy. [Renato Sousa]
-
 	. add global configuration entries for country [Renato Sousa]
-
 	. now the bankswitcher (memory handler for the bankswitching area) is
 	selected when the CPU is initialized for a game. added an option for
 	this in romrc [Renato Sousa]
-
 	. change all long handlers code to a LONG_FETCH/LONG_STORE macro,
 	since they are all similar. [Renato Sousa]
-
 	. Explicitly size most variables, including Uintptr to an "integer of
 	the size of a pointer" [Renato Sousa]
-
 	. autodetect driver for rom, when rom has more than one driver (was
 	only working for directories, not for zip files) [Renato Sousa]
-
 	. support bios/game vector changing. Right now it saves the entire
 	vector (128 bytes) to the savestate file. It could possibly be
 	optimized to just save whether it is the bios or the game vector. 
 	[Renato Sousa]
-
 	. remove some code duplication [Renato Sousa]
-
 	. support kof2003 bankswitcher [Renato Sousa]
-
 	. Joystick Hat support [Sheng Long Gradilla]
-	
 	. romrc update.
 
  change in 0.6.4
@@ -130,8 +126,9 @@
 	  (now use #include "SDL.h" instead of #include <SDL/SDL.h>).
 	. Add mmx optimised hq2x and hq3x effects
 	. Add an alternative opengl blitter (configure --enable-gl2). This blitter can
-	  correct some bug with some opengl implementation (need texture size limit >256x256).
-	  This blitter seems more "stable" than the original one, but may be slower.
+	  correct some bug with some opengl implementation (need texture size 
+	  limit >256x256). This blitter seems more "stable" than the original one, 
+	  but may be slower.
 	. Clean up fileio.c
 
  change in 0.6.1
@@ -147,21 +144,23 @@
 	. Remove the invertjoy option, and add p1joydev,p2joydev option to select the
 	  joy's device for p1 and p2. ex: --p1joydev=2 tell gngeo to use /dev/js2 for
 	  the player 1
-	. Add the possibility to invert joystick's axes individualy (see sample_gngeorc for
-	  explanation)
+	. Add the possibility to invert joystick's axes individualy (see sample_gngeorc
+	  for explanation)
 	. Fix some bug in save state (some old, some introduced with the last snapshot)
 	. Update README
-	. Only compil the gui if enabled. Side note concerning the GUI: Currently I privilege
-	  frontends integrations over native GUI. The gui complicates the code and is redondant
-	  with Frontends. If someone want to continue it, he is welcome (The preferred solution
-	  is to put it out of gngeo, and make it a frontend)
+	. Only compil the gui if enabled. Side note concerning the GUI: Currently I 
+	  privilege frontends integrations over native GUI. The gui complicates the
+	  code and is redondant with Frontends. If someone want to continue it, he 
+	  is welcome (The preferred solution is to put it out of gngeo, and make 
+	  it a frontend)
 
  change in 20031018
-	. Add per game configuration file. The conf file must be in $HOME/.gngeo/ and named
-	  mame_name.cf (mame_name is the Mame name of the game, --listgame for the list)
-	  ex: `echo "screen320 false" >~/.gngeo/mslug.cf` will force MetalSlug to use 304x224
-	  mode (can be overriden on the command line).
-	. Fix most of the bug with Generator68k (don't correctly set up cpu bank at startup + SDIV bug)
+	. Add per game configuration file. The conf file must be in $HOME/.gngeo/ and
+	  named mame_name.cf (mame_name is the Mame name of the game, --listgame for
+	  the list) ex: `echo "screen320 false" >~/.gngeo/mslug.cf` will force 
+	  MetalSlug to use 304x224 mode (can be overriden on the command line).
+	. Fix most of the bug with Generator68k (don't correctly set up cpu bank
+	  at startup + SDIV bug)
 	. Temporatly desactivate mmx scale2x (strange bug here and there when enabled)
 	. Better accuracy in cycle counting.
 	. Rewrite the driver part.
@@ -202,18 +201,20 @@
 	. better support for crypted rom (bankswitching and char drawing)
 	  again, only mslug3n have a driver and is reported to work (freeze sometimes :(
 	  (Update your romrc).
-	. Initial save state support (functionnal, but some game have minor graphic/sound glitch,
-	  and you can't use a save state create under a little endian machine on a big endian one)
+	. Initial save state support (functionnal, but some game have minor graphic/sound
+	  glitch, and you can't use a save state create under a little endian machine on
+	  a big endian one)
 	. blitter and effect are now selected by their name (instead of number)
 	  Please upgrade your gngeorc.
-	. Clean up video.c (now use a template system for tile drawing function generation)
+	. Clean up video.c (now use a template system for tile drawing function 
+	  generation)
 	. Add transparency pack support with raster effect enabled
 	. Write i386 asm version of the raster drawing routine (todo: 25% transparency)
 	. Correct some bug with the raster interrupt (ssidecki2,3,4 work correctly)
 	. Add mmx interpolation code.
-	. Add doublex effect. It double only the X resolution (I personaly use it with a vga2tv
-	  circuit, because my card doesn't support interlace nor 320x240 pal mode, so I'm stick
-	  with 640x240 resolution... More information about the circuit here:
+	. Add doublex effect. It double only the X resolution (I personaly use it with a
+	  vga2tv circuit, because my card doesn't support interlace nor 320x240 pal mode,
+	  so I'm stick with 640x240 resolution... More information about the circuit here:
 	  http://www.priesch.at/marcus/Linux/XonTV-micro-HOWTO)
 
  change in 0.5.1:

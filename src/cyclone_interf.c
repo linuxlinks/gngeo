@@ -36,6 +36,7 @@
 struct Cyclone MyCyclone;
 static int total_cycles;
 static int time_slice;
+Uint32 cyclone_pc;
 extern int current_line;
 
 extern Uint32 irq2pos_value;
@@ -116,10 +117,6 @@ static __inline__ void cyclone68k_store_video_word(Uint32 addr, Uint16 data)
        
 
 #endif
-}
-
-
-static void cpu_68k_init_save_state(void) {
 }
 
 static void print_one_reg(Uint32 r) {
@@ -765,6 +762,46 @@ static void MyWrite32(unsigned int a,unsigned int   d) {
 	//printf("Unhandled write32 @ %08x = %08x\n",a,d);
 }
 
+static void cpu_68k_post_load_state(void) {
+	
+	MyCyclone.read8=MyRead8;
+	MyCyclone.read16=MyRead16;
+	MyCyclone.read32=MyRead32;
+
+	MyCyclone.write8=MyWrite8;
+	MyCyclone.write16=MyWrite16;
+	MyCyclone.write32=MyWrite32;
+
+	MyCyclone.checkpc=MyCheckPc;
+
+	MyCyclone.fetch8  =MyRead8;
+        MyCyclone.fetch16 =MyRead16;
+        MyCyclone.fetch32 =MyRead32;
+
+	cpu_68k_bankswitch(bankaddress);
+	MyCyclone.membase=0;
+	MyCyclone.pc=MyCheckPc(cyclone_pc);
+	//printf("Loaded PC=%08x\n",cyclone_pc);
+}
+
+static void cpu_68k_pre_save_state(void) {
+	cyclone_pc=MyCyclone.pc-MyCyclone.membase;
+	//printf("Saved PC=%08x\n",cyclone_pc);
+}
+
+static void cpu_68k_init_save_state(void) {
+	
+	create_state_register(ST_68k,"cyclone68k",1,(void *)&MyCyclone,sizeof(MyCyclone),REG_UINT8);
+	create_state_register(ST_68k,"pc",1,(void *)&cyclone_pc,sizeof(Uint32),REG_UINT32);
+	create_state_register(ST_68k,"bank",1,(void *)&bankaddress,sizeof(Uint32),REG_UINT32);
+	create_state_register(ST_68k,"ram",1,(void *)memory.ram,0x10000,REG_UINT8);
+	create_state_register(ST_68k,"kof2003_bksw",1,(void *)memory.kof2003_bksw,0x1000,REG_UINT8);
+	create_state_register(ST_68k,"current_vector",1,(void *)memory.cpu,0x80,REG_UINT8);
+	set_post_load_function(ST_68k,cpu_68k_post_load_state);
+	set_pre_save_function(ST_68k,cpu_68k_pre_save_state);
+	
+}
+
 int cpu_68k_getcycle(void) {
 	return total_cycles-MyCyclone.cycles;
 }
@@ -803,6 +840,8 @@ void cpu_68k_init(void) {
 	//MyCyclone.print_reg=print_one_reg;
 	bankswitcher_init();
 
+	
+
 	if (memory.cpu_size > 0x100000) {
 		bankaddress = 0x100000;
 	}
@@ -814,16 +853,19 @@ void cpu_68k_init(void) {
 }
 
 void cpu_68k_reset(void) {
+	//CycloneInit();
 	//printf("Reset \n");
 	MyCyclone.srh=0x27; // Set supervisor mode
+	//CycloneSetSr(&MyCyclone,0x27);
 	//MyCyclone.srh=0x20;
 	//MyCyclone.irq=7;
 	MyCyclone.irq=0;
-	MyCyclone.a[7]=MyCyclone.read32(0); // Get Stack Pointer
+	MyCyclone.a[7]=MyCyclone.read32(0);
+	
 	MyCyclone.membase=0;
 	MyCyclone.pc=MyCyclone.checkpc(MyCyclone.read32(4)); // Get Program Counter
 
-	//printf("PC=%08x\n SP=%08x\n",MyCyclone.pc-MyCyclone.membase,MyCyclone.a[7]);
+	printf("PC=%08x\n SP=%08x\n",MyCyclone.pc-MyCyclone.membase,MyCyclone.a[7]);
 }
 
 int cpu_68k_run(Uint32 nb_cycle) {

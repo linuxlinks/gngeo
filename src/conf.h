@@ -15,7 +15,8 @@ typedef struct CONF_ITEM {
     int short_opt;
     char *help;
     int (*action)(struct CONF_ITEM *self); /* if defined, the option is 
-					   available only on the command line */
+					      available only on the command line */
+	SDL_bool modified;
     CF_TYPE type;
     union {
 	struct {
@@ -53,6 +54,7 @@ void cf_create_string_item(char *name,char *help,char short_opt,char *def);
 void cf_create_int_item(char *name,char *help,char short_opt,int def);
 void cf_create_array_item(char *name,char *help,char short_opt,int size,int *def);
 void cf_init(void);
+SDL_bool cf_save_file(char *filename,int flags);
 SDL_bool cf_open_file(char *filename);
 void cf_init_cmd_line(void);
 int cf_get_non_opt_index(int argc, char *argv[]);

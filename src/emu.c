@@ -636,6 +636,8 @@ void main_loop(void)
 #ifdef GP2X
     int snd_volume=85;
     char volbuf[21];
+    static SDL_Rect buf_rect    =	{24, 16, 304, 224};
+    static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
 #endif
 
     Uint32 cpu_68k_timeslice = (m68k_overclk==0?200000:200000+(m68k_overclk*200000/100.0));
@@ -767,9 +769,16 @@ void main_loop(void)
 		}
 		//if ((joy_button[0][GP2X_PUSH]) && (joy_button[0][GP2X_R])) {
 		if (joy_button[0][GP2X_R] && joy_button[0][GP2X_L] &&
-		    joy_button[0][GP2X_VOL_DOWN] && joy_button[0][GP2X_VOL_UP]) {
-			//run_menu();
-			neo_emu_done = 1;
+		    (joy_button[0][GP2X_START] || joy_button[0][GP2X_SELECT])) {
+			joy_button[0][GP2X_R] = joy_button[0][GP2X_L] = 0;
+			joy_button[0][GP2X_START] = joy_button[0][GP2X_SELECT] = 0;
+
+			SDL_BlitSurface(buffer, &buf_rect, state_img, &screen_rect);
+			if (conf.sound) {SDL_PauseAudio(1); SDL_LockAudio();}
+			if (run_menu()==2) neo_emu_done = 1; // A bit ugly...
+			if (conf.sound) {SDL_PauseAudio(0); SDL_UnlockAudio();}
+			//neo_emu_done = 1;
+			reset_frame_skip();
 			break;
 		}
 		/*

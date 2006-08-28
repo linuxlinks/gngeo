@@ -735,34 +735,36 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 		    /* TODO: ask before!!! */
 			if ((dr->rom_type == MGD2) || (dr->rom_type == MVS_CMC42) || (dr->rom_type == MVS_CMC50)) {
 			    gn_popup_error("Failed!",
-					   "%s is encrypted %s\n"
-					   "It can't be dump on the GP2X.\n"
-					   "If you want to run it,\n"
+					   "%s is encrypted "
+					   "It can't be dump on the GP2X. "
+					   "If you want to run it, "
 					   "dump it on your PC.",dr->name);
 			    exit(1);
 			}
 		    if (gn_popup_question("GFX Dump?",
-					  "In order to load %s a\n"
-					  "dumpgfx file must be created.\n"
-					  "This will require %d MB \n"
+					  "In order to load %s a "
+					  "dumpgfx file must be created. "
+					  "This will require %d MB "
 					  "of space on your SD card\n\n"
 					  "Proceed?",dr->name,(memory.gfx_size/1024)/1024)) {
 			    SDL_FillRect(screen,NULL,0);
 			    free(memory.cpu);
 			    if (memory.sm1) free(memory.sm1);
 			    if (memory.sfix_game) free( memory.sfix_game);
-			    
+
+			    gn_reset_pbar();
+
 			    if (dr_dump_gfx(dr,gz,dr->section[SEC_GFX])!=SDL_TRUE) {
 				    gn_popup_error("Dumping GFX:",
-						   "Sorry, gngeo couldn't dump\nthis roms :(");
+						   "Sorry, gngeo couldn't dump this roms :(");
 				    unzClose(gz);
 				    exit(1);  
 			    }
 			    //gp2x_gfx_dump=open(dumpname,O_RDONLY);
 			    gn_popup_info("Succed!",
-					  "The dumgfx file have been\n"
-					  "created. Now, gngeo will\n"
-					  "exit. Select %s again to\n"
+					  "The dumgfx file have been "
+					  "created. Now, gngeo will "
+					  "exit. Select %s again to "
 					  "enjoy it :)",dr->name);
 		    }
 		    exit(1); 
@@ -776,8 +778,8 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 		    //printf("Mem GFX=%08X\n",memory.gfx);
 		    memory.gp2x_gfx_mapped=SDL_TRUE;
 	    } else {
-		    gn_popup_error("Loading GFX:","Couldn't open gfx dump.\n"
-				   "Check your roms dir and\ncheck for %s.gfx.",dr->name);
+		    gn_popup_error("Loading GFX:","Couldn't open gfx dump. "
+				   "Check your roms dir and check for %s.gfx.",dr->name);
 		    unzClose(gz);
 		    exit(1);
 	    }

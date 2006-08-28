@@ -18,6 +18,7 @@ static ST_REG *reglist;
 static ST_MODULE st_mod[ST_MODULE_END];
 static SDL_Rect buf_rect    =	{24, 16, 304, 224};
 static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
+SDL_Surface *state_img_tmp;
 
 void create_state_register(ST_MODULE_TYPE module,char *reg_name,
 			   Uint8 num,void *data,int size,ST_DATA_TYPE type) {
@@ -97,6 +98,78 @@ void swap_buf32_if_need(Uint8 src_endian,Uint32* buf,Uint32 size)
     }
 }
 
+Uint32 how_many_slot(char *game) {
+	char *st_name;
+	FILE *f;
+//    char *st_name_len;
+#ifdef GP2X
+	char *gngeo_dir="save/";
+#else
+	char *gngeo_dir=get_gngeo_dir();
+#endif
+	Uint32 slot=0;
+	st_name=(char*)alloca(strlen(gngeo_dir)+strlen(game)+5);
+	while (1) {
+		sprintf(st_name,"%s%s.%03d",gngeo_dir,game,slot);
+		if (f=fopen(st_name,"rb")) {
+			fclose(f);
+			slot++;
+		} else
+		    return slot;
+	}
+}
+
+SDL_Surface *load_state_img(char *game,int slot) {
+	char *st_name;
+//    char *st_name_len;
+#ifdef GP2X
+	char *gngeo_dir="save/";
+#else
+	char *gngeo_dir=get_gngeo_dir();
+#endif
+	
+#ifdef WORDS_BIGENDIAN
+	Uint8  my_endian=1;
+#else
+	Uint8  my_endian=0;
+#endif
+	char string[20];
+	gzFile *gzf;
+	Uint8  endian;
+	Uint32 rate;
+
+    st_name=(char*)alloca(strlen(gngeo_dir)+strlen(game)+5);
+    sprintf(st_name,"%s%s.%03d",gngeo_dir,game,slot);
+
+    if ((gzf=gzopen(st_name,"rb"))==NULL) {
+	printf("%s not found\n",st_name);
+	return NULL;
+    }
+
+    memset(string,0,20);
+    gzread(gzf,string,6);
+
+    if (strcmp(string,"GNGST1")) {
+	printf("%s is not a valid gngeo st file\n",st_name);
+	gzclose(gzf);
+	return NULL; 
+    }
+
+    gzread(gzf,&endian,1);
+
+    if (my_endian!=endian) {
+	printf("This save state comme from a different endian architecture.\n"
+	       "This is not currently supported :(\n");
+	return NULL;
+    }
+
+    gzread(gzf,&rate,4); // don't care
+    
+    gzread(gzf,state_img_tmp->pixels,304*224*2);
+    gzclose(gzf);
+    return state_img_tmp;
+}
+
 SDL_bool load_state(char *game,int slot) {
     char *st_name;
 //    char *st_name_len;
@@ -152,7 +225,26 @@ SDL_bool load_state(char *game,int slot) {
     gzread(gzf,&rate,4);
     swap_buf32_if_need(endian,&rate,1);
 
-
+#ifdef GP2X
+    if (rate==0 && conf.sound) {
+	    gn_popup_error("Failed!",
+			   "This save state is incompatible "
+			   "because you have sound enabled "
+			   "and this save state don't have sound data");
+	    return SDL_FALSE;
+    }
+    if (rate!=0 && conf.sound==0) {
+	    gn_popup_error("Failed!",
+			   "This save state is incompatible "
+			   "because you don't have sound enabled "
+			   "and this save state need it");
+	    return SDL_FALSE;
+    } else if (rate!=conf.sample_rate && conf.sound) {
+	    conf.sample_rate=rate;
+	    close_sdl_audio();
+	    init_sdl_audio();
+    }
+#else
     if (rate==0 && conf.sound) {
 	/* disable sound */
 	conf.sound=0;
@@ -176,6 +268,7 @@ SDL_bool load_state(char *game,int slot) {
 	close_sdl_audio();
 	init_sdl_audio();
     }
+#endif
 
 
     gzread(gzf,state_img->pixels,304*224*2);
@@ -257,8 +350,9 @@ SDL_bool save_state(char *game,int slot) {
 	return SDL_FALSE;
     }
 
-
+#ifndef GP2X
     SDL_BlitSurface(buffer, &buf_rect, state_img, &screen_rect);
+#endif
 
     gzwrite(gzf,"GNGST1",6);
     gzwrite(gzf,&endian,1);
@@ -321,6 +415,7 @@ void neogeo_init_save_state(void) {
     ST_REG *t,*s;
     if (!state_img)
 	state_img=SDL_CreateRGBSurface(SDL_SWSURFACE,304, 224, 16, 0xF800, 0x7E0, 0x1F, 0);
+	state_img_tmp=SDL_CreateRGBSurface(SDL_SWSURFACE,304, 224, 16, 0xF800, 0x7E0, 0x1F, 0);
 
 /*
     for(i=0;i<ST_MODULE_END;i++) {

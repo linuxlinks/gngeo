@@ -135,6 +135,8 @@ void gp2x_ram_init(void) {
 	if(!gp2x_dev_mem) gp2x_dev_mem = open("/dev/mem",   O_RDWR);
 	gp2x_ram=(Uint8 *)mmap(0, 0x1000000, PROT_READ|PROT_WRITE, MAP_SHARED, 
 				gp2x_dev_mem, 0x02000000);
+	gp2x_ram2=(Uint8 *)mmap(0, 0x1000000, PROT_READ|PROT_WRITE, MAP_SHARED, 
+				gp2x_dev_mem, 0x03000000);
 	//printf("gp2x_ram %p\n",gp2x_ram);
 	gp2x_memregl=(Uint32 *)mmap(0, 0x10000, PROT_READ|PROT_WRITE, MAP_SHARED, 
 				    gp2x_dev_mem, 0xc0000000);
@@ -275,7 +277,8 @@ void DecodeCoarse (unsigned int indx, unsigned int sa)
 			// alter the cachable and bufferable bits...
 			if (((cpt[i] & 0xff000000) == 0x02000000) )
 			{
-				//printf("SOUND c and b bits not set, overwriting\n");
+				printf("Set C&B bits %08x\n",cpt[i]);
+//printf("SOUND c and b bits not set, overwriting\n");
 				if((cpt[i] & 12)==0) {
 					cpt[i] |= 0xFFC;
 					wb++;
@@ -284,6 +287,7 @@ void DecodeCoarse (unsigned int indx, unsigned int sa)
 			//if ((a>=0x31 && a<=0x36) && ((cpt[i] & 12)==0))
 			if (((cpt[i] & 0xff000000) == 0x03000000) )
 			{
+				printf("Set C&B bits %08x\n",cpt[i]);
 				//printf("SDL   c and b bits not set, overwriting\n");
 				if((cpt[i] & 12)==0) {
 					cpt[i] |= 0xFFC;
@@ -376,11 +380,11 @@ int hackpgtable (void)
 	    lseek (gp2x_dev_mem, 0x6ec00, SEEK_SET);
 	    a+=write (gp2x_dev_mem, &newc1, 4);
 	    a+=write (gp2x_dev_mem, &newc2, 4);    
-	    SDL_Delay(200);
+	    SDL_Delay(100+(try*100));
 	    try++;
 	    ttb = myuname(name);
 	    printf ("2:%08X try %d\n", ttb,try);
-    } while (ttb==0 && try<4);
+    } while (ttb==0 && try<5);
 
 
     
@@ -409,7 +413,7 @@ int hackpgtable (void)
 	    write (gp2x_dev_mem, &tlbc3, 4);    
 	    write (gp2x_dev_mem, &tlbc4, 4);    
 
-	    SDL_Delay(200);
+	    SDL_Delay(400);
 
 	    ttx = myuname(name);
     
@@ -494,6 +498,37 @@ void benchmark (void *memptr)
     printf ("test complete\n");
 }
 
+int hack_the_mmu(void) {
+	int mmufd = open("/dev/mmuhack", O_RDWR);
+	volatile unsigned int *secbuf = (unsigned int *)malloc (204800);
+/*
+	benchmark ((void*)gp2x_ram);
+	benchmark ((void*)secbuf);
+*/
+
+        if(mmufd < 0) {
+                system("/sbin/insmod -f mmuhack.o");
+                mmufd = open("/dev/mmuhack", O_RDWR);
+        }
+        if(mmufd < 0) return 1;
+	
+        close(mmufd);
+
+/*
+	benchmark ((void*)gp2x_ram);
+	benchmark ((void*)secbuf);
+*/
+        return 0;
+}
+
+void gp2x_init_mixer(void) {
+	if (CF_BOOL(cf_get_item_by_name("sound"))) {
+		gp2x_mixer=open("/dev/mixer", O_RDWR);
+		if (gp2x_mixer==-1) {
+			printf("Can't open mixer\n");
+		}
+	}	
+}
 
 void gp2x_init(void) {
 	volatile unsigned int *secbuf = (unsigned int *)malloc (204800);
@@ -504,12 +539,6 @@ void gp2x_init(void) {
 	tvoutfix_sav=gp2x_memregs[0x28E4>>1];
 	gp2x_memregs[0x28E4>>1]=gp2x_memregs[0x290C>>1];
 
-	if (CF_BOOL(cf_get_item_by_name("sound"))) {
-		gp2x_mixer=open("/dev/mixer", O_RDWR);
-		if (gp2x_mixer==-1) {
-			printf("Can't open mixer\n");
-		}
-	}
 	//setpriority(PRIO_PROCESS,0,-20);
 
 	/* here come the magic squidge :) */
@@ -519,7 +548,7 @@ void gp2x_init(void) {
 	//benchmark ((void*)secbuf);
 	
 
-	gn_init_skin();
+
 }
 
 

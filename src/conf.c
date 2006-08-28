@@ -114,6 +114,7 @@ static CONF_ITEM * create_conf_item(char *name,char *help,char short_opt,int (*a
 
     t->name=name;
     t->help=help;
+    t->modified=SDL_FALSE;
     if (short_opt==0) {
 	val++;
 	t->short_opt=val;
@@ -200,6 +201,11 @@ CONF_ITEM* cf_get_item_by_val(int val){
 	}
     }
     return NULL;
+}
+
+void cf_item_has_been_changed(CONF_ITEM * item) {
+	if (item)
+		item->modified=SDL_TRUE;
 }
 
 void cf_print_help(void) {
@@ -397,6 +403,119 @@ static void read_array(int *tab, char *val, int size) {
     }
 }
 
+SDL_bool cf_save_file(char *filename,int flags) {
+	char *conf_file=filename;
+	char *conf_file_dst;
+	FILE *f;
+	FILE *f_dst;
+	int i=0,j,a;
+	char buf[512];
+	char name[32];
+	char val[255];
+	CONF_ITEM *cf;
+
+	if (!conf_file) {
+#ifdef GP2X
+		int len = strlen("gngeorc") + strlen("conf/") +	1;
+		conf_file = (char *) alloca(len*sizeof(char));
+		sprintf(conf_file, "conf/gngeorc");	    
+#else
+		int len = strlen("gngeorc") + strlen(getenv("HOME")) + strlen("/.gngeo/") +	1;
+		conf_file = (char *) alloca(len*sizeof(char));
+		sprintf(conf_file, "%s/.gngeo/gngeorc", getenv("HOME"));
+#endif
+	}
+    conf_file_dst=alloca(strlen(conf_file)+4);
+    sprintf(conf_file_dst,"%s.t",conf_file);
+
+    if ((f = fopen(conf_file, "rb")) == 0) {
+	    //printf("Unable to open %s\n",conf_file);
+	    return SDL_FALSE;
+    }
+    if ((f_dst = fopen(conf_file_dst, "w")) == 0) {
+	    //printf("Unable to open %s\n",conf_file);
+	    return SDL_FALSE;
+    }
+    while (!feof(f)) {
+	i = 0;
+	my_fgets(buf, 510, f);
+	if (discard_line(buf)) {
+		fprintf(f_dst,"%s\n",buf);
+		continue;
+	}
+
+	sscanf(buf, "%s %s", name, val);
+	cf=cf_get_item_by_name(name);
+	if (cf) {
+		if (cf->modified) {
+			cf->modified=SDL_FALSE;
+			switch(cf->type) {
+			case CFT_INT:
+				fprintf(f_dst,"%s %d\n",cf->name,CF_VAL(cf));
+				break;
+			case CFT_BOOLEAN:
+				if (CF_BOOL(cf))
+					fprintf(f_dst,"%s true\n",cf->name);
+				else
+					fprintf(f_dst,"%s false\n",cf->name);
+				break;
+			case CFT_STRING:
+				fprintf(f_dst,"%s %s\n",cf->name,CF_STR(cf));
+				break;
+			case CFT_ARRAY:
+				fprintf(f_dst,"%s ",cf->name);
+				for(a=0;a<CF_ARRAY_SIZE(cf)-1;a++)
+					fprintf(f_dst,"%d,",CF_ARRAY(cf)[a]);
+				fprintf(f_dst,"%d\n",CF_ARRAY(cf)[a]);
+				break;
+			case CFT_ACTION:
+			case CFT_ACTION_ARG:
+				break;
+			}
+		} else
+			fprintf(f_dst,"%s\n",buf);	
+	}
+    }
+    fclose(f);
+    /* Now save options that were not in the previous file */
+    for (i=0;i<128;i++) {
+	for(j=0;j< cf_hash[i].nb_item;j++) {
+	    cf=cf_hash[i].conf[j];
+	    if (cf->modified)
+		    switch(cf->type) {
+		    case CFT_INT:
+			    fprintf(f_dst,"%s %d\n",cf->name,CF_VAL(cf));
+			    break;
+		    case CFT_BOOLEAN:
+			    if (CF_BOOL(cf))
+				    fprintf(f_dst,"%s true\n",cf->name);
+			    else
+				    fprintf(f_dst,"%s false\n",cf->name);
+			    break;
+		    case CFT_STRING:
+			    fprintf(f_dst,"%s %s\n",cf->name,CF_STR(cf));
+			    break;
+		    case CFT_ARRAY:
+			    fprintf(f_dst,"%s ",cf->name);
+			    for(a=0;a<CF_ARRAY_SIZE(cf)-1;a++)
+				    fprintf(f_dst,"%d,",CF_ARRAY(cf)[a]);
+			    fprintf(f_dst,"%d\n",CF_ARRAY(cf)[a]);
+			    break;
+		    case CFT_ACTION:
+		    case CFT_ACTION_ARG:
+			    /* action are not available in the conf file */
+			    break;
+		    }
+	}
+    }
+    fclose(f_dst);
+
+    remove(conf_file);
+    rename(conf_file_dst,conf_file);
+
+    return SDL_TRUE;
+}
+
 SDL_bool cf_open_file(char *filename)
 {
     /* if filename==NULL, we use the default one: $HOME/.gngeo/gngeorc */
@@ -409,9 +528,15 @@ SDL_bool cf_open_file(char *filename)
     CONF_ITEM *cf;
 
     if (!conf_file) {
+#ifdef GP2X
+	    int len = strlen("gngeorc") + strlen("conf/") +	1;
+	    conf_file = (char *) alloca(len*sizeof(char));
+	    sprintf(conf_file, "conf/gngeorc");	    
+#else
 	int len = strlen("gngeorc") + strlen(getenv("HOME")) + strlen("/.gngeo/") +	1;
 	conf_file = (char *) alloca(len*sizeof(char));
 	sprintf(conf_file, "%s/.gngeo/gngeorc", getenv("HOME"));
+#endif
     }
     if ((f = fopen(conf_file, "rb")) == 0) {
 	//printf("Unable to open %s\n",conf_file);

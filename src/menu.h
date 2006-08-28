@@ -50,6 +50,7 @@ typedef struct GN_MENU {
 	char *title;
 	int nb_elem;
 	int current;
+	int draw_type;
 	LIST *item;
 	int (*event_handling)(struct GN_MENU *self);
 	void (*draw)(struct GN_MENU *self);
@@ -68,6 +69,10 @@ int gn_menu_delete_item(GN_MENU_ITEM *menu);
 int gn_init_skin(void);
 int gn_loop_menu(GN_MENU *m);
 Uint32 run_menu(void);
+void gn_reset_pbar(void);
+void gn_init_pbar(char *name);
+void gn_update_pbar(Uint32 pos,Uint32 size);
+void gn_terminate_pbar(void);
 
 void gn_popup_error(char *name,char *fmt,...);
 int gn_popup_question(char *name,char *fmt,...);

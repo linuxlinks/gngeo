@@ -255,7 +255,7 @@ SDL_bool init_game(char *rom_name) {
     dr=dr_get_by_name(rom_name);
     if (!dr) {
 #ifdef GP2X
-	    gn_popup_error(" Error! :","No valid romset found for\n %s\n",
+	    gn_popup_error(" Error! :","No valid romset found for %s",
 			   file_basename(rom_name));
 #else
 	printf("No valid romset found for %s\n",rom_name);
@@ -294,7 +294,7 @@ SDL_bool init_game(char *rom_name) {
     //open_rom(rom_name);
     if (dr_load_game(dr,rom_name)==SDL_FALSE) {
 #ifdef GP2X
-	gn_popup_error(" Error! :","Couldn't load\n %s\n",
+	gn_popup_error(" Error! :","Couldn't load %s",
 		       file_basename(rom_name));
 #else
 	printf("Can't load %s\n",rom_name);
@@ -428,7 +428,7 @@ void open_bios(void)
 
     if (missedfiles) {
 #ifdef GP2X
-	    gn_popup_error(" Error! :","The following bios files\n"
+	    gn_popup_error(" Error! :","The following bios files "
 			   "are missing:\n %s",missedfiles);
 #else
 	    printf("The following bios files are missing :\n %s\n",missedfiles);
