@@ -78,10 +78,18 @@ void init_joystick(void)
 {
     //    int invert_joy=CF_BOOL(cf_get_item_by_name("invertjoy"));
     int i;
-    int joyindex[2];
+    int joyindex[3];
     int lastinit=-1;
+#ifdef GP2X
+    int nb_joy=3;
+    joyindex[0]=0;
+    joyindex[1]=CF_VAL(cf_get_item_by_name("p1joydev"))+1;
+    joyindex[2]=CF_VAL(cf_get_item_by_name("p2joydev"))+1;
+#else
+    int nb_joy=2;
     joyindex[0]=CF_VAL(cf_get_item_by_name("p1joydev"));
     joyindex[1]=CF_VAL(cf_get_item_by_name("p2joydev"));
+#endif
 
     if (!CF_BOOL(cf_get_item_by_name("joystick")))
 	return;
@@ -89,6 +97,7 @@ void init_joystick(void)
     SDL_JoystickEventState(SDL_ENABLE);
 
     conf.nb_joy = SDL_NumJoysticks();
+    //printf("Nb_joy=%d %d %d \n",conf.nb_joy,joyindex[1],joyindex[2]);
     /* on ne gere que les deux premiers joysticks */
     /*
       if (conf.nb_joy > 2)
@@ -100,7 +109,7 @@ void init_joystick(void)
       }
     */
  
-    for (i=0;i<2;i++) {
+    for (i=0;i<nb_joy;i++) {
 	if (lastinit!=joyindex[i]) {
 	    lastinit=joyindex[i];
 	    conf.joy[i] = SDL_JoystickOpen(joyindex[i]);
@@ -257,6 +266,14 @@ int main(int argc, char *argv[])
     //dr_load_driver(CF_STR(cf_get_item_by_name("romrc")));
 
     dr_load_driver_dir(CF_STR(cf_get_item_by_name("romrcdir")));
+#ifndef GP2X
+    {
+	    int len = strlen("romrc.d") + strlen(getenv("HOME")) + strlen("/.gngeo/") +	1;
+	    char *rc_dir = (char *) alloca(len*sizeof(char));
+	    sprintf(rc_dir, "%s/.gngeo/romrc.d", getenv("HOME"));
+	    dr_load_driver_dir(rc_dir);
+    }
+#endif
 
     /* print effect/blitter list if asked by user */
     if (!strcmp(CF_STR(cf_get_item_by_name("effect")),"help")) {

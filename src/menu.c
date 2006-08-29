@@ -249,7 +249,7 @@ void gn_terminate_pbar(void) {
 	if (MENU_TEXT_Y+(pbar_y+1)*sfont->h>MENU_TEXT_Y_END) {
 		pbar_y=0;
 	}
-	printf(" %d %d\n",r2.w,r2.h);
+	//printf(" %d %d\n",r2.w,r2.h);
 
 	screen_update();
 
@@ -398,7 +398,7 @@ static int load_state_action(GN_MENU_ITEM *self,void *param) {
 
 	if (nb_slot==0) {
 		gn_popup_info("Load State","There is currently no save state available");
-		return 1; // nothing to do
+		return 0; // nothing to do
 	}
 
 	slot_img=load_state_img(conf.game,slot);
@@ -683,8 +683,10 @@ void gn_init_menu(void) {
 	main_menu->draw=draw_menu;
 	main_menu->item=NULL;
 	/* Create item */
+/*
 	main_menu->item=list_append(main_menu->item,(void*)gn_menu_create_item("Load game",ACTION,rbrowser_action));
 	main_menu->nb_elem++;
+*/
 	main_menu->item=list_append(main_menu->item,(void*)gn_menu_create_item("Load state",ACTION,load_state_action));
 	main_menu->nb_elem++;
 	main_menu->item=list_append(main_menu->item,(void*)gn_menu_create_item("Save state",ACTION,save_state_action));

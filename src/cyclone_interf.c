@@ -865,7 +865,7 @@ void cpu_68k_reset(void) {
 	MyCyclone.membase=0;
 	MyCyclone.pc=MyCyclone.checkpc(MyCyclone.read32(4)); // Get Program Counter
 
-	printf("PC=%08x\n SP=%08x\n",MyCyclone.pc-MyCyclone.membase,MyCyclone.a[7]);
+	//printf("PC=%08x\n SP=%08x\n",MyCyclone.pc-MyCyclone.membase,MyCyclone.a[7]);
 }
 
 int cpu_68k_run(Uint32 nb_cycle) {

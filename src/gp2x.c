@@ -86,6 +86,7 @@ unsigned short get_920_Div()
 void gp2x_video_RGB_setscaling(int W, int H)
 {
 #if 1
+/*
 	printf("Some TV out Regs\n");
 	printf("TV-Out?       %04x\n",gp2x_memregs[0x2800>>1]&0x100);
 	printf("horizontal    %04x\n",gp2x_memregs[0x2906>>1]);
@@ -100,7 +101,7 @@ void gp2x_video_RGB_setscaling(int W, int H)
 	printf("STL2 ENDX     %04x\n",gp2x_memregs[0x28EC>>1]);
 	printf("STL3 ENDX     %04x\n",gp2x_memregs[0x28F4>>1]);
 	printf("STL4 ENDX     %04x\n",gp2x_memregs[0x28FC>>1]);
-
+*/
 	//gp2x_memregs[0x28E4>>1]=gp2x_memregs[0x290C>>1];
 
 	//gp2x_memregs[0x290C>>1]*=2;

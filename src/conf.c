@@ -265,6 +265,15 @@ static  int print_help(CONF_ITEM *self) {
 
 static int show_all_game(CONF_ITEM *self) {
     dr_load_driver_dir(CF_STR(cf_get_item_by_name("romrcdir")));
+#ifndef GP2X
+    {
+	    int len = strlen("romrc.d") + strlen(getenv("HOME")) + strlen("/.gngeo/") +	1;
+	    char *rc_dir = (char *) alloca(len*sizeof(char));
+	    sprintf(rc_dir, "%s/.gngeo/romrc.d", getenv("HOME"));
+	    dr_load_driver_dir(rc_dir);
+    }
+#endif
+
     //dr_load_driver(CF_STR(cf_get_item_by_name("romrc")));
     dr_list_all();//list_game();
     return 0;

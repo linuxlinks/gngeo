@@ -324,7 +324,6 @@ void update_p1_key(void) {
 	int macrokey;
 	memory.intern_p1 = 0xFF;
 	
-
 	if (joy_button[0][GP2X_X])
 	    memory.intern_p1 &= 0xEF;	// A
 	if (joy_button[0][GP2X_B])
@@ -335,20 +334,6 @@ void update_p1_key(void) {
 	    memory.intern_p1 &= 0x7F;	// D
 
 	/* hotkey macros. 2 macro only on the GP2X L & R */
-/*
-        for ( i = 0; i < BUT_HOTKEY1 - BUT_HOTKEY0 + 1; i++ ) {
-		macrokey=(BUT_HOTKEY0+i==BUT_HOTKEY0?GP2X_L:GP2X_R);
-		if ( conf.p1_key[BUT_HOTKEY0+i] >= 0 && joy_button[0][macrokey] ) {
-			if ( conf.p1_hotkey[i] & HOTKEY_MASK_A ) memory.intern_p1 &= 0xEF;
-			if ( conf.p1_hotkey[i] & HOTKEY_MASK_B ) memory.intern_p1 &= 0xDF;
-			if ( conf.p1_hotkey[i] & HOTKEY_MASK_C ) memory.intern_p1 &= 0xBF;
-			if ( conf.p1_hotkey[i] & HOTKEY_MASK_D ) memory.intern_p1 &= 0x7F;
-		}
-        }
-*/
-
-//	if ( joy_button[0][GP2X_L] & HOTKEY_MASK_A ) memory.intern_p1 &= 0xEF;
-
 	if (joy_button[0][GP2X_L] ) {
 		if ( conf.p1_hotkey[0] & HOTKEY_MASK_A ) memory.intern_p1 &= 0xEF;
 		if ( conf.p1_hotkey[0] & HOTKEY_MASK_B ) memory.intern_p1 &= 0xDF;
@@ -362,18 +347,11 @@ void update_p1_key(void) {
 		if ( conf.p1_hotkey[1] & HOTKEY_MASK_D ) memory.intern_p1 &= 0x7F;
 	}
 
-	if (joy_button[0][GP2X_UP]) {
-		memory.intern_p1 &= 0xFE;
-	}
-	if (joy_button[0][GP2X_DOWN]) {
-		memory.intern_p1 &= 0xFD;
-	}
-	if (joy_button[0][GP2X_LEFT]) {
-		memory.intern_p1 &= 0xFB;
-	}
-	if (joy_button[0][GP2X_RIGHT]) {
-		memory.intern_p1 &= 0xF7;
-	}
+	if (joy_button[0][GP2X_UP]) memory.intern_p1 &= 0xFE;
+	if (joy_button[0][GP2X_DOWN]) memory.intern_p1 &= 0xFD;
+	if (joy_button[0][GP2X_LEFT]) memory.intern_p1 &= 0xFB;
+	if (joy_button[0][GP2X_RIGHT]) memory.intern_p1 &= 0xF7;
+	
 	//DIAGONAL. Use them only if no ordinal has been pressed (to avoid diagonal bias)
 	if ((memory.intern_p1&0xF)==0xF) {
 		if (joy_button[0][GP2X_UP_LEFT]) {
@@ -387,6 +365,35 @@ void update_p1_key(void) {
 		}
 		if (joy_button[0][GP2X_DOWN_RIGHT]) {
 			memory.intern_p1 &= 0xF5;
+		}
+	}
+	//printf("nb_joy %d\n",conf.nb_joy);
+	if (conf.nb_joy > 1) {
+		if (joy_axe[0][conf.p1_joy[AXE_Y]]*conf.p1_joy[AXE_Y_DIR] < -5000)
+			memory.intern_p1 &= 0xFE;
+		if (joy_axe[0][conf.p1_joy[AXE_Y]]*conf.p1_joy[AXE_Y_DIR] > 5000)
+			memory.intern_p1 &= 0xFD;
+		if (joy_axe[0][conf.p1_joy[AXE_X]]*conf.p1_joy[AXE_X_DIR] < -5000)
+			memory.intern_p1 &= 0xFB;
+		if (joy_axe[0][conf.p1_joy[AXE_X]]*conf.p1_joy[AXE_X_DIR] > 5000)
+			memory.intern_p1 &= 0xF7;
+		if (joy_button[0][conf.p1_joy[BUT_A]])
+			memory.intern_p1 &= 0xEF;	// A
+		if (joy_button[0][conf.p1_joy[BUT_B]])
+			memory.intern_p1 &= 0xDF;	// B
+		if (joy_button[0][conf.p1_joy[BUT_C]])
+			memory.intern_p1 &= 0xBF;	// C
+		if (joy_button[0][conf.p1_joy[BUT_D]])
+			memory.intern_p1 &= 0x7F;	// D
+
+		/* handle hotkey macros... */
+		for ( i = 0; i < BUT_HOTKEY3 - BUT_HOTKEY0 + 1; i++ ) {
+			if ((conf.p1_joy[BUT_HOTKEY0+i] >= 0 && joy_button[0][conf.p1_joy[BUT_HOTKEY0+i]] ) ) {
+				if ( conf.p1_hotkey[i] & HOTKEY_MASK_A ) memory.intern_p1 &= 0xEF;
+				if ( conf.p1_hotkey[i] & HOTKEY_MASK_B ) memory.intern_p1 &= 0xDF;
+				if ( conf.p1_hotkey[i] & HOTKEY_MASK_C ) memory.intern_p1 &= 0xBF;
+				if ( conf.p1_hotkey[i] & HOTKEY_MASK_D ) memory.intern_p1 &= 0x7F;
+			}
 		}
 	}
 }
