@@ -6,9 +6,9 @@ AC_CANONICAL_TARGET([])
 AM_CONFIG_HEADER(config.h)
 
 
-#AM_INIT_AUTOMAKE(gngeo,0.6.12)
+AM_INIT_AUTOMAKE(gngeo,0.7)
 # devel version
-AM_INIT_AUTOMAKE(gngeo,20060711)
+#AM_INIT_AUTOMAKE(gngeo,20060711)
 
 # it's not optimal, but at least, it work
 if test -z "$CC_FOR_BUILD"; then

@@ -56,7 +56,9 @@ blitter_soft_init()
 	//screen = SDL_SetVideoMode(width, height, 16, sdl_flags);
 
 	//gp2x_video_RGB_setscaling(320, 240);
-	screen = SDL_SetVideoMode(320, 240, 16, sdl_flags);
+	screen = SDL_SetVideoMode(320, 240, 16, 
+				  sdl_flags|
+				  (CF_BOOL(cf_get_item_by_name("vsync"))?SDL_DOUBLEBUF:0));
 	
 	
 	//screen = SDL_SetVideoMode(304, 224, 16, sdl_flags);
@@ -173,6 +175,7 @@ void
 blitter_soft_update()
 {
     int i;
+
   if (neffect == 0) {
       switch (scale) {
       case 2: update_double(); break;

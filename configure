@@ -1423,8 +1423,6 @@ test -n "$target_alias" &&
 
 
 
-#AM_INIT_AUTOMAKE(gngeo,0.6.12)
-# devel version
 am__api_version="1.4"
 # Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
@@ -1595,7 +1593,7 @@ fi
 
 PACKAGE=gngeo
 
-VERSION=20060711
+VERSION=0.7
 
 if test "`cd $srcdir && pwd`" != "`pwd`" && test -f $srcdir/config.status; then
   { { echo "$as_me:$LINENO: error: source directory already configured; run \"make distclean\" there first" >&5
@@ -1691,6 +1689,8 @@ echo "${ECHO_T}missing" >&6
 fi
 
 
+# devel version
+#AM_INIT_AUTOMAKE(gngeo,20060711)
 
 # it's not optimal, but at least, it work
 if test -z "$CC_FOR_BUILD"; then
