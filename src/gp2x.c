@@ -24,6 +24,8 @@
 #include "menu.h"
 
 #define SYS_CLK_FREQ 7372800
+#define GP2X_VIDEO_MEM_SIZE ((5*1024*1024) - 4096)
+
 // system registers
 static struct
 {
@@ -144,20 +146,36 @@ void gp2x_ram_init(void) {
 	gp2x_memregs=(Uint16*)gp2x_memregl ;
 }
 
-Uint8 *gp2x_ram_malloc(size_t size) {
+Uint8 *gp2x_ram_malloc(size_t size,Uint32 page) {
 	static volatile Uint8 *ram_ptr=0;
+	static volatile Uint8 *ram_ptr2=0;
 	volatile Uint8 *t;
-	if (!ram_ptr) {
-		ram_ptr=gp2x_ram/*+0x8000+0x100000*/;
-		//printf("Ram_ptr=%p\n",ram_ptr);
-	}
-	if ((Uint32)ram_ptr-(Uint32)gp2x_ram+size<=0x1000000) {
-		t=ram_ptr;
-		ram_ptr+=(((Uint32)size)|0xF)+0x1;
-		//printf("allocating %d\n",size);
-		return t;
+	if (page==0) {
+		if (!ram_ptr) {
+			ram_ptr=gp2x_ram/*+0x8000+0x100000*/;
+			//printf("Ram_ptr=%p\n",ram_ptr);
+		}
+		if ((Uint32)ram_ptr-(Uint32)gp2x_ram+size<=0x1000000) {
+			t=ram_ptr;
+			ram_ptr+=(((Uint32)size)|0xF)+0x1;
+			//printf("allocating %d\n",size);
+			return t;
+		} else {
+			printf("Out of memory\n");
+		}
 	} else {
-		printf("Out of memory\n");
+		if (!ram_ptr2) {
+			ram_ptr2=gp2x_ram2+0x610000;
+			printf("Ram_ptr2=%p %p\n",ram_ptr2,gp2x_ram2);
+		}
+		if ((Uint32)ram_ptr2-(Uint32)gp2x_ram2+size<=0x1000000) {
+			t=ram_ptr2;
+			ram_ptr2+=(((Uint32)size)|0xF)+0x1;
+			//printf("allocating %d\n",size);
+			return t;
+		} else {
+			printf("Out of memory\n");
+		}
 	}
 	return NULL;
 }

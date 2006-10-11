@@ -369,26 +369,26 @@ void update_p1_key(void) {
 	}
 	//printf("nb_joy %d\n",conf.nb_joy);
 	if (conf.nb_joy > 1) {
-		if (joy_axe[0][conf.p1_joy[AXE_Y]]*conf.p1_joy[AXE_Y_DIR] < -5000)
+		if (joy_axe[1][conf.p1_joy[AXE_Y]]*conf.p1_joy[AXE_Y_DIR] < -5000)
 			memory.intern_p1 &= 0xFE;
-		if (joy_axe[0][conf.p1_joy[AXE_Y]]*conf.p1_joy[AXE_Y_DIR] > 5000)
+		if (joy_axe[1][conf.p1_joy[AXE_Y]]*conf.p1_joy[AXE_Y_DIR] > 5000)
 			memory.intern_p1 &= 0xFD;
-		if (joy_axe[0][conf.p1_joy[AXE_X]]*conf.p1_joy[AXE_X_DIR] < -5000)
+		if (joy_axe[1][conf.p1_joy[AXE_X]]*conf.p1_joy[AXE_X_DIR] < -5000)
 			memory.intern_p1 &= 0xFB;
-		if (joy_axe[0][conf.p1_joy[AXE_X]]*conf.p1_joy[AXE_X_DIR] > 5000)
+		if (joy_axe[1][conf.p1_joy[AXE_X]]*conf.p1_joy[AXE_X_DIR] > 5000)
 			memory.intern_p1 &= 0xF7;
-		if (joy_button[0][conf.p1_joy[BUT_A]])
+		if (joy_button[1][conf.p1_joy[BUT_A]])
 			memory.intern_p1 &= 0xEF;	// A
-		if (joy_button[0][conf.p1_joy[BUT_B]])
+		if (joy_button[1][conf.p1_joy[BUT_B]])
 			memory.intern_p1 &= 0xDF;	// B
-		if (joy_button[0][conf.p1_joy[BUT_C]])
+		if (joy_button[1][conf.p1_joy[BUT_C]])
 			memory.intern_p1 &= 0xBF;	// C
-		if (joy_button[0][conf.p1_joy[BUT_D]])
+		if (joy_button[1][conf.p1_joy[BUT_D]])
 			memory.intern_p1 &= 0x7F;	// D
 
 		/* handle hotkey macros... */
 		for ( i = 0; i < BUT_HOTKEY3 - BUT_HOTKEY0 + 1; i++ ) {
-			if ((conf.p1_joy[BUT_HOTKEY0+i] >= 0 && joy_button[0][conf.p1_joy[BUT_HOTKEY0+i]] ) ) {
+			if ((conf.p1_joy[BUT_HOTKEY0+i] >= 0 && joy_button[1][conf.p1_joy[BUT_HOTKEY0+i]] ) ) {
 				if ( conf.p1_hotkey[i] & HOTKEY_MASK_A ) memory.intern_p1 &= 0xEF;
 				if ( conf.p1_hotkey[i] & HOTKEY_MASK_B ) memory.intern_p1 &= 0xDF;
 				if ( conf.p1_hotkey[i] & HOTKEY_MASK_C ) memory.intern_p1 &= 0xBF;
@@ -746,6 +746,7 @@ void main_loop(void)
 
 	    case SDL_JOYBUTTONDOWN:
 		joy_button[event.jbutton.which][event.jbutton.button] = 1;
+		//printf("Joy event %d %d\n",event.jbutton.which,event.jbutton.button);
 		
 		if (show_keysym) {
 		    sprintf(ksym_code, "%d", event.jbutton.button);

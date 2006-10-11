@@ -80,7 +80,7 @@ void init_joystick(void)
     int i;
     int joyindex[3];
     int lastinit=-1;
-#ifdef GP2X
+#ifdef GP2X_
     int nb_joy=3;
     joyindex[0]=0;
     joyindex[1]=CF_VAL(cf_get_item_by_name("p1joydev"))+1;
@@ -97,6 +97,9 @@ void init_joystick(void)
     SDL_JoystickEventState(SDL_ENABLE);
 
     conf.nb_joy = SDL_NumJoysticks();
+#ifdef GP2X__
+    conf.nb_joy--;
+#endif
     //printf("Nb_joy=%d %d %d \n",conf.nb_joy,joyindex[1],joyindex[2]);
     /* on ne gere que les deux premiers joysticks */
     /*
@@ -109,9 +112,10 @@ void init_joystick(void)
       }
     */
  
-    for (i=0;i<nb_joy;i++) {
+    for (i=0;i<conf.nb_joy;i++) {
 	if (lastinit!=joyindex[i]) {
 	    lastinit=joyindex[i];
+	    //printf("Try to init joy %d\n",i);
 	    conf.joy[i] = SDL_JoystickOpen(joyindex[i]);
 	    if (conf.joy[i] && joyindex[i]<conf.nb_joy) {
 		    joy_numaxes[i] = SDL_JoystickNumAxes(conf.joy[i]);

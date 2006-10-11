@@ -650,8 +650,8 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 	//      printf("%p %d \n",dr->section[i].item,i);
 	switch (i) {
 	case SEC_CPU:
-#         ifdef GP2X__
-		memory.cpu = gp2x_ram_malloc(s);
+#         ifdef GP2X
+		memory.cpu = gp2x_ram_malloc(s,1);
 #         else
 		memory.cpu = malloc(s); CHECK_ALLOC(memory.cpu);
 #         endif
@@ -659,9 +659,9 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 		memory.cpu_size = s;
 	    break;
 	case SEC_SFIX:
-#         ifdef GP2X__
-		memory.sfix_game = gp2x_ram_malloc(s);
-		memory.fix_game_usage = gp2x_ram_malloc(s >> 5);
+#         ifdef GP2X
+		memory.sfix_game = gp2x_ram_malloc(s,1);
+		memory.fix_game_usage = gp2x_ram_malloc(s >> 5,1);
 #         else
 		memory.sfix_game = malloc(s); CHECK_ALLOC(memory.sfix_game);
 		memory.fix_game_usage = malloc(s >> 5);
@@ -671,9 +671,9 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 	    memory.sfix_size = s;
 	    break;
 	case SEC_SM1:
-#         ifdef GP2X__
+#         ifdef GP2X
 		if (conf.sound) 
-			memory.sm1 = gp2x_ram_malloc(s);
+			memory.sm1 = gp2x_ram_malloc(s,1);
 #         else
 		memory.sm1 = malloc(s); CHECK_ALLOC(memory.sm1 );
 #         endif
@@ -683,7 +683,7 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 	case SEC_SOUND1:
 #         ifdef GP2X
 		if (conf.sound) 
-			memory.sound1 = gp2x_ram_malloc(s);
+			memory.sound1 = gp2x_ram_malloc(s,0);
 #         else
 		memory.sound1 = malloc(s); CHECK_ALLOC(memory.sound1);
 #         endif
@@ -693,7 +693,7 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 	case SEC_SOUND2:
 #         ifdef GP2X
 		if (conf.sound) 
-			memory.sound2 = gp2x_ram_malloc(s);
+			memory.sound2 = gp2x_ram_malloc(s,0);
 #         else
 		memory.sound2 = malloc(s); CHECK_ALLOC(memory.sound2);
 #         endif
@@ -748,9 +748,11 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 					  "of space on your SD card\n\n"
 					  "Proceed?",dr->name,(memory.gfx_size/1024)/1024)) {
 			    SDL_FillRect(screen,NULL,0);
+			    /*
 			    free(memory.cpu);
 			    if (memory.sm1) free(memory.sm1);
 			    if (memory.sfix_game) free( memory.sfix_game);
+			    */
 
 			    gn_reset_pbar();
 
@@ -767,7 +769,8 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 					  "exit. Select %s again to "
 					  "enjoy it :)",dr->name);
 		    }
-		    exit(1); 
+		    //exit(1);
+		    gp2x_gfx_dump=open(dumpname,O_RDONLY);
 	    }
 	    if (gp2x_gfx_dump!=-1) {
 		    memory.gfx=mmap(0,memory.gfx_size,PROT_READ, MAP_PRIVATE|MAP_NONBLOCK, gp2x_gfx_dump,0x0);

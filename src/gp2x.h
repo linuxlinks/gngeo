@@ -14,7 +14,7 @@ volatile Uint16 *gp2x_memregs;
 volatile Uint32 *gp2x_memregl;
 
 void gp2x_ram_init(void);
-Uint8 *gp2x_ram_malloc(size_t size);
+Uint8 *gp2x_ram_malloc(size_t size,Uint32 page);
 void gp2x_quit(void);
 void gp2x_sound_volume(int l, int r);
 void gp2x_init(void);
