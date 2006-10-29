@@ -6,7 +6,7 @@ AC_CANONICAL_TARGET([])
 AM_CONFIG_HEADER(config.h)
 
 
-AM_INIT_AUTOMAKE(gngeo,0.7)
+AM_INIT_AUTOMAKE(gngeo,0.7a)
 # devel version
 #AM_INIT_AUTOMAKE(gngeo,20060711)
 
@@ -62,6 +62,14 @@ else
 		AC_MSG_ERROR(can't find sdl-config on your system);
 	fi
 	enable_gp2x=false
+fi
+AC_ARG_ENABLE(win32,    [  --enable-win32          Enable Win32 build],
+			[enable_win32="$enableval"],[enable_win32="false"])
+echo WIN32 $enable_win32
+if test "$enable_win32" = yes ; then
+	CFLAGS="$CFLAGS -DWIN32"
+	enable_win32=true
+	NASMENV="--prefix_"
 fi
 
 AC_CHECK_LIB([SDL_image], [IMG_Load])

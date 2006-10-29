@@ -90,7 +90,11 @@ SDL_bool check_dir(char *dir_name)
     DIR *d;
 
     if (!(d = opendir(dir_name)) && (errno == ENOENT)) {
-	mkdir(dir_name, 0755);
+#ifdef WIN32
+	    mkdir(dir_name);
+#else
+	    mkdir(dir_name, 0755);
+#endif
 	return SDL_FALSE;
     }
     return SDL_TRUE;
@@ -99,7 +103,7 @@ SDL_bool check_dir(char *dir_name)
 /* return a char* to $HOME/.gngeo/ 
    DO NOT free it!
 */
-#ifdef GP2X
+#if defined (GP2X) || defined (WIN32)
 char *get_gngeo_dir(void) {
     static char *filename="";
     return filename;
@@ -122,7 +126,7 @@ char *get_gngeo_dir(void) {
 void open_nvram(char *name)
 {
     char *filename;
-#ifdef GP2X
+#if defined (GP2X) || defined (WIN32)
     char *gngeo_dir="save/";
 #else
     char *gngeo_dir=get_gngeo_dir();
@@ -154,7 +158,7 @@ void open_nvram(char *name)
 /* TODO: multiple memcard */
 void open_memcard(char *name) {
 	char *filename;
-#ifdef GP2X
+#if defined (GP2X) || defined (WIN32)
 	char *gngeo_dir="save/";
 #else
 	char *gngeo_dir=get_gngeo_dir();
@@ -174,7 +178,7 @@ void open_memcard(char *name) {
 void save_nvram(char *name)
 {
     char *filename;
-#ifdef GP2X
+#if defined (GP2X) || defined (WIN32)
     char *gngeo_dir="save/";
 #else
     char *gngeo_dir=get_gngeo_dir();
@@ -211,7 +215,7 @@ void save_nvram(char *name)
 }
 void save_memcard(char *name) {
 	char *filename;
-#ifdef GP2X
+#if defined (GP2X) || defined (WIN32)
 	char *gngeo_dir="save/";
 #else
 	char *gngeo_dir=get_gngeo_dir();
@@ -276,7 +280,7 @@ SDL_bool init_game(char *rom_name) {
 
 #ifdef USE_GUI
     /* per game config */
-#ifdef GP2X
+#if defined (GP2X) || defined (WIN32)
     gpath="conf/";
 #else
     gpath=get_gngeo_dir();
@@ -293,7 +297,7 @@ SDL_bool init_game(char *rom_name) {
 
     //open_rom(rom_name);
     if (dr_load_game(dr,rom_name)==SDL_FALSE) {
-#ifdef GP2X
+#ifdef GP2X ||
 	gn_popup_error(" Error! :","Couldn't load %s",
 		       file_basename(rom_name));
 #else

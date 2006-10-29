@@ -265,7 +265,7 @@ static  int print_help(CONF_ITEM *self) {
 
 static int show_all_game(CONF_ITEM *self) {
     dr_load_driver_dir(CF_STR(cf_get_item_by_name("romrcdir")));
-#ifndef GP2X
+#if ! defined (GP2X) && ! defined (WIN32)
     {
 	    int len = strlen("romrc.d") + strlen(getenv("HOME")) + strlen("/.gngeo/") +	1;
 	    char *rc_dir = (char *) alloca(len*sizeof(char));
@@ -427,7 +427,7 @@ SDL_bool cf_save_file(char *filename,int flags) {
 	CONF_ITEM *cf;
 
 	if (!conf_file) {
-#ifdef GP2X
+#if defined (GP2X) || defined (WIN32)
 		int len = strlen("gngeorc") + strlen("conf/") +	1;
 		conf_file = (char *) alloca(len*sizeof(char));
 		sprintf(conf_file, "conf/gngeorc");	    
@@ -540,7 +540,7 @@ SDL_bool cf_open_file(char *filename)
     CONF_ITEM *cf;
 
     if (!conf_file) {
-#ifdef GP2X
+#if defined (GP2X) || defined (WIN32)
 	    int len = strlen("gngeorc") + strlen("conf/") +	1;
 	    conf_file = (char *) alloca(len*sizeof(char));
 	    sprintf(conf_file, "conf/gngeorc");	    

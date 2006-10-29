@@ -270,7 +270,7 @@ int main(int argc, char *argv[])
     //dr_load_driver(CF_STR(cf_get_item_by_name("romrc")));
 
     dr_load_driver_dir(CF_STR(cf_get_item_by_name("romrcdir")));
-#ifndef GP2X
+#if !defined (GP2X) && !defined(WIN32)
     {
 	    int len = strlen("romrc.d") + strlen(getenv("HOME")) + strlen("/.gngeo/") +	1;
 	    char *rc_dir = (char *) alloca(len*sizeof(char));
@@ -315,7 +315,7 @@ int main(int argc, char *argv[])
 
  
 /* per game config */
-#ifdef GP2X
+#if defined (GP2X) || defined (WIN32)
     gpath="conf/";
 #else
     gpath=get_gngeo_dir();
