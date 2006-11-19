@@ -97,7 +97,7 @@ void init_joystick(void)
     SDL_JoystickEventState(SDL_ENABLE);
 
     conf.nb_joy = SDL_NumJoysticks();
-#ifdef GP2X__
+#ifdef GP2X
     conf.nb_joy--;
 #endif
     //printf("Nb_joy=%d %d %d \n",conf.nb_joy,joyindex[1],joyindex[2]);
@@ -137,30 +137,7 @@ void init_joystick(void)
     }
     conf.p2_joy = CF_ARRAY(cf_get_item_by_name("p2joy"));
     conf.p1_joy = CF_ARRAY(cf_get_item_by_name("p1joy"));
-    /*
-      for (i = 0; i < conf.nb_joy; i++) {
-      if (invert_joy)
-      conf.joy[i] = SDL_JoystickOpen(1 - i);
-      else
-      conf.joy[i] = SDL_JoystickOpen(i);
-      printf("joy %s, axe:%d, button:%d\n",
-      SDL_JoystickName(i),
-      SDL_JoystickNumAxes(conf.joy[i]),
-      SDL_JoystickNumButtons(conf.joy[i]));
-      joy_button[i] =	(Uint8 *) malloc(SDL_JoystickNumButtons(conf.joy[i]));
-      joy_axe[i] = (Uint32 *) malloc(SDL_JoystickNumAxes(conf.joy[i]) * sizeof(INT32));
-      memset(joy_button[i], 0, SDL_JoystickNumButtons(conf.joy[i]));
-      memset(joy_axe[i], 0, SDL_JoystickNumAxes(conf.joy[i]) * sizeof(INT32));
-	
-      }
-      if (invert_joy) {
-      conf.p2_joy = CF_ARRAY(cf_get_item_by_name("p1joy"));
-      conf.p1_joy = CF_ARRAY(cf_get_item_by_name("p2joy"));
-      } else {
-      conf.p2_joy = CF_ARRAY(cf_get_item_by_name("p2joy"));
-      conf.p1_joy = CF_ARRAY(cf_get_item_by_name("p1joy"));
-      }
-    */
+ 
 }
 
 void sdl_set_title(char *name) {
@@ -307,15 +284,16 @@ int main(int argc, char *argv[])
 	    SDL_textout(screen, 1, 231, "Patching MMU ... OK!");SDL_Flip(screen);
     } else {
 	    SDL_textout(screen, 1, 231, "Patching MMU ... FAILED :(");SDL_Flip(screen);
+	    SDL_Delay(300);
     }
-    SDL_Delay(200);
+    //SDL_Delay(200);
     //benchmark ((void*)screen->pixels);
     gn_init_skin();
 #endif
 
  
 /* per game config */
-#if defined (GP2X) || defined (WIN32)
+#if defined (GP2X) || defined (WIN32)
     gpath="conf/";
 #else
     gpath=get_gngeo_dir();
@@ -344,9 +322,16 @@ int main(int argc, char *argv[])
     gp2x_init_mixer();
     gp2x_set_cpu_speed();
     SDL_FillRect(screen,NULL,0);
+#else
+    if (!rom_name) {
+	cf_print_help();
+	exit(0);
+    }
+#endif
 
        
     if (init_game(rom_name)!=SDL_TRUE) {
+	    printf("Can't init %s...\n",rom_name);
             exit(1);
     }    
     if (conf.debug)
@@ -357,37 +342,6 @@ int main(int argc, char *argv[])
 
     save_nvram(conf.game);
     save_memcard(conf.game);
-#else
 
-    if (!rom_name) {
-	cf_print_help();
-	exit(0);
-    }
-    if (init_game(rom_name)!=SDL_TRUE) {
-	    printf("Can't init %s...\n",rom_name);
-	    exit(1);
-    }    
-    if (conf.debug)
-	debug_loop();
-    else
-	main_loop();
-
-#if 0
-    CF_ARRAY(cf_get_item_by_name("p1hotkey0"))[1]=99;
-    CF_VAL(cf_get_item_by_name("samplerate"))=111111;
-    //CF_STR(cf_get_item_by_name("system"))=strdup("Plop");
-    sprintf(CF_STR(cf_get_item_by_name("system")),"Plop");
-    CF_BOOL(cf_get_item_by_name("pal"))=SDL_TRUE;
-    cf_item_has_been_changed(cf_get_item_by_name("p1hotkey0"));
-    cf_item_has_been_changed(cf_get_item_by_name("samplerate"));
-    cf_item_has_been_changed(cf_get_item_by_name("system"));
-    cf_item_has_been_changed(cf_get_item_by_name("pal"));
-
-    cf_save_file(NULL,0);
-#endif
-
-    save_nvram(conf.game);
-    save_memcard(conf.game);
-#endif
     return 0;
 }

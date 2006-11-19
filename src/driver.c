@@ -765,9 +765,8 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 			    //gp2x_gfx_dump=open(dumpname,O_RDONLY);
 			    gn_popup_info("Succed!",
 					  "The dumgfx file have been "
-					  "created. Now, gngeo will "
-					  "exit. Select %s again to "
-					  "enjoy it :)",dr->name);
+					  "created. Now, you can enjoy %s"
+					  ,dr->name);
 		    }
 		    //exit(1);
 		    gp2x_gfx_dump=open(dumpname,O_RDONLY);

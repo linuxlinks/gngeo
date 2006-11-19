@@ -103,7 +103,7 @@ SDL_bool check_dir(char *dir_name)
 /* return a char* to $HOME/.gngeo/ 
    DO NOT free it!
 */
-#if defined (GP2X) || defined (WIN32)
+#if defined (GP2X) || defined (WIN32)
 char *get_gngeo_dir(void) {
     static char *filename="";
     return filename;
@@ -126,7 +126,7 @@ char *get_gngeo_dir(void) {
 void open_nvram(char *name)
 {
     char *filename;
-#if defined (GP2X) || defined (WIN32)
+#if defined (GP2X) || defined (WIN32)
     char *gngeo_dir="save/";
 #else
     char *gngeo_dir=get_gngeo_dir();
@@ -158,7 +158,7 @@ void open_nvram(char *name)
 /* TODO: multiple memcard */
 void open_memcard(char *name) {
 	char *filename;
-#if defined (GP2X) || defined (WIN32)
+#if defined (GP2X) || defined (WIN32)
 	char *gngeo_dir="save/";
 #else
 	char *gngeo_dir=get_gngeo_dir();
@@ -178,7 +178,7 @@ void open_memcard(char *name) {
 void save_nvram(char *name)
 {
     char *filename;
-#if defined (GP2X) || defined (WIN32)
+#if defined (GP2X) || defined (WIN32)
     char *gngeo_dir="save/";
 #else
     char *gngeo_dir=get_gngeo_dir();
@@ -215,7 +215,7 @@ void save_nvram(char *name)
 }
 void save_memcard(char *name) {
 	char *filename;
-#if defined (GP2X) || defined (WIN32)
+#if defined (GP2X) || defined (WIN32)
 	char *gngeo_dir="save/";
 #else
 	char *gngeo_dir=get_gngeo_dir();
@@ -280,7 +280,7 @@ SDL_bool init_game(char *rom_name) {
 
 #ifdef USE_GUI
     /* per game config */
-#if defined (GP2X) || defined (WIN32)
+#if defined (GP2X) || defined (WIN32)
     gpath="conf/";
 #else
     gpath=get_gngeo_dir();

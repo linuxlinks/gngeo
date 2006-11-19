@@ -641,7 +641,7 @@ void main_loop(void)
     int z80_overclk=CF_VAL(cf_get_item_by_name("z80clock"));
     int nb_frames=0;
 #ifdef GP2X
-    int snd_volume=85;
+    int snd_volume=gp2x_sound_volume_get();
     char volbuf[21];
     static SDL_Rect buf_rect    =	{24, 16, 304, 224};
     static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
@@ -661,7 +661,7 @@ void main_loop(void)
     int invert_joy=CF_BOOL(cf_get_item_by_name("invertjoy"));
 
 #ifdef GP2X
-    gp2x_sound_volume(snd_volume,snd_volume);
+    gp2x_sound_volume_set(snd_volume,snd_volume);
 #endif
 
     reset_frame_skip();
@@ -755,7 +755,7 @@ void main_loop(void)
 #ifdef GP2X
 		if ((joy_button[0][GP2X_VOL_UP]) && conf.sound) {
 			if (snd_volume<100) snd_volume+=5;
-			gp2x_sound_volume(snd_volume,snd_volume);
+			gp2x_sound_volume_set(snd_volume,snd_volume);
 			for (i=0;i<snd_volume/5;i++) volbuf[i]='|';
 			for (i=snd_volume/5;i<20;i++) volbuf[i]='-';
 			volbuf[20]=0;
@@ -763,7 +763,7 @@ void main_loop(void)
 		}
 		if ((joy_button[0][GP2X_VOL_DOWN] && conf.sound)) {
 			if (snd_volume>0) snd_volume-=5;
-			gp2x_sound_volume(snd_volume,snd_volume);
+			gp2x_sound_volume_set(snd_volume,snd_volume);
 			for (i=0;i<snd_volume/5;i++) volbuf[i]='|';
 			for (i=snd_volume/5;i<20;i++) volbuf[i]='-';
 			volbuf[20]=0;

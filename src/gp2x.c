@@ -29,7 +29,9 @@
 // system registers
 static struct
 {
-        unsigned short SYSCLKENREG,SYSCSETREG,FPLLVSETREG,DUALINT920,DUALINT940,DUALCTRL940,DISPCSETREG;
+        unsigned short SYSCLKENREG,SYSCSETREG,
+		FPLLVSETREG,DUALINT920,DUALINT940,
+		DUALCTRL940,DISPCSETREG;
 }
 system_reg;
 
@@ -85,10 +87,8 @@ unsigned short get_920_Div()
         return (gp2x_memregs[0x91c>>1] & 0x7);
 }
 
-void gp2x_video_RGB_setscaling(int W, int H)
+void debug_gp2x_tvout(void)
 {
-#if 1
-/*
 	printf("Some TV out Regs\n");
 	printf("TV-Out?       %04x\n",gp2x_memregs[0x2800>>1]&0x100);
 	printf("horizontal    %04x\n",gp2x_memregs[0x2906>>1]);
@@ -103,34 +103,8 @@ void gp2x_video_RGB_setscaling(int W, int H)
 	printf("STL2 ENDX     %04x\n",gp2x_memregs[0x28EC>>1]);
 	printf("STL3 ENDX     %04x\n",gp2x_memregs[0x28F4>>1]);
 	printf("STL4 ENDX     %04x\n",gp2x_memregs[0x28FC>>1]);
-*/
 	//gp2x_memregs[0x28E4>>1]=gp2x_memregs[0x290C>>1];
-
 	//gp2x_memregs[0x290C>>1]*=2;
-#else
- float escalaw,escalah;
- int bpp=(gp2x_memregs[0x28DA>>1]>>9)&0x3;
-
- if(gp2x_memregs[0x2800>>1]&0x100) //TV-Out
- {
-   escalaw=489.0; //RGB Horiz TV (PAL, NTSC)
-   if (gp2x_memregs[0x2818>>1]  == 287) //PAL
-     escalah=274.0; //RGB Vert TV PAL
-   else if (gp2x_memregs[0x2818>>1]  == 239) //NTSC
-     escalah=331.0; //RGB Vert TV NTSC
- }
- else //LCD
- {
-   escalaw=1024.0; //RGB Horiz LCD
-   escalah=320.0; //RGB Vert LCD
- }
-
- // scale horizontal
- gp2x_memregs[0x2906>>1]=(unsigned short)((float)escalaw *(W/320.0));
- // scale vertical
- gp2x_memregl[0x2908>>2]=(unsigned long)((float)escalah *bpp *(H/240.0));
-
-#endif
 }
 
 //volatile Uint32 *gp2x_ram;
@@ -161,12 +135,12 @@ Uint8 *gp2x_ram_malloc(size_t size,Uint32 page) {
 			//printf("allocating %d\n",size);
 			return t;
 		} else {
-			printf("Out of memory\n");
+			printf("Out of page1 upper memory\n");
 		}
 	} else {
 		if (!ram_ptr2) {
-			ram_ptr2=gp2x_ram2+0x610000;
-			printf("Ram_ptr2=%p %p\n",ram_ptr2,gp2x_ram2);
+			ram_ptr2=gp2x_ram2+0x608100;
+			//printf("Ram_ptr2=%p %p\n",ram_ptr2,gp2x_ram2);
 		}
 		if ((Uint32)ram_ptr2-(Uint32)gp2x_ram2+size<=0x1000000) {
 			t=ram_ptr2;
@@ -174,16 +148,24 @@ Uint8 *gp2x_ram_malloc(size_t size,Uint32 page) {
 			//printf("allocating %d\n",size);
 			return t;
 		} else {
-			printf("Out of memory\n");
+			printf("Out of page2 upper memory\n");
 		}
 	}
 	return NULL;
 }
 
-void gp2x_sound_volume(int l, int r) {
+void gp2x_sound_volume_set(int l, int r) {
 	static int L;
 	L=(((l*0x50)/100)<<8)|((r*0x50)/100);          //0x5A, 0x60
 	ioctl(gp2x_mixer, SOUND_MIXER_WRITE_PCM, &L); //SOUND_MIXER_WRITE_VOLUME
+}
+/* mono only */
+int gp2x_sound_volume_get(void) {
+	static int L;
+	//L=(((l*0x50)/100)<<8)|((r*0x50)/100);          //0x5A, 0x60
+	ioctl(gp2x_mixer, SOUND_MIXER_READ_PCM, &L); //SOUND_MIXER_READ_VOLUME
+	printf("Vol=%x\n",L);
+	return ((L&0xFF)*100.0/(float)0x50);
 }
 
 void gp2x_set_cpu_speed(void) {
@@ -215,7 +197,6 @@ void gp2x_quit(void) {
 
 	sync();
 	SDL_Quit();
-	gp2x_video_RGB_setscaling(0,0);
 
 	if (strcmp("null",CF_STR(cf_get_item_by_name("frontend")))!=0) {
 		/* TODO: chdir to the gpe dir before executing it */
@@ -317,6 +298,7 @@ int hack_the_mmu(void) {
 }
 
 void gp2x_init_mixer(void) {
+	printf("Open mixer\n");
 	if (CF_BOOL(cf_get_item_by_name("sound"))) {
 		gp2x_mixer=open("/dev/mixer", O_RDWR);
 		if (gp2x_mixer==-1) {
@@ -339,5 +321,9 @@ void gp2x_init(void) {
 
 }
 
+/* Load a 940 bin @ 0x3000000 */
+void gp2x_940_loadbin(char *filename) {
+	
+}
 
 #endif
