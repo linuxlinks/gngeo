@@ -41,6 +41,8 @@
 #include "pbar.h"
 #include "driver.h"
 #include "sound.h"
+#include "streams.h"
+#include "transpack.h"
 
 #ifdef USE_GUI
 #include "gui/gui.h"
@@ -49,6 +51,9 @@
 Uint8 *current_buf;
 //extern Uint8 fix_buffer[0x20000];
 char *rom_file;
+
+void init_sdl(void /*char *rom_name*/);
+void sdl_set_title(char *name);
 
 void chomp(char *str) {
 	int i=0;
@@ -111,12 +116,20 @@ char *get_gngeo_dir(void) {
 #else
 char *get_gngeo_dir(void) {
     static char *filename=NULL;
+#if defined (__AMIGA__)
+    int len = strlen("/PROGDIR/data/") + 1;
+#else
     int len = strlen(getenv("HOME")) + strlen("/.gngeo/") + 1;
+#endif
     int i;
     if (!filename) {
 	filename=malloc(len*sizeof(char));
 	CHECK_ALLOC(filename);
+#if defined (__AMIGA__)
+	sprintf(filename,"/PROGDIR/data/");
+#else
 	sprintf(filename,"%s/.gngeo/",getenv("HOME"));
+#endif
     }
     check_dir(filename);
     //printf("get_gngeo_dir %s\n",filename);
@@ -127,9 +140,11 @@ void open_nvram(char *name)
 {
     char *filename;
 #if defined (GP2X) || defined (WIN32)
-    char *gngeo_dir="save/";
+    const char *gngeo_dir="save/";
+#elif defined(__AMIGA__)
+    const char *gngeo_dir="/PROGDIR/save/";
 #else
-    char *gngeo_dir=get_gngeo_dir();
+    const char *gngeo_dir=get_gngeo_dir();
 #endif
     FILE *f;
     int len =strlen(name) + strlen(gngeo_dir) + 4; /* ".nv\0" => 4 */
@@ -159,9 +174,11 @@ void open_nvram(char *name)
 void open_memcard(char *name) {
 	char *filename;
 #if defined (GP2X) || defined (WIN32)
-	char *gngeo_dir="save/";
+	const char *gngeo_dir="save/";
+#elif defined(__AMIGA__)
+	const char *gngeo_dir="/PROGDIR/save/";
 #else
-	char *gngeo_dir=get_gngeo_dir();
+	const char *gngeo_dir=get_gngeo_dir();
 #endif
 	FILE *f;
 	int len =strlen("memcard") + strlen(gngeo_dir) + 1; /* ".nv\0" => 4 */
@@ -179,9 +196,11 @@ void save_nvram(char *name)
 {
     char *filename;
 #if defined (GP2X) || defined (WIN32)
-    char *gngeo_dir="save/";
+    const char *gngeo_dir="save/";
+#elif defined(__AMIGA__)
+    const char *gngeo_dir=strdup("/PROGDIR/save/");
 #else
-    char *gngeo_dir=get_gngeo_dir();
+    const char *gngeo_dir=get_gngeo_dir();
 #endif
     FILE *f;
     int len = strlen(name) + strlen(gngeo_dir) + 4; /* ".nv\0" => 4 */
@@ -198,9 +217,11 @@ void save_nvram(char *name)
 
     sprintf(filename,"%s%s.nv",gngeo_dir,name);
 
-    f = fopen(filename, "wb");
-    fwrite(memory.sram, 1, 0x10000, f);
-    fclose(f);
+    if ((f = fopen(filename, "wb")) != NULL)
+    {
+	fwrite(memory.sram, 1, 0x10000, f);
+	fclose(f);
+    }
 #if 0
     /* Save memcard */
     len = strlen("memcard") + strlen(gngeo_dir) + 1; /* ".nv\0" => 4 */
@@ -216,9 +237,11 @@ void save_nvram(char *name)
 void save_memcard(char *name) {
 	char *filename;
 #if defined (GP2X) || defined (WIN32)
-	char *gngeo_dir="save/";
+	const char *gngeo_dir="save/";
+#elif defined(__AMIGA__)
+	const char *gngeo_dir=strdup("/PROGDIR/save/");
 #else
-	char *gngeo_dir=get_gngeo_dir();
+	const char *gngeo_dir=get_gngeo_dir();
 #endif
     FILE *f;
     int len = strlen("memcard") + strlen(gngeo_dir) + 1; /* ".nv\0" => 4 */
@@ -226,10 +249,11 @@ void save_memcard(char *name) {
     filename = (char *) alloca(len);
     sprintf(filename,"%s%s",gngeo_dir,"memcard");
     
-    if ((f = fopen(filename, "wb")) == 0)
-	    return;
-    fwrite(memory.memcard, 1, 0x800, f);
-    fclose(f);
+    if ((f = fopen(filename, "wb")) != NULL)
+    {
+	fwrite(memory.memcard, 1, 0x800, f);
+	fclose(f);
+    }
 }
 
 void free_game_memory(void) {
@@ -258,7 +282,7 @@ SDL_bool init_game(char *rom_name) {
 
     dr=dr_get_by_name(rom_name);
     if (!dr) {
-#ifdef GP2X
+#if defined(GP2X)
 	    gn_popup_error(" Error! :","No valid romset found for %s",
 			   file_basename(rom_name));
 #else
@@ -280,7 +304,7 @@ SDL_bool init_game(char *rom_name) {
 
 #ifdef USE_GUI
     /* per game config */
-#if defined (GP2X) || defined (WIN32)
+#if defined(GP2X) || defined(WIN32)
     gpath="conf/";
 #else
     gpath=get_gngeo_dir();
@@ -297,7 +321,7 @@ SDL_bool init_game(char *rom_name) {
 
     //open_rom(rom_name);
     if (dr_load_game(dr,rom_name)==SDL_FALSE) {
-#ifdef GP2X ||
+#if defined(GP2X)
 	gn_popup_error(" Error! :","Couldn't load %s",
 		       file_basename(rom_name));
 #else
@@ -446,7 +470,7 @@ void open_bios(void)
     fix_usage = memory.fix_board_usage;
     current_pal = memory.pal1;
     current_fix = memory.sfix_board;
-    current_pc_pal = (Uint16 *) memory.pal_pc1;
+    current_pc_pal = (Uint32 *) memory.pal_pc1;
 
     free(romfile);
 }

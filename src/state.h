@@ -80,7 +80,7 @@ typedef struct NEOGEO_STATE {
 
 SDL_Surface *state_img;
 
-void create_state_register(ST_MODULE_TYPE module,char *reg_name,Uint8 num,void *data,int size,ST_DATA_TYPE type);
+void create_state_register(ST_MODULE_TYPE module,const char *reg_name,Uint8 num,void *data,int size,ST_DATA_TYPE type);
 void set_pre_save_function(ST_MODULE_TYPE module,void (*func)(void));
 void set_post_load_function(ST_MODULE_TYPE module,void (*func)(void));
 SDL_Surface *load_state_img(char *game,int slot);

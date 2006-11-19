@@ -51,13 +51,16 @@
 #include "menu.h"
 #endif
 
+#ifdef __AMIGA__
+# include <proto/dos.h>
+#endif
 
 void calculate_hotkey_bitmasks()
 {
     int *p;
     int i, j, mask;
-    char *p1_key_list[] = { "p1hotkey0", "p1hotkey1", "p1hotkey2", "p1hotkey3" };
-    char *p2_key_list[] = { "p2hotkey0", "p2hotkey1", "p2hotkey2", "p2hotkey3" };
+    const char *p1_key_list[] = { "p1hotkey0", "p1hotkey1", "p1hotkey2", "p1hotkey3" };
+    const char *p2_key_list[] = { "p2hotkey0", "p2hotkey1", "p2hotkey2", "p2hotkey3" };
 
 
     for ( i = 0; i < 4; i++ ) {
@@ -126,7 +129,7 @@ void init_joystick(void)
 			   SDL_JoystickNumButtons(conf.joy[i]));
 		    joy_button[i] =	(Uint8 *) malloc(SDL_JoystickNumButtons(conf.joy[i]));
 		    // joy_axe[i] = (Uint32 *) malloc(SDL_JoystickNumAxes(conf.joy[i]) * sizeof(Sint32));
-		    joy_axe[i] = (Uint32 *) malloc((joy_numaxes[i] + (SDL_JoystickNumHats(conf.joy[i]) * 2)) * sizeof(Uint32));
+		    joy_axe[i] = (Sint32 *) malloc((joy_numaxes[i] + (SDL_JoystickNumHats(conf.joy[i]) * 2)) * sizeof(Uint32));
 		    memset(joy_button[i], 0, SDL_JoystickNumButtons(conf.joy[i]));
 		    // memset(joy_axe[i], 0, SDL_JoystickNumAxes(conf.joy[i]) * sizeof(Sint32));
 		    memset(joy_axe[i], 0, (joy_numaxes[i] + (SDL_JoystickNumHats(conf.joy[i]) * 2)) * sizeof(Uint32));
@@ -229,6 +232,12 @@ int main(int argc, char *argv[])
     Uint8 gui_res,gngeo_quit=0;
     char *country;
     char *system;
+
+#ifdef __AMIGA__
+    BPTR file_lock = GetProgramDir();
+    SetProgramDir(file_lock);
+#endif
+
     /* faut bien le mettre quelque part */
 
     cf_init(); /* must be the first thing to do */
@@ -249,9 +258,15 @@ int main(int argc, char *argv[])
     dr_load_driver_dir(CF_STR(cf_get_item_by_name("romrcdir")));
 #if !defined (GP2X) && !defined(WIN32)
     {
+#if defined (__AMIGA__)
+	    int len = strlen("romrc.d") + strlen("/PROGDIR/data/") + 1;
+	    char *rc_dir = (char *) alloca(len*sizeof(char));
+	    sprintf(rc_dir, "/PROGDIR/data/romrc.d");
+#else
 	    int len = strlen("romrc.d") + strlen(getenv("HOME")) + strlen("/.gngeo/") +	1;
 	    char *rc_dir = (char *) alloca(len*sizeof(char));
 	    sprintf(rc_dir, "%s/.gngeo/romrc.d", getenv("HOME"));
+#endif
 	    dr_load_driver_dir(rc_dir);
     }
 #endif
@@ -293,7 +308,7 @@ int main(int argc, char *argv[])
 
  
 /* per game config */
-#if defined (GP2X) || defined (WIN32)
+#if defined(GP2X) || defined(WIN32)
     gpath="conf/";
 #else
     gpath=get_gngeo_dir();

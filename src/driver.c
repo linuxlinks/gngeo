@@ -35,6 +35,7 @@
 #include "pbar.h"
 #include "memory.h"
 #include "neocrypt.h"
+#include "fileio.h"
 
 #ifdef GP2X
 #include <sys/mman.h>
@@ -70,7 +71,7 @@ static SDL_bool goto_next_driver(FILE * f)
 }
 
 static int get_sec_by_name(char *section) {
-    static char *sec[SEC_MAX]={"CPU","SFIX","SM1","SOUND1","SOUND2","GFX"};
+    const char *sec[SEC_MAX]={"CPU","SFIX","SM1","SOUND1","SOUND2","GFX"};
     int i;
     for(i=0;i<SEC_MAX;i++) {
 	if (strcmp(sec[i],section)==0)
@@ -81,7 +82,7 @@ static int get_sec_by_name(char *section) {
 }
 
 static int get_romtype_by_name(char *type) {
-    static char *rt[ROMTYPE_MAX]={"MGD2","MVS","MVS_CMC42","MVS_CMC50"};
+    const char *rt[ROMTYPE_MAX]={"MGD2","MVS","MVS_CMC42","MVS_CMC50"};
     int i;
     for(i=0;i<ROMTYPE_MAX;i++) {
 	if (strcmp(rt[i],type)==0)
@@ -225,7 +226,7 @@ SDL_bool dr_load_driver_dir(char *dirname) {
 	    // printf("Couldn't find %s\n",dirname);
         return SDL_FALSE; 
     }
-    while(pfile=readdir(pdir)) {
+    while(pdir && (pfile=readdir(pdir))) {
         char *filename=alloca(strlen(pfile->d_name)+strlen(dirname)+2);
         sprintf(filename,"%s/%s",dirname,pfile->d_name);
         stat(filename,&buf);
@@ -620,6 +621,9 @@ void set_bankswitchers(BANKSW_TYPE bt) {
 	mem68k_store_bksw_byte=mem68k_store_bk_kof2003_byte;
 	mem68k_store_bksw_word=mem68k_store_bk_kof2003_word;
 	mem68k_store_bksw_long=mem68k_store_bk_kof2003_long;
+	break;
+    case BANKSW_SCRAMBLE:
+    case BANKSW_MAX:
 	break;
     }
 }

@@ -48,7 +48,7 @@ Uint8 *mem68k_memptr_bios(Uint32 addr);
 Uint8 *mem68k_memptr_cpu_bk(Uint32 addr);
 Uint8 *mem68k_memptr_ram(Uint32 addr);
 
-
+int diss68k_getdumpline(uint32 addr68k, uint8 *addr, char *dumpline);
 
 t_mem68k_def mem68k_def[] = {
     {0x000, 0x1000, mem68k_memptr_bad,
@@ -334,18 +334,18 @@ static Uint32 gen68k_disassemble(int pc, int nb_instr)
 static void gen68k_dumpreg(void)
 {
     int i;
-    printf("d0=%08lx   d4=%08lx   a0=%08lx   a4=%08lx   %c%c%c%c%c %04x\n",
+    printf("d0=%08x   d4=%08x   a0=%08x   a4=%08x   %c%c%c%c%c %04x\n",
 	   regs.regs[0],regs.regs[4],regs.regs[8],regs.regs[12],
 	   ((regs.sr.sr_int >> 4) & 1 ? 'X' : '-'),
 	   ((regs.sr.sr_int >> 3) & 1 ? 'N' : '-'),
 	   ((regs.sr.sr_int >> 2) & 1 ? 'Z' : '-'),
 	   ((regs.sr.sr_int >> 1) & 1 ? 'V' : '-'),
 	   ((regs.sr.sr_int     ) & 1 ? 'C' : '-'),regs.sr.sr_int);
-    printf("d1=%08lx   d5=%08lx   a1=%08lx   a5=%08lx\n",
+    printf("d1=%08x   d5=%08x   a1=%08x   a5=%08x\n",
 	   regs.regs[1],regs.regs[5],regs.regs[9],regs.regs[13]);
-    printf("d2=%08lx   d6=%08lx   a2=%08lx   a6=%08lx\n",
+    printf("d2=%08x   d6=%08x   a2=%08x   a6=%08x\n",
 	   regs.regs[2],regs.regs[6],regs.regs[10],regs.regs[14]);
-    printf("d3=%08lx   d7=%08lx   a3=%08lx   a7=%08lx   usp=%08lx\n",
+    printf("d3=%08x   d7=%08x   a3=%08x   a7=%08x   usp=%08x\n",
 	   regs.regs[3],regs.regs[7],regs.regs[11],regs.regs[15],regs.sp);
     
 }

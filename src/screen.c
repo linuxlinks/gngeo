@@ -250,7 +250,9 @@ void screen_change_blitter_and_effect(char *bname,char *ename) {
     
 }
 
-SDL_bool screen_reinit(void) {
+SDL_bool screen_reinit(void)
+{
+    return SDL_TRUE;
 }
 
 

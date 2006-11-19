@@ -10,8 +10,8 @@
 #include "SDL.h"
 
 typedef struct {
-    char *name;
-    char *desc;
+    const char *name;
+    const char *desc;
     SDL_bool(*init) ();
     SDL_bool(*resize) (int w, int h);
     void (*update) ();

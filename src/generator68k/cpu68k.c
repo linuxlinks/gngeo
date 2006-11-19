@@ -11,6 +11,8 @@
 #include "def68k-proto.h"
 #include "def68k-funcs.h"
 
+int diss68k_gettext(t_ipc * ipc, char *text);
+
 /*** externed variables ***/
 
 uint8 *cpu68k_rom = NULL;

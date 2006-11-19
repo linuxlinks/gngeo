@@ -8,7 +8,6 @@
 #include <string.h>
 #include <errno.h>
 
-
 #include "SDL.h"
 #include "gui/gui.h"
 #include "screen.h"
@@ -22,6 +21,13 @@
 #include "conf.h"
 #include "fileio.h"
 #include "sound.h"
+
+#if defined (__AMIGA__)
+# ifdef DATA_DIRECTORY
+#  undef DATA_DIRECTORY
+#  define DATA_DIRECTORY "/PROGDIR/data/"
+# endif
+#endif
 
 static WIDGET *desktop;
 static SDL_bool game_only=SDL_FALSE;

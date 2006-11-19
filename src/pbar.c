@@ -43,7 +43,7 @@ static Uint8 pg_last;
 static Uint8 pg_size;
 static Uint32 oldpos=0;
 
-void create_progress_bar(char *desc) {
+void create_progress_bar(const char *desc) {
     int i;
 #ifdef GP2X
     /*

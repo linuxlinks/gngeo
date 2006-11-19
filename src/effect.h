@@ -10,8 +10,8 @@
 #include "SDL.h"
 
 typedef struct {
-    char *name;
-    char *desc;
+    const char *name;
+    const char *desc;
     Uint8 x_ratio,y_ratio;
     SDL_bool(*init) ();
     void (*update) ();

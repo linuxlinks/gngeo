@@ -55,7 +55,7 @@ void SDL_putchar(SDL_Surface * dest, int x, int y, unsigned char c)
 
 }
 
-void SDL_textout(SDL_Surface * dest, int x, int y, char *string)
+void SDL_textout(SDL_Surface * dest, int x, int y, const char *string)
 {
 	int i;int xx=x;
 	for (i = 0; i < strlen(string); i++) {
@@ -91,7 +91,7 @@ void stop_message(int param)
   msg_timer=NULL;
 }
 */
-void draw_message(char *string)
+void draw_message(const char *string)
 {
     /*
        if (msg_timer!=NULL)
@@ -139,7 +139,7 @@ int SDL_getchar(void)
     return 0;
 }
 
-void text_input(char *message,int x,int y,char *string,int size)
+void text_input(const char *message,int x,int y,char *string,int size)
 {
     int sx;
     int a;

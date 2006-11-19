@@ -10,7 +10,6 @@
 #endif
 
 #include <string.h>
-#include <malloc.h>
 #include <stdio.h>
 #include "emu.h"
 #include <math.h>

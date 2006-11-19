@@ -16,7 +16,8 @@ void diss68k_getoperand(char *text, t_ipc * ipc, t_iib * iib, t_type type);
 int diss68k_gettext(t_ipc * ipc, char *text)
 {
   t_iib *iib;
-  char *p, *c;
+  char *p;
+  const char *c;
   char src[64], dst[64];
   char mnemonic[64];
 

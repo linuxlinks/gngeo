@@ -791,7 +791,7 @@ void mem68k_store_z80_word(Uint32 addr, Uint16 data)
 void mem68k_store_z80_long(Uint32 addr, Uint32 data)
 {
     /* I don't think any game will use long store for sound.... */
-    printf("Z80L %lx %04lx\n", addr, data);
+    printf("Z80L %x %04x\n", addr, data);
 }
 
 /**** SETTINGS ****/

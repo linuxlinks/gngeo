@@ -2,7 +2,6 @@
 #include <config.h>
 #endif
 
-
 #include "SDL.h"
 #include "SDL_endian.h"
 #include <stdlib.h>
@@ -13,6 +12,8 @@
 #include "state.h"
 #include "fileio.h"
 #include "screen.h"
+#include "sound.h"
+#include "streams.h"
 
 static ST_REG *reglist;
 static ST_MODULE st_mod[ST_MODULE_END];
@@ -20,12 +21,12 @@ static SDL_Rect buf_rect    =	{24, 16, 304, 224};
 static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
 SDL_Surface *state_img_tmp;
 
-void create_state_register(ST_MODULE_TYPE module,char *reg_name,
+void create_state_register(ST_MODULE_TYPE module,const char *reg_name,
 			   Uint8 num,void *data,int size,ST_DATA_TYPE type) {
     ST_REG *t=(ST_REG*)calloc(1,sizeof(ST_REG));
     t->next=st_mod[module].reglist;
     st_mod[module].reglist=t;
-    t->reg_name=reg_name;
+    t->reg_name=strdup(reg_name);
     t->data=data;
     t->size=size;
     t->type=type;
@@ -111,7 +112,7 @@ Uint32 how_many_slot(char *game) {
 	st_name=(char*)alloca(strlen(gngeo_dir)+strlen(game)+5);
 	while (1) {
 		sprintf(st_name,"%s%s.%03d",gngeo_dir,game,slot);
-		if (f=fopen(st_name,"rb")) {
+		if (st_name && (f=fopen(st_name,"rb"))) {
 			fclose(f);
 			slot++;
 		} else
@@ -392,7 +393,7 @@ static void neogeo_pre_save_state(void) {
 
 static void neogeo_post_load_state(void) {
     current_pal=(st_current_pal==0?memory.pal1:memory.pal2);
-    current_pc_pal=(st_current_pal==0?memory.pal_pc1:memory.pal_pc2);
+    current_pc_pal=(Uint32 *)(st_current_pal==0?memory.pal_pc1:memory.pal_pc2);
     current_fix=(st_current_fix==0?memory.sfix_board:memory.sfix_game);
     update_all_pal();
 }

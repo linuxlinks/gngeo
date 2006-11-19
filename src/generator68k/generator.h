@@ -141,7 +141,7 @@ typedef struct {
 
 extern t_mnemonic_table mnemonic_table[];
 
-extern char *condition_table[];
+extern const char *condition_table[];
 
 typedef union {
   struct {

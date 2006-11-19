@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "gui.h"
 #include "style.h"
 

@@ -44,6 +44,13 @@
 #include "emu.h"
 #include "fileio.h"
 
+#if defined (__AMIGA__)
+# ifdef DATA_DIRECTORY
+#  undef DATA_DIRECTORY
+#  define DATA_DIRECTORY "/PROGDIR/data/"
+# endif
+#endif
+
 /*
 static CONF_ITEM *cf_hash[128];
 static cf_hash_size[128];
@@ -103,8 +110,7 @@ void cf_cache_conf(void) {
     }
 }
 
-
-static CONF_ITEM * create_conf_item(char *name,char *help,char short_opt,int (*action)(struct CONF_ITEM *self))
+static CONF_ITEM * create_conf_item(const char *name,const char *help,char short_opt,int (*action)(struct CONF_ITEM *self))
 {
     int a;
     static int val=0x100;
@@ -112,8 +118,8 @@ static CONF_ITEM * create_conf_item(char *name,char *help,char short_opt,int (*a
     
     a=tolower ((int)name[0]);
 
-    t->name=name;
-    t->help=help;
+    t->name=strdup(name);
+    t->help=strdup(help);
     t->modified=SDL_FALSE;
     if (short_opt==0) {
 	val++;
@@ -136,33 +142,33 @@ static CONF_ITEM * create_conf_item(char *name,char *help,char short_opt,int (*a
     return t;
 }
 
-void cf_create_bool_item(char *name,char *help,char short_opt,SDL_bool def)
+void cf_create_bool_item(const char *name,const char *help,char short_opt,SDL_bool def)
 {
     CONF_ITEM *t=create_conf_item(name,help,short_opt,NULL);
     t->type=CFT_BOOLEAN;
     t->data.dt_bool.bool=def;
     t->data.dt_bool.default_bool=def;
 }
-void cf_create_action_item(char *name,char *help,char short_opt,int (*action)(struct CONF_ITEM *self))
+void cf_create_action_item(const char *name,const char *help,char short_opt,int (*action)(struct CONF_ITEM *self))
 {
     CONF_ITEM *t=create_conf_item(name,help,short_opt,action);
     t->type=CFT_ACTION;
 }
-void cf_create_action_arg_item(char *name,char *help,char short_opt,int (*action)(struct CONF_ITEM *self))
+void cf_create_action_arg_item(const char *name,const char *help,char short_opt,int (*action)(struct CONF_ITEM *self))
 {
     CONF_ITEM *t=create_conf_item(name,help,short_opt,action);
     t->type=CFT_ACTION_ARG;
 }
 
-void cf_create_string_item(char *name,char *help,char short_opt,char *def)
+void cf_create_string_item(const char *name,const char *help,char short_opt,const char *def)
 {
     CONF_ITEM *t=create_conf_item(name,help,short_opt,NULL);
     t->type=CFT_STRING;
     strcpy(t->data.dt_str.str,def);
-    t->data.dt_str.default_str=def;
+    t->data.dt_str.default_str=strdup(def);
 }
 
-void cf_create_int_item(char *name,char *help,char short_opt,int def)
+void cf_create_int_item(const char *name,const char *help,char short_opt,int def)
 {
     CONF_ITEM *t=create_conf_item(name,help,short_opt,NULL);
     t->type=CFT_INT;
@@ -170,7 +176,7 @@ void cf_create_int_item(char *name,char *help,char short_opt,int def)
     t->data.dt_int.default_val=def;
 }
 
-void cf_create_array_item(char *name,char *help,char short_opt,int size,int *def)
+void cf_create_array_item(const char *name,const char *help,char short_opt,int size,int *def)
 {
     CONF_ITEM *t=create_conf_item(name,help,short_opt,NULL);
     t->type=CFT_ARRAY;
@@ -180,7 +186,7 @@ void cf_create_array_item(char *name,char *help,char short_opt,int size,int *def
     t->data.dt_array.default_array=def;
 }
 
-CONF_ITEM* cf_get_item_by_name(char *name){
+CONF_ITEM* cf_get_item_by_name(const char *name){
     int i;
     int a=tolower ((int)name[0]);
 
@@ -267,9 +273,15 @@ static int show_all_game(CONF_ITEM *self) {
     dr_load_driver_dir(CF_STR(cf_get_item_by_name("romrcdir")));
 #if ! defined (GP2X) && ! defined (WIN32)
     {
+#if defined (__AMIGA__)
+	    int len = strlen("romrc.d") + strlen("/PROGDIR/data/") + 1;
+	    char *rc_dir = (char *) alloca(len*sizeof(char));
+	    sprintf(rc_dir, "/PROGDIR/data/romrc.d");
+#else
 	    int len = strlen("romrc.d") + strlen(getenv("HOME")) + strlen("/.gngeo/") +	1;
 	    char *rc_dir = (char *) alloca(len*sizeof(char));
 	    sprintf(rc_dir, "%s/.gngeo/romrc.d", getenv("HOME"));
+#endif
 	    dr_load_driver_dir(rc_dir);
     }
 #endif
@@ -431,8 +443,12 @@ SDL_bool cf_save_file(char *filename,int flags) {
 		int len = strlen("gngeorc") + strlen("conf/") +	1;
 		conf_file = (char *) alloca(len*sizeof(char));
 		sprintf(conf_file, "conf/gngeorc");	    
+#elif __AMIGA__
+		int len = strlen("gngeorc") + strlen("/PROGDIR/data/") + 1;
+		conf_file = (char *) alloca(len*sizeof(char));
+		sprintf(conf_file, "/PROGDIR/data/gngeorc");
 #else
-		int len = strlen("gngeorc") + strlen(getenv("HOME")) + strlen("/.gngeo/") +	1;
+		int len = strlen("gngeorc") + strlen(getenv("HOME")) + strlen("/.gngeo/") + 1;
 		conf_file = (char *) alloca(len*sizeof(char));
 		sprintf(conf_file, "%s/.gngeo/gngeorc", getenv("HOME"));
 #endif
@@ -541,9 +557,13 @@ SDL_bool cf_open_file(char *filename)
 
     if (!conf_file) {
 #if defined (GP2X) || defined (WIN32)
-	    int len = strlen("gngeorc") + strlen("conf/") +	1;
-	    conf_file = (char *) alloca(len*sizeof(char));
-	    sprintf(conf_file, "conf/gngeorc");	    
+	int len = strlen("gngeorc") + strlen("conf/") +	1;
+	conf_file = (char *) alloca(len*sizeof(char));
+	sprintf(conf_file, "conf/gngeorc");	    
+#elif __AMIGA__
+	int len = strlen("gngeorc") + strlen("/PROGDIR/data/") + 1;
+	conf_file = (char *) alloca(len*sizeof(char));
+	sprintf(conf_file, "/PROGDIR/data/gngeorc");
 #else
 	int len = strlen("gngeorc") + strlen(getenv("HOME")) + strlen("/.gngeo/") +	1;
 	conf_file = (char *) alloca(len*sizeof(char));

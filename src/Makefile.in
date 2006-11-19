@@ -94,7 +94,7 @@ INCLUDES = -DDATA_DIRECTORY='"${pkgdatadir}"'
 SUBDIRS = effect blitter ym2610 $(m68k_subdir) $(z80_subdir) $(gui_subdir)
 
 bin_PROGRAMS = gngeo
-gngeo_SOURCES = fileio.c         pd4990a.c        streams.c         gngeo_icon.h    		sound.h          video.c          fileio.h          profiler.c      		main.c           pd4990a.h        star_interf.c     video.h         		memory.c         profiler.h       streams.h         mamez80_interf.c 		blitter.h        font.h           memory.h          raze_interf.c   		timer.c          effect.h         frame_skip.c      messages.c      		screen.c         timer.h          emu.c             frame_skip.h    		messages.h       screen.h         unzip.c           emu.h           		neocrypt.c       sound.c          unzip.h           generator68k_interf.c 		debug.c          debug.h          neocrypt.h	    state.c         		state.h          video_template.h conf.c            conf.h          		transpack.h      transpack.c      pbar.h            pbar.c          		driver.h         driver.c         list.c            list.h	    		gui_interf.c     gui_interf.h     videogl.c	    videogl.h       		cyclone_interf.c gp2x.h		  gp2x.c	    drz80_interf.c  		menu.c		 menu.h
+gngeo_SOURCES = fileio.c         pd4990a.c        streams.c         gngeo_icon.h    		sound.h          video.c          fileio.h          profiler.c      		main.c           pd4990a.h        star_interf.c     video.h         		memory.c         profiler.h       streams.h         mamez80_interf.c 		blitter.h        font.h           memory.h          raze_interf.c   		timer.c          effect.h         frame_skip.c      messages.c      		screen.c         timer.h          emu.c             frame_skip.h    		messages.h       screen.h         unzip.c           emu.h           		neocrypt.c       sound.c          unzip.h           generator68k_interf.c 		debug.c          debug.h          neocrypt.h	    state.c         		state.h          video_template.h conf.c            conf.h          		transpack.h      transpack.c      pbar.h            pbar.c          		driver.h         driver.c         list.c            list.h	    		gui_interf.c     gui_interf.h     videogl.c	    videogl.h       		cyclone_interf.c gp2x.h		  gp2x.c	    drz80_interf.c  		menu.c		 menu.h		  ioapi.c	    ioapi.h	    		crypt.h
 
 
 EXTRA_DIST = c32.mac screen_i386.asm video_i386.asm video_i386.inc getopt.h video_arm.s memcpy.S
@@ -115,7 +115,7 @@ star_interf.o memory.o mamez80_interf.o raze_interf.o timer.o \
 frame_skip.o messages.o screen.o emu.o unzip.o neocrypt.o sound.o \
 generator68k_interf.o debug.o state.o conf.o transpack.o pbar.o \
 driver.o list.o gui_interf.o videogl.o cyclone_interf.o gp2x.o \
-drz80_interf.o menu.o
+drz80_interf.o menu.o ioapi.o
 @HAVE_NASM_TRUE@@USE_GP2X_FALSE@gngeo_DEPENDENCIES =  effect/libeffect.a \
 @HAVE_NASM_TRUE@@USE_GP2X_FALSE@blitter/libblitter.a ym2610/libym2610.a \
 @HAVE_NASM_TRUE@@USE_GP2X_FALSE@screen_i386.o video_i386.o
@@ -146,12 +146,12 @@ mamez80 drz80 gui
 DEP_FILES =  .deps/conf.P .deps/cyclone_interf.P .deps/debug.P \
 .deps/driver.P .deps/drz80_interf.P .deps/emu.P .deps/fileio.P \
 .deps/frame_skip.P .deps/generator68k_interf.P .deps/gp2x.P \
-.deps/gui_interf.P .deps/list.P .deps/main.P .deps/mamez80_interf.P \
-.deps/memory.P .deps/menu.P .deps/messages.P .deps/neocrypt.P \
-.deps/pbar.P .deps/pd4990a.P .deps/profiler.P .deps/raze_interf.P \
-.deps/screen.P .deps/sound.P .deps/star_interf.P .deps/state.P \
-.deps/streams.P .deps/timer.P .deps/transpack.P .deps/unzip.P \
-.deps/video.P .deps/videogl.P
+.deps/gui_interf.P .deps/ioapi.P .deps/list.P .deps/main.P \
+.deps/mamez80_interf.P .deps/memory.P .deps/menu.P .deps/messages.P \
+.deps/neocrypt.P .deps/pbar.P .deps/pd4990a.P .deps/profiler.P \
+.deps/raze_interf.P .deps/screen.P .deps/sound.P .deps/star_interf.P \
+.deps/state.P .deps/streams.P .deps/timer.P .deps/transpack.P \
+.deps/unzip.P .deps/video.P .deps/videogl.P
 SOURCES = $(gngeo_SOURCES)
 OBJECTS = $(gngeo_OBJECTS)
 
@@ -289,7 +289,7 @@ TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
 	  awk '    { files[$$0] = 1; } \
 	       END { for (i in files) print i; }'`; \
 	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
-	  || (cd $(srcdir) && etags -o $$here/TAGS $(ETAGS_ARGS) $$tags  $$unique $(LISP))
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
 
 mostlyclean-tags:
 

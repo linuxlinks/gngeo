@@ -24,7 +24,7 @@ void add_bt(Uint32 pc)
 void show_bt(void) {
     int i;
     for(i=MAX_BT-1;i>=0;i--)
-	printf("%08lx\n",backtrace[i]);
+	printf("%08x\n",backtrace[i]);
 }
 
 void add_cond(Uint8 type,int reg,Uint32 val) {

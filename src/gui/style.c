@@ -1,3 +1,4 @@
+#include <string.h>
 #include "style.h"
 #include "thin.h" /* default style */
 

@@ -2,7 +2,7 @@
 
 #include "generator.h"
 
-char *condition_table[] = {
+const char *condition_table[] = {
   "T", "F",
   "HI", "LS",
   "CC", "CS",
