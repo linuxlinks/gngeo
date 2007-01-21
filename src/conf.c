@@ -473,7 +473,10 @@ SDL_bool cf_save_file(char *filename,int flags) {
 		continue;
 	}
 
-	sscanf(buf, "%s %s", name, val);
+	//sscanf(buf, "%s %s", name, val);
+	sscanf(buf, "%s ", name);
+	strncpy(val,buf+strlen(name)+1,254);
+
 	cf=cf_get_item_by_name(name);
 	if (cf) {
 		if (cf->modified) {
@@ -581,7 +584,10 @@ SDL_bool cf_open_file(char *filename)
 	my_fgets(buf, 510, f);
 	if (discard_line(buf))
 	    continue;
-	sscanf(buf, "%s %s", name, val);
+	//sscanf(buf, "%s %s", name, val);
+	sscanf(buf, "%s ", name);
+	strncpy(val,buf+strlen(name)+1,254);
+	//printf("%s|%s|\n",name,val);
 	cf=cf_get_item_by_name(name);
 	if (cf) {
 	    /*printf("Option %s\n",cf->name);*/
