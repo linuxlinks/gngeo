@@ -349,6 +349,7 @@ void cf_init(void)
     cf_create_bool_item("debug","Start with inline debuger",'D',SDL_FALSE);
     cf_create_bool_item("hwsurface","Use hardware surface for the screen",'H',SDL_FALSE);
 #ifdef GP2X
+    cf_create_bool_item("ramhack","Enable CraigX's RAM timing hack",0,SDL_FALSE);
     cf_create_bool_item("vsync","Synchronise the display with VBLANK",0,SDL_FALSE);
 #endif
     //cf_create_bool_item("convtile","Convert tile in internal format at loading",'c',SDL_TRUE);

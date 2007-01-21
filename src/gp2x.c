@@ -87,6 +87,13 @@ unsigned short get_920_Div()
         return (gp2x_memregs[0x91c>>1] & 0x7);
 }
 
+void set_RAM_Timings(int tRC, int tRAS, int tWR, int tMRD, int tRFC, int tRP, int tRCD)
+{
+        tRC -= 1; tRAS -= 1; tWR -= 1; tMRD -= 1; tRFC -= 1; tRP -= 1; tRCD -= 1; // ???
+        gp2x_memregs[0x3802>>1] = ((tMRD & 0xF) << 12) | ((tRFC & 0xF) << 8) | ((tRP & 0xF) << 4) | (tRCD & 0xF);
+        gp2x_memregs[0x3804>>1] = /*0x9000 |*/ ((tRC & 0xF) << 8) | ((tRAS & 0xF) << 4) | (tWR & 0xF);
+}
+
 void debug_gp2x_tvout(void)
 {
 	printf("Some TV out Regs\n");
@@ -316,6 +323,9 @@ void gp2x_init(void) {
 	tvoutfix_sav=gp2x_memregs[0x28E4>>1];
 	gp2x_memregs[0x28E4>>1]=gp2x_memregs[0x290C>>1];
 
+	/* CraigX RAM timing */
+	if (CF_BOOL(cf_get_item_by_name("ramhack"))) 
+		set_RAM_Timings(6, 4, 1, 1, 1, 2, 2);
 	//setpriority(PRIO_PROCESS,0,-20);
 
 

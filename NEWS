@@ -1,3 +1,12 @@
+ change in 0.7.1
+	. AmigaOs support [hnl_dk]
+	. Fixed all warnings (-Wall) in the code that the AmigaOS port does use [hnl_dk]
+	. Fixed all const char* vs. writable string warnings (-Wwrite-strings) [hnl_dk]
+	. Updated the unzip implementation (1998 vs. 2005) [hnl_dk]
+	. Minor BugFix discovered when porting it to AmigaOS. [hnl_dk]
+	. GP2X: Add support for CraigX's RAM timing hack (--ramhack option)
+	. GP2X: Add vsync option (--vsync)
+
  change in 0.7
 	. GP2X/ARM Save state support for cyclone and drz80
 	. GP2X: Change the exit sequence to L&R&Select or L&R&Start. Actually it's not
