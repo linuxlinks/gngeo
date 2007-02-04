@@ -30,6 +30,7 @@ blitter_soft_init()
 	Uint32 height = visible_area.h;
 #ifdef GP2X
 	int hw_surface=SDL_HWSURFACE/*|SDL_FULLSCREEN|SDL_DOUBLEBUF*/;
+	int *tvoffset = CF_ARRAY(cf_get_item_by_name("tv_offset"));
 	// TVTEST
 	//int hw_surface=SDL_SWSURFACE;
 #else
@@ -56,18 +57,34 @@ blitter_soft_init()
 	//screen = SDL_SetVideoMode(width, height, 16, sdl_flags);
 
 	//gp2x_video_RGB_setscaling(320, 240);
-	screen = SDL_SetVideoMode(320, 240, 16, 
-				  sdl_flags|
-				  (CF_BOOL(cf_get_item_by_name("vsync"))?SDL_DOUBLEBUF:0));
-	
-	
-	//screen = SDL_SetVideoMode(304, 224, 16, sdl_flags);
-
-
-	if (width!=320) {
-		screen_rect.x=8;
+	//screen = SDL_SetVideoMode(320, 240, 16, 
+	if (gp2x_is_tvout_on()==0) {
+		screen = SDL_SetVideoMode(width, height, 16, 
+					  sdl_flags|
+					  (CF_BOOL(cf_get_item_by_name("vsync"))?SDL_DOUBLEBUF:0));
+		
+		if (width!=320) {
+			//screen_rect.x=8;
+			SDL_GP2X_MiniDisplay(8,8);
+		} else {
+			//screen_rect.y=8;
+			SDL_GP2X_MiniDisplay(0,8);
+		}
+	} else {
+		screen = SDL_SetVideoMode(320, 240, 16, 
+					  sdl_flags|
+					  (CF_BOOL(cf_get_item_by_name("vsync"))?SDL_DOUBLEBUF:0));
+		
+		if (width!=320) {
+			screen_rect.x=8;
+		}
+		screen_rect.y=8;
+		/* tvout pseudo offset fix */
+		screen_rect.y=(signed)screen_rect.y+tvoffset[1];
+		screen_rect.x=(signed)screen_rect.x+tvoffset[0];
+		if (screen_rect.x<0) {visible_area.x-=screen_rect.x;screen_rect.x=0;}
+		if (screen_rect.y<0) {visible_area.y-=screen_rect.y;screen_rect.y=0;}
 	}
-	screen_rect.y=8;
 
 #else		
 	screen = SDL_SetVideoMode(width, height, 16, sdl_flags);

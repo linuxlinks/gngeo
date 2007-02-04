@@ -70,6 +70,7 @@ static int default_key1[] = { 122, 120, 97 , 115, 49, 51, 273, 274, 276, 275, -1
 static int default_key2[] = { 108, 59 , 111, 112, 50, 52, 264, 261, 260, 262, -1, -1, -1, -1 };
 static int default_joy1[] = { 2, 3, 0, 1, 5, 4, 0, 1, 1, 1, -1, -1, -1, -1 };
 static int default_joy2[] = { 1, 0, 3, 2, 7, 6, 0, 1, 1, 1, -1, -1, -1, -1 };
+static int default_tvoffset[] = {0,0};
 static int default_p1hotkey0[] = { 0,0,0,0 };
 static int default_p1hotkey1[] = { 0,0,0,0 };
 static int default_p1hotkey2[] = { 0,0,0,0 };
@@ -350,6 +351,8 @@ void cf_init(void)
     cf_create_bool_item("hwsurface","Use hardware surface for the screen",'H',SDL_FALSE);
 #ifdef GP2X
     cf_create_bool_item("ramhack","Enable CraigX's RAM timing hack",0,SDL_FALSE);
+    cf_create_bool_item("tvout","Enable Tvout (NTSC)",0,SDL_FALSE);
+    cf_create_array_item("tv_offset","Shift TV screen by x,y pixel",0,2,default_tvoffset);
     cf_create_bool_item("vsync","Synchronise the display with VBLANK",0,SDL_FALSE);
 #endif
     //cf_create_bool_item("convtile","Convert tile in internal format at loading",'c',SDL_TRUE);

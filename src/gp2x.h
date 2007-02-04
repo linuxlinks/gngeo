@@ -21,6 +21,7 @@ int gp2x_sound_volume_get(void);
 void gp2x_init(void);
 void gp2x_video_RGB_setscaling(int W, int H);
 void gp2x_set_cpu_speed(void);
+Uint32 gp2x_is_tvout_on(void);
 
 enum  { GP2X_UP=0,
 	GP2X_UP_LEFT,
@@ -36,8 +37,8 @@ enum  { GP2X_UP=0,
 	GP2X_L,
 	GP2X_A,
 	GP2X_B,
-	GP2X_Y,
 	GP2X_X,
+	GP2X_Y,
 	GP2X_VOL_UP,
 	GP2X_VOL_DOWN,
 	GP2X_PUSH

@@ -6,6 +6,7 @@
 
 
 #include "SDL.h"
+#include "SDL_gp2x.h"
 #include "conf.h"
 
 #include <sys/mman.h>
@@ -201,6 +202,8 @@ void gp2x_quit(void) {
 	if (CF_VAL(cf_get_item_by_name("cpu_speed"))!=0) {
 		set_FCLK(cpufreq);
 	}
+	if (CF_BOOL(cf_get_item_by_name("tvout"))) 
+		SDL_GP2X_TV(0);
 
 	sync();
 	SDL_Quit();
@@ -314,14 +317,29 @@ void gp2x_init_mixer(void) {
 	}	
 }
 
+Uint32 gp2x_is_tvout_on(void) {
+	SDL_Rect r;
+	SDL_GP2X_GetPhysicalScreenSize(&r);
+	printf("screen= %d %d\n",r.w,r.h);
+	if (r.w!=320) return 1;
+	return 0;
+}
+
+
 void gp2x_init(void) {
 	volatile unsigned int *secbuf = (unsigned int *)malloc (204800);
 
 	gp2x_ram_init();
 
 	/* Fix tvout */
-	tvoutfix_sav=gp2x_memregs[0x28E4>>1];
-	gp2x_memregs[0x28E4>>1]=gp2x_memregs[0x290C>>1];
+	//tvoutfix_sav=gp2x_memregs[0x28E4>>1];
+	if (gp2x_is_tvout_on())
+		gp2x_memregs[0x28E4>>1]=800;//gp2x_memregs[0x290C>>1];
+
+	if (CF_BOOL(cf_get_item_by_name("tvout"))) {
+		SDL_GP2X_TV(1);
+		SDL_GP2X_TVMode(3/*DISPLAY_TV_NTSC*/);
+	}
 
 	/* CraigX RAM timing */
 	if (CF_BOOL(cf_get_item_by_name("ramhack"))) 

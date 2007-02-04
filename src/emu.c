@@ -403,8 +403,38 @@ void update_p1_key(void) {
 	}
 }
 void update_p2_key(void) {
-	// none
+	int i;
+	int macrokey;
 	memory.intern_p2=0xFF;
+	if (conf.nb_joy > 2) {
+		if (joy_axe[2][conf.p2_joy[AXE_Y]]*conf.p2_joy[AXE_Y_DIR] < -5000)
+			memory.intern_p2 &= 0xFE;
+		if (joy_axe[2][conf.p2_joy[AXE_Y]]*conf.p2_joy[AXE_Y_DIR] > 5000)
+			memory.intern_p2 &= 0xFD;
+		if (joy_axe[2][conf.p2_joy[AXE_X]]*conf.p2_joy[AXE_X_DIR] < -5000)
+			memory.intern_p2 &= 0xFB;
+		if (joy_axe[2][conf.p2_joy[AXE_X]]*conf.p2_joy[AXE_X_DIR] > 5000)
+			memory.intern_p2 &= 0xF7;
+		if (joy_button[2][conf.p2_joy[BUT_A]])
+			memory.intern_p2 &= 0xEF;	// A
+		if (joy_button[2][conf.p2_joy[BUT_B]])
+			memory.intern_p2 &= 0xDF;	// B
+		if (joy_button[2][conf.p2_joy[BUT_C]])
+			memory.intern_p2 &= 0xBF;	// C
+		if (joy_button[2][conf.p2_joy[BUT_D]])
+			memory.intern_p2 &= 0x7F;	// D
+
+		/* handle hotkey macros... */
+		for ( i = 0; i < BUT_HOTKEY3 - BUT_HOTKEY0 + 1; i++ ) {
+			if ((conf.p2_joy[BUT_HOTKEY0+i] >= 0 && joy_button[2][conf.p2_joy[BUT_HOTKEY0+i]] ) ) {
+				if ( conf.p2_hotkey[i] & HOTKEY_MASK_A ) memory.intern_p2 &= 0xEF;
+				if ( conf.p2_hotkey[i] & HOTKEY_MASK_B ) memory.intern_p2 &= 0xDF;
+				if ( conf.p2_hotkey[i] & HOTKEY_MASK_C ) memory.intern_p2 &= 0xBF;
+				if ( conf.p2_hotkey[i] & HOTKEY_MASK_D ) memory.intern_p2 &= 0x7F;
+			}
+		}
+	}
+
 }
 void update_start(void) {
 	memory.intern_start = 0x8F;
