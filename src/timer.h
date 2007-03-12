@@ -19,6 +19,7 @@
 #ifndef _TIMER_H_
 #define _TIMER_H_
 
+#include "SDL.h"
 
 typedef struct timer_struct {
 	//double time;		// when

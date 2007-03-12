@@ -259,7 +259,7 @@ SDL_bool load_state(char *game,int slot) {
 	if (!conf.snd_st_reg_create) {
 	    cpu_z80_init();
 	    init_sdl_audio();
-	    streams_sh_start();
+	    //streams_sh_start();
 	    YM2610_sh_start();
 	    conf.snd_st_reg_create=1;
 	} else 

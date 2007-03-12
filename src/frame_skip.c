@@ -36,7 +36,7 @@
 
 #define TICKS_PER_SEC 1000000UL
 //#define CPU_FPS 60
-static int CPU_FPS=60;
+//static int CPU_FPS=60;
 static uclock_t F;
 
 #define MAX_FRAMESKIP 10
@@ -44,9 +44,17 @@ static uclock_t F;
 
 static char init_frame_skip = 1;
 char skip_next_frame = 0;
+#ifdef HAVE_GETTIMEOFDAY
+static int CPU_FPS=60;
 static struct timeval init_tv = { 0, 0 };
+#else
+/* Looks like SDL_GetTicks is not as precise... */
+static int CPU_FPS=61;
+static Uint32 init_tv=0;
+#endif
 uclock_t bench;
 
+#ifdef HAVE_GETTIMEOFDAY
 uclock_t get_ticks(void)
 {
     struct timeval tv;
@@ -59,6 +67,15 @@ uclock_t get_ticks(void)
 
 
 }
+#else
+Uint32 get_ticks(void)
+{
+	Uint32 tv;
+	if (init_tv==0)
+		init_tv=SDL_GetTicks();
+	return (SDL_GetTicks()-init_tv)*1000;
+}    
+#endif
 
 void reset_frame_skip(void)
 {
@@ -70,8 +87,12 @@ void reset_frame_skip(void)
 	    sleep_idle=CF_BOOL(cf_get_item_by_name("sleepidle"));
 	    init=1;
     }
+#ifdef HAVE_GETTIMEOFDAY
     init_tv.tv_usec = 0;
     init_tv.tv_sec = 0;
+#else
+    init_tv=0;
+#endif
     skip_next_frame = 0;
     init_frame_skip = 1;
     if (conf.pal)
@@ -117,9 +138,11 @@ int frame_skip(int init)
     if (autoframeskip) {
 	if (rfd < target && f2skip == 0)
 	    while (get_ticks() < target) {
+#ifndef WIN32
 		if (sleep_idle) {
 		    usleep(10);
 		}
+#endif
 	} else {
 	    f2skip = (rfd - target) / (double) F;
 	    if (f2skip > MAX_FRAMESKIP) {
