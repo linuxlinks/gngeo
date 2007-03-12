@@ -71,8 +71,8 @@ RANLIB = @RANLIB@
 SDL_CONFIG = @SDL_CONFIG@
 VERSION = @VERSION@
 
-noinst_LIBRARIES = libgui.a
-libgui_a_SOURCES = button.h button.c container.h container.c gui.c gui.h 		    widget.h widget.c draw.c draw.h label.h label.c frame.h 		    frame.c scrollbar.h scrollbar.c textbox.c textbox.h 		    slist.h slist.c style.c style.h thin.c thin.h 		    progress.c progress.h pixmap.h pixmap.c combol.h combol.c
+noinst_LIBRARIES = libym2610.a
+libym2610_a_SOURCES = 2610intf.c  ym2610.c 		      2610intf.h  ym2610.h mvs.h
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../../config.h
@@ -84,10 +84,8 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I../..
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libgui_a_LIBADD = 
-libgui_a_OBJECTS =  button.o container.o gui.o widget.o draw.o label.o \
-frame.o scrollbar.o textbox.o slist.o style.o thin.o progress.o \
-pixmap.o combol.o
+libym2610_a_LIBADD = 
+libym2610_a_OBJECTS =  2610intf.o ym2610.o
 AR = ar
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -100,18 +98,15 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
-DEP_FILES =  .deps/button.P .deps/combol.P .deps/container.P \
-.deps/draw.P .deps/frame.P .deps/gui.P .deps/label.P .deps/pixmap.P \
-.deps/progress.P .deps/scrollbar.P .deps/slist.P .deps/style.P \
-.deps/textbox.P .deps/thin.P .deps/widget.P
-SOURCES = $(libgui_a_SOURCES)
-OBJECTS = $(libgui_a_OBJECTS)
+DEP_FILES =  .deps/2610intf.P .deps/ym2610.P
+SOURCES = $(libym2610_a_SOURCES)
+OBJECTS = $(libym2610_a_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu src/gui/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu src/ym2610/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -143,10 +138,10 @@ distclean-compile:
 
 maintainer-clean-compile:
 
-libgui.a: $(libgui_a_OBJECTS) $(libgui_a_DEPENDENCIES)
-	-rm -f libgui.a
-	$(AR) cru libgui.a $(libgui_a_OBJECTS) $(libgui_a_LIBADD)
-	$(RANLIB) libgui.a
+libym2610.a: $(libym2610_a_OBJECTS) $(libym2610_a_DEPENDENCIES)
+	-rm -f libym2610.a
+	$(AR) cru libym2610.a $(libym2610_a_OBJECTS) $(libym2610_a_LIBADD)
+	$(RANLIB) libym2610.a
 
 tags: TAGS
 
@@ -179,14 +174,14 @@ maintainer-clean-tags:
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
-subdir = src/gui
+subdir = src/ym2610
 
 distdir: $(DISTFILES)
 	here=`cd $(top_builddir) && pwd`; \
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu src/gui/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu src/ym2610/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
