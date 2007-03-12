@@ -13,7 +13,8 @@
 #include "fileio.h"
 #include "screen.h"
 #include "sound.h"
-#include "streams.h"
+#include "emu.h"
+//#include "streams.h"
 
 static ST_REG *reglist;
 static ST_MODULE st_mod[ST_MODULE_END];

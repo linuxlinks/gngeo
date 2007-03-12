@@ -203,83 +203,83 @@ Uint8 z80_port_read(Uint16 PortNo)
 {
         //printf("z80_port_read PC=%04x p=%04x ",cpu_z80_get_pc(),PortNo);
 	//printf("z80_port_read p=%04x \n",PortNo);
-    switch (PortNo & 0xff) {
-    case 0x0:
-	pending_command = 0;
-	//printf("Reseting command. Return sndcode %x\n",sound_code);
-	return sound_code;
-	break;
+	switch (PortNo & 0xff) {
+	case 0x0:
+		pending_command = 0;
+		//printf("Reseting command. Return sndcode %x\n",sound_code);
+		return sound_code;
+		break;
 
-    case 0x4:
-	//printf("v=%02x\n",YM2610_status_port_0_A_r(0));
-	return YM2610_status_port_0_A_r(0);
-	break;
+	case 0x4:
+		//printf("v=%02x\n",YM2610_status_port_0_A_r(0));
+		return YM2610_status_port_A_r(0);
+		break;
 
-    case 0x5:
-	//printf("v=%02x\n",YM2610_read_port_0_r(0));
-	return YM2610_read_port_0_r(0);
-	break;
+	case 0x5:
+		//printf("v=%02x\n",YM2610_read_port_0_r(0));
+		return YM2610_read_port_r(0);
+		break;
 
-    case 0x6:
-	//printf("v=%02x\n",YM2610_status_port_0_B_r(0));
-	return YM2610_status_port_0_B_r(0);
-	break;
+	case 0x6:
+		//printf("v=%02x\n",YM2610_status_port_0_B_r(0));
+		return YM2610_status_port_B_r(0);
+		break;
 
-    case 0x08:
-	//printf("v=00 (sb3)\n");
-	cpu_z80_switchbank(3, PortNo);
+	case 0x08:
+		//printf("v=00 (sb3)\n");
+		cpu_z80_switchbank(3, PortNo);
+		return 0;
+		break;
+
+	case 0x09:
+		//printf("v=00 (sb2)\n");
+		cpu_z80_switchbank(2, PortNo);
+		return 0;
+		break;
+
+	case 0x0a:
+		//printf("v=00 (sb1)\n");
+		cpu_z80_switchbank(1, PortNo);
+		return 0;
+		break;
+
+	case 0x0b:
+		//printf("v=00 (sb0)\n");
+		cpu_z80_switchbank(0, PortNo);
+		return 0;
+		break;
+	};
+
 	return 0;
-	break;
-
-    case 0x09:
-	//printf("v=00 (sb2)\n");
-	cpu_z80_switchbank(2, PortNo);
-	return 0;
-	break;
-
-    case 0x0a:
-	//printf("v=00 (sb1)\n");
-	cpu_z80_switchbank(1, PortNo);
-	return 0;
-	break;
-
-    case 0x0b:
-	//printf("v=00 (sb0)\n");
-	cpu_z80_switchbank(0, PortNo);
-	return 0;
-	break;
-    };
-
-    return 0;
 }
 
 void z80_port_write(Uint16 PortNb, Uint8 Value)
 {
-    Uint8 data = Value;
-    //printf("z80_port_write PC=%04x OP=%02x p=%04x v=%02x\n",cpu_z80_get_pc(),memory.sm1[cpu_z80_get_pc()],PortNb,Value);
-    //printf("Write port %04x %02x\n",PortNb,Value);
-    switch (PortNb & 0xff) {
-    case 0x4:
-	YM2610_control_port_0_A_w(0, data);
-	break;
+	Uint8 data = Value;
+	//printf("z80_port_write PC=%04x OP=%02x p=%04x v=%02x\n",cpu_z80_get_pc(),memory.sm1[cpu_z80_get_pc()],PortNb,Value);
+	//printf("Write port %04x %02x\n",PortNb,Value);
+	switch (PortNb & 0xff) {
+	case 0x4:
+		YM2610_control_port_A_w(0, data);
+		break;
 
-    case 0x5:
-	YM2610_data_port_0_A_w(0, data);
-	break;
+	case 0x5:
+		YM2610_data_port_A_w(0, data);
+		break;
 
-    case 0x6:
-	YM2610_control_port_0_B_w(0, data);
-	break;
+	case 0x6:
+		YM2610_control_port_B_w(0, data);
+		break;
 
-    case 0x7:
-	YM2610_data_port_0_B_w(0, data);
-	break;
+	case 0x7:
+		YM2610_data_port_B_w(0, data);
+		break;
 
-    case 0xC:
-	    //printf("Setting result code to %0x\n",Value);
-	result_code = Value;
-	break;
-    }
+	case 0xC:
+		//printf("Setting result code to %0x\n",Value);
+		result_code = Value;
+		break;
+	}
 }
 
 /* Protection hack */

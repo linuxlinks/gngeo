@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "streams.h"
+//#include "streams.h"
 #include "ym2610/2610intf.h"
 #include "font.h"
 #include "fileio.h"

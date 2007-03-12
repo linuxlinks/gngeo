@@ -36,6 +36,7 @@
 #include "memory.h"
 #include "neocrypt.h"
 #include "fileio.h"
+#include "emu.h"
 
 #ifdef GP2X
 #include <sys/mman.h>

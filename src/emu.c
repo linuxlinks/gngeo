@@ -35,7 +35,7 @@
 #include "debug.h"
 
 #include "timer.h"
-#include "streams.h"
+//#include "streams.h"
 #include "ym2610/2610intf.h"
 #include "sound.h"
 #include "screen.h"
@@ -186,7 +186,7 @@ void init_neo(char *rom_name)
     if (conf.sound) {
 	cpu_z80_init();
 	init_sdl_audio();
-	streams_sh_start();
+	//streams_sh_start();
 	YM2610_sh_start();
 	SDL_PauseAudio(0);
 	conf.snd_st_reg_create=1;

@@ -41,7 +41,7 @@
 #include "pbar.h"
 #include "driver.h"
 #include "sound.h"
-#include "streams.h"
+//#include "streams.h"
 #include "transpack.h"
 
 #ifdef USE_GUI
@@ -297,7 +297,7 @@ SDL_bool init_game(char *rom_name) {
 	if (conf.sound) {
 	    close_sdl_audio();
 	    YM2610_sh_stop();
-	    streams_sh_stop();
+	    //streams_sh_stop();
 	}
 	free_game_memory();
     }

@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "SDL.h"
-#include "streams.h"
+//#include "streams.h"
 #include "emu.h"
 #include "memory.h"
 #include "profiler.h"
@@ -48,7 +48,8 @@ void update_sdl_stream(void *userdata, Uint8 * stream, int len)
 {
     //printf("sdl %d\n", len);
     PROFILER_START(PROF_SOUND);
-    streamupdate(len);
+    //streamupdate(len);
+    YM2610Update_stream(len/4);
     PROFILER_STOP(PROF_SOUND);
     memcpy(stream, (Uint8 *) play_buffer, len);
 }

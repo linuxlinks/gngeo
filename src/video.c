@@ -886,6 +886,8 @@ void draw_screen(void)
     char fullmode=0;
     int ddax=0,dday=0,rzx=15,yskip=0;
     unsigned char *vidram=memory.video;
+
+
     //    int drawtrans=0;
 
 #ifdef GP2X
@@ -1081,6 +1083,7 @@ void draw_screen(void)
 		    break;
                 }
 #else
+		nb_sprite++;
 		if (memory.pen_usage[tileno]!=TILE_INVISIBLE)
 			draw_tile_gp2x_norm(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
 					    tileatr & 0x01,tileatr & 0x02,
@@ -1149,6 +1152,7 @@ void draw_screen(void)
     }
     if (show_fps)
         SDL_textout(buffer,visible_area.x,visible_area.y,fps_str);
+
 
     screen_update();
 }

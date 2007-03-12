@@ -24,7 +24,7 @@
 #include "emu.h"
 #include "timer.h"
 #include "state.h"
-#include "ym2610/fm.h"
+#include "ym2610/ym2610.h"
 
 //double timer_count;
 Uint32 timer_count;
