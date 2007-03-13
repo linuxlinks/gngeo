@@ -1,0 +1,12 @@
+/* Define to 1 if you have the `atexit' function. */
+#define HAVE_ATEXIT 1
+/* Define to 1 if you have the `getopt_long' function. */
+#define HAVE_GETOPT_LONG 1
+/* Version number of package */
+#define VERSION "0.7a"
+#define DATA_DIRECTORY "."
+
+
+/* TO CHECK */
+#undef HAVE_SCANDIR
+
