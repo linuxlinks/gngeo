@@ -9,6 +9,7 @@ scan_mask16 : dd	0xf7def7de,0xf7def7de
 	global do_inner_interpolation_i386
 
 	extern scan_mask		
+SECTION .text
 	
 	proc do_inner_interpolation_i386
 	%$dst   arg

@@ -1,4 +1,5 @@
-;; video.asm :	asm video function
+	;; video.asm :	asm video function
+SECTION .text
 
 	;; nasm macro
 	%include 'c32.mac'

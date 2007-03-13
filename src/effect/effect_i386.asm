@@ -1,5 +1,6 @@
 	;; nasm macro
 	%include '../c32.mac'
+SECTION .text
 
 	;; global definition
 	global do_inner_doublex_i386

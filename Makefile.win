@@ -1,0 +1,177 @@
+# Project: gngeo32
+# Makefile created by Dev-C++ 4.9.9.0
+
+CPP  = g++.exe
+CC   = gcc.exe
+WINDRES = windres.exe
+RES  = gngeo32_private.res
+OBJ  = ../build/conf.o ../build/debug.o ../build/driver.o ../build/emu.o ../build/fileio.o ../build/frame_skip.o ../build/gp2x.o ../build/gui_interf.o ../build/ioapi.o ../build/list.o ../build/main.o ../build/memory.o ../build/menu.o ../build/messages.o ../build/neocrypt.o ../build/pbar.o ../build/pd4990a.o ../build/profiler.o ../build/raze_interf.o ../build/screen.o ../build/sound.o ../build/star_interf.o ../build/state.o ../build/timer.o ../build/transpack.o ../build/unzip.o ../build/video.o ../build/videogl.o ../build/soft.o ../build/opengl.o ../build/overlay.o ../build/hq2x.o ../build/hq3x.o ../build/hqx_common.o ../build/interp.o ../build/lq2x.o ../build/lq3x.o ../build/scale2x.o ../build/scanline.o ../build/cpudebug.o ../build/ym2610.o ../build/2610intf.o ../build/screen_i386.o ../build/video_i386.o ../build/sai.o ../build/hq3x16.o ../build/hq2x16.o ../build/effect_i386.o ../build/2xsaimmx.o $(RES)
+LINKOBJ  = ../build/conf.o ../build/debug.o ../build/driver.o ../build/emu.o ../build/fileio.o ../build/frame_skip.o ../build/gp2x.o ../build/gui_interf.o ../build/ioapi.o ../build/list.o ../build/main.o ../build/memory.o ../build/menu.o ../build/messages.o ../build/neocrypt.o ../build/pbar.o ../build/pd4990a.o ../build/profiler.o ../build/raze_interf.o ../build/screen.o ../build/sound.o ../build/star_interf.o ../build/state.o ../build/timer.o ../build/transpack.o ../build/unzip.o ../build/video.o ../build/videogl.o ../build/soft.o ../build/opengl.o ../build/overlay.o ../build/hq2x.o ../build/hq3x.o ../build/hqx_common.o ../build/interp.o ../build/lq2x.o ../build/lq3x.o ../build/scale2x.o ../build/scanline.o ../build/cpudebug.o ../build/ym2610.o ../build/2610intf.o ../build/screen_i386.o ../build/video_i386.o ../build/sai.o ../build/hq3x16.o ../build/hq2x16.o ../build/effect_i386.o ../build/2xsaimmx.o $(RES)
+LIBS =  -L"C:/Dev-Cpp/lib" -mwindows  star.o raze.o -lmingw32 -lSDLmain -lSDL -liberty -lz  
+INCS =  -I"C:/Dev-Cpp/include"  -I"c:/Dev-Cpp/include/SDL" 
+CXXINCS =  -I"C:/Dev-Cpp/include/c++/3.3.1"  -I"C:/Dev-Cpp/include/c++/3.3.1/mingw32"  -I"C:/Dev-Cpp/include/c++/3.3.1/backward"  -I"C:/Dev-Cpp/lib/gcc-lib/mingw32/3.3.1/include"  -I"C:/Dev-Cpp/include" 
+BIN  = ../build/gngeo32.exe
+CXXFLAGS = $(CXXINCS)   -w -fexceptions -fexpensive-optimizations -O3
+CFLAGS = $(INCS) -I"C:\Dev-Cpp\\include\SDL" -Dmain=SDL_main -DHAVE_CONFIG_H -DUSE_STARSCREAM -DUSE_RAZE -I. -I.. -I../.. -DI386_ASM   -w -fexceptions -fexpensive-optimizations -O3
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before ../build/gngeo32.exe all-after
+
+include devcpp_premake.mak
+
+clean: clean-custom
+	rm -f $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CC) $(LINKOBJ) -o "..\build\gngeo32.exe" $(LIBS)
+
+../build/conf.o: src/conf.c
+	$(CC) -c src/conf.c -o ../build/conf.o $(CFLAGS)
+
+../build/debug.o: src/debug.c
+	$(CC) -c src/debug.c -o ../build/debug.o $(CFLAGS)
+
+../build/driver.o: src/driver.c
+	$(CC) -c src/driver.c -o ../build/driver.o $(CFLAGS)
+
+../build/emu.o: src/emu.c
+	$(CC) -c src/emu.c -o ../build/emu.o $(CFLAGS)
+
+../build/fileio.o: src/fileio.c
+	$(CC) -c src/fileio.c -o ../build/fileio.o $(CFLAGS)
+
+../build/frame_skip.o: src/frame_skip.c
+	$(CC) -c src/frame_skip.c -o ../build/frame_skip.o $(CFLAGS)
+
+../build/gp2x.o: src/gp2x.c
+	$(CC) -c src/gp2x.c -o ../build/gp2x.o $(CFLAGS)
+
+../build/gui_interf.o: src/gui_interf.c
+	$(CC) -c src/gui_interf.c -o ../build/gui_interf.o $(CFLAGS)
+
+../build/ioapi.o: src/ioapi.c
+	$(CC) -c src/ioapi.c -o ../build/ioapi.o $(CFLAGS)
+
+../build/list.o: src/list.c
+	$(CC) -c src/list.c -o ../build/list.o $(CFLAGS)
+
+../build/main.o: src/main.c
+	$(CC) -c src/main.c -o ../build/main.o $(CFLAGS)
+
+../build/memory.o: src/memory.c
+	$(CC) -c src/memory.c -o ../build/memory.o $(CFLAGS)
+
+../build/menu.o: src/menu.c
+	$(CC) -c src/menu.c -o ../build/menu.o $(CFLAGS)
+
+../build/messages.o: src/messages.c
+	$(CC) -c src/messages.c -o ../build/messages.o $(CFLAGS)
+
+../build/neocrypt.o: src/neocrypt.c
+	$(CC) -c src/neocrypt.c -o ../build/neocrypt.o $(CFLAGS)
+
+../build/pbar.o: src/pbar.c
+	$(CC) -c src/pbar.c -o ../build/pbar.o $(CFLAGS)
+
+../build/pd4990a.o: src/pd4990a.c
+	$(CC) -c src/pd4990a.c -o ../build/pd4990a.o $(CFLAGS)
+
+../build/profiler.o: src/profiler.c
+	$(CC) -c src/profiler.c -o ../build/profiler.o $(CFLAGS)
+
+../build/raze_interf.o: src/raze_interf.c
+	$(CC) -c src/raze_interf.c -o ../build/raze_interf.o $(CFLAGS)
+
+../build/screen.o: src/screen.c
+	$(CC) -c src/screen.c -o ../build/screen.o $(CFLAGS)
+
+../build/sound.o: src/sound.c
+	$(CC) -c src/sound.c -o ../build/sound.o $(CFLAGS)
+
+../build/star_interf.o: src/star_interf.c
+	$(CC) -c src/star_interf.c -o ../build/star_interf.o $(CFLAGS)
+
+../build/state.o: src/state.c
+	$(CC) -c src/state.c -o ../build/state.o $(CFLAGS)
+
+../build/timer.o: src/timer.c
+	$(CC) -c src/timer.c -o ../build/timer.o $(CFLAGS)
+
+../build/transpack.o: src/transpack.c
+	$(CC) -c src/transpack.c -o ../build/transpack.o $(CFLAGS)
+
+../build/unzip.o: src/unzip.c
+	$(CC) -c src/unzip.c -o ../build/unzip.o $(CFLAGS)
+
+../build/video.o: src/video.c
+	$(CC) -c src/video.c -o ../build/video.o $(CFLAGS)
+
+../build/videogl.o: src/videogl.c
+	$(CC) -c src/videogl.c -o ../build/videogl.o $(CFLAGS)
+
+../build/soft.o: src/blitter/soft.c
+	$(CC) -c src/blitter/soft.c -o ../build/soft.o $(CFLAGS)
+
+../build/opengl.o: src/blitter/opengl.c
+	$(CC) -c src/blitter/opengl.c -o ../build/opengl.o $(CFLAGS)
+
+../build/overlay.o: src/blitter/overlay.c
+	$(CC) -c src/blitter/overlay.c -o ../build/overlay.o $(CFLAGS)
+
+../build/hq2x.o: src/effect/hq2x.c
+	$(CC) -c src/effect/hq2x.c -o ../build/hq2x.o $(CFLAGS)
+
+../build/hq3x.o: src/effect/hq3x.c
+	$(CC) -c src/effect/hq3x.c -o ../build/hq3x.o $(CFLAGS)
+
+../build/hqx_common.o: src/effect/hqx_common.c
+	$(CC) -c src/effect/hqx_common.c -o ../build/hqx_common.o $(CFLAGS)
+
+../build/interp.o: src/effect/interp.c
+	$(CC) -c src/effect/interp.c -o ../build/interp.o $(CFLAGS)
+
+../build/lq2x.o: src/effect/lq2x.c
+	$(CC) -c src/effect/lq2x.c -o ../build/lq2x.o $(CFLAGS)
+
+../build/lq3x.o: src/effect/lq3x.c
+	$(CC) -c src/effect/lq3x.c -o ../build/lq3x.o $(CFLAGS)
+
+../build/scale2x.o: src/effect/scale2x.c
+	$(CC) -c src/effect/scale2x.c -o ../build/scale2x.o $(CFLAGS)
+
+../build/scanline.o: src/effect/scanline.c
+	$(CC) -c src/effect/scanline.c -o ../build/scanline.o $(CFLAGS)
+
+../build/cpudebug.o: src/star/cpudebug.c
+	$(CC) -c src/star/cpudebug.c -o ../build/cpudebug.o $(CFLAGS)
+
+../build/ym2610.o: src/ym2610/ym2610.c
+	$(CC) -c src/ym2610/ym2610.c -o ../build/ym2610.o $(CFLAGS)
+
+../build/2610intf.o: src/ym2610/2610intf.c
+	$(CC) -c src/ym2610/2610intf.c -o ../build/2610intf.o $(CFLAGS)
+
+../build/screen_i386.o: src/screen_i386.asm
+	nasm -f win32 -D WIN32 --prefix _ -I src/ src/screen_i386.asm -o ../build/screen_i386.o
+
+../build/video_i386.o: src/video_i386.asm
+	nasm -f win32 -D WIN32 --prefix _ -I src/ src/video_i386.asm -o ../build/video_i386.o
+
+../build/sai.o: src/effect/sai.c
+	$(CC) -c src/effect/sai.c -o ../build/sai.o $(CFLAGS)
+
+../build/hq3x16.o: src/effect/hq3x16.asm
+	nasm -f win32 -D WIN32 --prefix _ -I src/effect/ src/effect/hq3x16.asm -o ../build/hq3x16.o
+
+../build/hq2x16.o: src/effect/hq2x16.asm
+	nasm -f win32 -D WIN32 --prefix _ -I src/effect/ src/effect/hq2x16.asm -o ../build/hq2x16.o
+
+../build/effect_i386.o: src/effect/effect_i386.asm
+	nasm -f win32 -D WIN32 --prefix _ -I src/effect/ src/effect/effect_i386.asm -o ../build/effect_i386.o
+
+../build/2xsaimmx.o: src/effect/2xsaimmx.asm
+	nasm -f win32 -D WIN32 --prefix _ -I src/ src/effect/2xsaimmx.asm -o ../build/2xsaimmx.o
+
+gngeo32_private.res: gngeo32_private.rc 
+	$(WINDRES) -i gngeo32_private.rc -I rc -o gngeo32_private.res -O coff 
