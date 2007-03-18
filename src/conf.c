@@ -36,7 +36,8 @@
 #include "getopt.h"
 #endif
 
-
+#include <zlib.h>
+#include "unzip.h"
 #include "SDL.h"
 #include "conf.h"
 #include "fileio.h"
@@ -329,6 +330,35 @@ static int scan_dir(CONF_ITEM *self) {
     return 0;
 }
 
+static int dump_sprite(CONF_ITEM *self) {
+	char *filename=strdup(CF_STR(self));
+	char *out=strdup(basename(filename));
+	DRIVER *dr;
+	unzFile *gz;
+	dr_load_driver_dir(CF_STR(cf_get_item_by_name("romrcdir")));
+	if ((dr=get_driver_for_zip(filename))!=NULL) {
+		/* DO the dump now */
+		char *out_ext=strcasestr(out,".zip");
+		if (out_ext) {
+			out_ext[0]=0;
+			strncat(out,".gfx",4);
+		}
+		printf(out);
+		gz = unzOpen(filename);
+		/* TODO: a real dump now, not just the light one */
+		if (dr_dump_gfx_light(dr,gz,dr->section[SEC_GFX],out)!=SDL_TRUE) {
+			printf("Sorry, gngeo couldn't dump this roms :(");
+			unzClose(gz);
+			return 1;
+		}
+		unzClose(gz);
+	} else {
+		printf("Couldn't open %s\n",filename);
+		return 1;
+	}
+	return 0;
+}
+
 void cf_init(void)
 {
     CONF_ITEM *t;
@@ -336,6 +366,7 @@ void cf_init(void)
     cf_create_action_item("help","Print this help and exit",'h',print_help);
     cf_create_action_item("listgame","Show all the game available in the romrc",'l',show_all_game);
     cf_create_action_item("version","Show version and exit",'v',show_version);
+    cf_create_action_arg_item("dumpsprite","Dump all the sprite data in a .gfx file",0,dump_sprite);
     cf_create_action_arg_item("scandir","Scan the given directory, and show available rom",0,scan_dir);
     cf_create_bool_item("forcepc","Force the PC to a correct value at startup",0,SDL_FALSE);
     cf_create_bool_item("fullscreen","Start gngeo in fullscreen",'f',SDL_FALSE);

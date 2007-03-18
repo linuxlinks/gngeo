@@ -22,8 +22,8 @@
 #include "SDL.h"
 
 typedef struct timer_struct {
-	//double time;		// when
-	Uint32 time;		// when
+    double time;		// when
+//	Uint32 time;		// when
     Uint32 odo_debut;
     Uint32 nb_cycle;
     int param;
@@ -32,15 +32,15 @@ typedef struct timer_struct {
     struct timer_struct *next;
 } timer_struct;
 
-//extern double timer_count;
-extern Uint32 timer_count;
+extern double timer_count;
+//extern Uint32 timer_count;
 
-//timer_struct *insert_timer(double duration, int param, void (*func) (int));
-timer_struct *insert_timer(Uint32 duration, int param, void (*func) (int));
+timer_struct *insert_timer(double duration, int param, void (*func) (int));
+//timer_struct *insert_timer(Uint32 duration, int param, void (*func) (int));
 void del_timer(timer_struct * ts);
 void my_timer(void);
-//double timer_get_time(void);
-Uint32 timer_get_time(void);
+double timer_get_time(void);
+//Uint32 timer_get_time(void);
 void free_all_timer(void);
 
 #endif

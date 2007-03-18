@@ -52,8 +52,8 @@ static void TimerHandler(int c, int count, double stepTime)
 			Timer[c] = 0;
 		}
 	} else {			/* Start FM Timer */
-		//double timeSec = (double) count * stepTime;
-		Uint32 timeSec = count * (Uint32)(stepTime*(1<<TIMER_SH));
+		double timeSec = (double) count * stepTime;
+		//Uint32 timeSec = count * (Uint32)(stepTime*(1<<TIMER_SH));
 		
 		if (Timer[c] == 0) {
 			Timer[c] =
@@ -71,10 +71,10 @@ void FMTimerInit(void)
 /* update request from fm.c */
 void YM2610UpdateRequest(void)
 {
-	//static double old_tc;
-	static Uint32 old_tc;
-	//double tc=timer_count-old_tc;
-	Uint32 tc=timer_count-old_tc;
+	static double old_tc;
+	//static Uint32 old_tc;
+	double tc=timer_count-old_tc;
+	//Uint32 tc=timer_count-old_tc;
     int len=(int)((conf.sample_rate*tc)>>TIMER_SH)<<2;
     if (len >4 ) {
 	old_tc=timer_count;

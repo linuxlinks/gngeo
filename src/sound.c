@@ -36,7 +36,7 @@ SDL_AudioSpec * desired, *obtain;
 #define BUFFER_LEN 16384
 extern int throttle;
 static int audio_sample_rate;
-extern Uint16 play_buffer[BUFFER_LEN];
+Uint16 play_buffer[BUFFER_LEN];
 
 #ifndef GP2X
 #define NB_SAMPLES 512 /* better resolution */
@@ -46,12 +46,15 @@ extern Uint16 play_buffer[BUFFER_LEN];
 
 void update_sdl_stream(void *userdata, Uint8 * stream, int len)
 {
+	static Uint32 play_buffer_pos;
     //printf("sdl %d\n", len);
     PROFILER_START(PROF_SOUND);
     //streamupdate(len);
     YM2610Update_stream(len/4);
-    PROFILER_STOP(PROF_SOUND);
     memcpy(stream, (Uint8 *) play_buffer, len);
+
+    PROFILER_STOP(PROF_SOUND);
+
 }
 
 int init_sdl_audio(void)

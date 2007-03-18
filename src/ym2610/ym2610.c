@@ -3053,7 +3053,8 @@ int YM2610TimerOver(int ch)
 
 
 s16 mixing_buffer[2][16384];
-Uint16 play_buffer[16384];
+extern Uint16 play_buffer[16384];
+static Uint32 buf_pos;
 
 /* Generate samples for one of the YM2610s */
 void YM2610Update_stream(int length)
@@ -3063,6 +3064,7 @@ void YM2610Update_stream(int length)
 	FMSAMPLE_MIX lt, rt;
 	FM_CH *cch[6];
 	Uint16 *pl = play_buffer;
+
 
 	cch[0] = &YM2610.CH[1];
 	cch[1] = &YM2610.CH[2];
@@ -3173,9 +3175,10 @@ void YM2610Update_stream(int length)
 		*pl++ = lt;
 		*pl++ = rt;
 
-		INTERNAL_TIMER_A( OPN->ST , cch[1] )
+		INTERNAL_TIMER_A( OPN->ST , cch[1] );
 	}
-	INTERNAL_TIMER_B(OPN->ST,length)
+	INTERNAL_TIMER_B(OPN->ST,length);
+
 }
 
 

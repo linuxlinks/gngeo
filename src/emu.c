@@ -963,11 +963,12 @@ void main_loop(void)
 
 	if (conf.sound) {
 	    PROFILER_START(PROF_Z80);
-	    
-	      for (i = 0; i < nb_interlace; i++) {
+
+	    for (i = 0; i < nb_interlace; i++) {
 		cpu_z80_run(cpu_z80_timeslice_interlace);
 		my_timer();
 	    }
+
 	    
 	      //cpu_z80_run(cpu_z80_timeslice);
 	    PROFILER_STOP(PROF_Z80);

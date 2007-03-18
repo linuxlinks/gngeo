@@ -26,8 +26,8 @@
 #include "state.h"
 #include "ym2610/ym2610.h"
 
-//double timer_count;
-Uint32 timer_count;
+double timer_count;
+//Uint32 timer_count;
 
 timer_struct *timer_list;
 #define MAX_TIMER 3
@@ -35,13 +35,13 @@ timer_struct timers[MAX_TIMER];
 extern int nb_interlace;
 //int nb_timer=0;
 
-//double timer_get_time(void) {
-Uint32 timer_get_time(void) {
+double timer_get_time(void) {
+//Uint32 timer_get_time(void) {
     return timer_count;
 }
 
-//timer_struct *insert_timer(double duration, int param, void (*func) (int))
-timer_struct *insert_timer(Uint32 duration, int param, void (*func) (int))
+timer_struct *insert_timer(double duration, int param, void (*func) (int))
+//timer_struct *insert_timer(Uint32 duration, int param, void (*func) (int))
 {
     int i;
     for (i = 0; i < MAX_TIMER; i++) {
@@ -102,8 +102,8 @@ void del_timer(timer_struct * ts)
     ts->del_it = 1;
 }
 
-//static double inc;
-static Uint32 inc;
+static double inc;
+//static Uint32 inc;
 #if 1
 void my_timer(void)
 {
@@ -114,11 +114,11 @@ void my_timer(void)
 	timer_init_save_state();
 	init = 0;
 	if (conf.pal) {
-	    inc = ((double) (0.02) / nb_interlace)*(1<<TIMER_SH);
+		inc = ((double) (0.02) / nb_interlace);/* *(1<<TIMER_SH);*/
 			  //(conf.sound ? (double) nb_interlace : 1.0);
 	} else {
-	    inc = ((double) (0.01666) / nb_interlace)*(1<<TIMER_SH);
-	    //(conf.sound ? (double) nb_interlace : 1.0);
+		inc = ((double) (0.01666) / nb_interlace); /* *(1<<TIMER_SH); */
+		//(conf.sound ? (double) nb_interlace : 1.0);
 	}
 	for (i = 0; i < MAX_TIMER; i++)
 	    timers[i].del_it = 1;

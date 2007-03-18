@@ -481,9 +481,10 @@ SDL_bool dr_load_section(unzFile *gz, SECTION s, Uint8 *current_buf) {
     }
     return SDL_TRUE;
 }
-#ifdef GP2X
+//#ifdef GP2X
+/* dump gfx for system with little memory (16MB free needed) */
 /* Big Warn!! This funtion assume that gfx are always load in ALTERNATE mode */
-SDL_bool dr_dump_gfx(DRIVER *dr,unzFile *gz, SECTION s) {
+SDL_bool dr_dump_gfx_light(DRIVER *dr,unzFile *gz, SECTION s,char *file) {
     LIST *l,*i;
     int gfx_size=s.size;
     int size=0;
@@ -494,13 +495,24 @@ SDL_bool dr_dump_gfx(DRIVER *dr,unzFile *gz, SECTION s) {
     FILE *dump;
     char dumpname[256];
     
-    sprintf(dumpname,"%s/%s.gfx",CF_STR(cf_get_item_by_name("rompath")),dr->name);
+    if (file==NULL)
+	    sprintf(dumpname,"%s/%s.gfx",CF_STR(cf_get_item_by_name("rompath")),dr->name);
+    else
+	    sprintf(dumpname,"%s",file);
+
     dump=fopen(dumpname,"wb");
     if (!dump) {
 	    printf("Can't open %s\n",dumpname);
 	    return SDL_FALSE;
     }
 
+    if (!memory.pen_usage) {
+	    memory.gfx_size = s.size;
+	    memory.pen_usage = malloc((s.size >> 7) * sizeof(int));
+	    CHECK_ALLOC(memory.pen_usage);
+	    memset(memory.pen_usage, 0, (s.size >> 7) * sizeof(int));
+	    memory.nb_of_tiles = s.size >> 7;
+    }
     usage = malloc(memory.nb_of_tiles * sizeof(int));
     CHECK_ALLOC(usage);
     memset(usage, 0, memory.nb_of_tiles * sizeof(int));
@@ -603,7 +615,7 @@ SDL_bool dr_dump_gfx(DRIVER *dr,unzFile *gz, SECTION s) {
 
     return SDL_TRUE;
 }
-#endif
+//#endif
 
 void set_bankswitchers(BANKSW_TYPE bt) {
     switch(bt) {
@@ -737,15 +749,14 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 	    sprintf(dumpname,"%s/%s.gfx",CF_STR(cf_get_item_by_name("rompath")),dr->name);
 	    gp2x_gfx_dump=open(dumpname,O_RDONLY);
 	    if (gp2x_gfx_dump==-1) {
-		    /* TODO: ask before!!! */
-			if ((dr->rom_type == MGD2) || (dr->rom_type == MVS_CMC42) || (dr->rom_type == MVS_CMC50)) {
+		    if ((dr->rom_type == MGD2) || (dr->rom_type == MVS_CMC42) || (dr->rom_type == MVS_CMC50)) {
 			    gn_popup_error("Failed!",
 					   "%s is encrypted "
 					   "It can't be dump on the GP2X. "
 					   "If you want to run it, "
 					   "dump it on your PC.",dr->name);
 			    exit(1);
-			}
+		    }
 		    if (gn_popup_question("GFX Dump?",
 					  "In order to load %s a "
 					  "dumpgfx file must be created. "
@@ -754,14 +765,14 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 					  "Proceed?",dr->name,(memory.gfx_size/1024)/1024)) {
 			    SDL_FillRect(screen,NULL,0);
 			    /*
-			    free(memory.cpu);
-			    if (memory.sm1) free(memory.sm1);
-			    if (memory.sfix_game) free( memory.sfix_game);
+			      free(memory.cpu);
+			      if (memory.sm1) free(memory.sm1);
+			      if (memory.sfix_game) free( memory.sfix_game);
 			    */
 
 			    gn_reset_pbar();
 
-			    if (dr_dump_gfx(dr,gz,dr->section[SEC_GFX])!=SDL_TRUE) {
+			    if (dr_dump_gfx_light(dr,gz,dr->section[SEC_GFX],NULL)!=SDL_TRUE) {
 				    gn_popup_error("Dumping GFX:",
 						   "Sorry, gngeo couldn't dump this roms :(");
 				    unzClose(gz);
