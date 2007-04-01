@@ -1083,7 +1083,6 @@ void draw_screen(void)
 		    break;
                 }
 #else
-		nb_sprite++;
 		if (memory.pen_usage[tileno]!=TILE_INVISIBLE)
 			draw_tile_gp2x_norm(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
 					    tileatr & 0x01,tileatr & 0x02,

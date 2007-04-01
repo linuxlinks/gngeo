@@ -969,8 +969,9 @@ void main_loop(void)
 		my_timer();
 	    }
 
+
 	    
-	      //cpu_z80_run(cpu_z80_timeslice);
+	    //cpu_z80_run(cpu_z80_timeslice);
 	    PROFILER_STOP(PROF_Z80);
 	} /*
 	    else

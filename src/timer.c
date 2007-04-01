@@ -104,7 +104,7 @@ void del_timer(timer_struct * ts)
 
 static double inc;
 //static Uint32 inc;
-#if 1
+
 void my_timer(void)
 {
     static int init = 1;
@@ -113,6 +113,7 @@ void my_timer(void)
     if (init) {
 	timer_init_save_state();
 	init = 0;
+
 	if (conf.pal) {
 		inc = ((double) (0.02) / nb_interlace);/* *(1<<TIMER_SH);*/
 			  //(conf.sound ? (double) nb_interlace : 1.0);
@@ -134,30 +135,3 @@ void my_timer(void)
 	}
     }
 }
-#else
-void my_timer(void)
-{
-    static int init = 1;
-    int i;
-
-    if (init) {
-	timer_init_save_state();
-	init = 0;
-	inc = (1.0/conf.sample_rate)*(1<<TIMER_SH);
-  
-	
-	for (i = 0; i < MAX_TIMER; i++)
-	    timers[i].del_it = 1;
-    }
-
-    timer_count += inc;		/* 16ms par frame */
-
-    for (i = 0; i < MAX_TIMER; i++) {
-	if (timer_count >= timers[i].time && timers[i].del_it == 0) {
-	    //printf("Timer_expire %d duration=%f param=%d\n",i,timers[i].time,timers[i].param);
-	    if (timers[i].func) timers[i].func(timers[i].param);
-	    timers[i].del_it = 1;
-	}
-    }
-}
-#endif

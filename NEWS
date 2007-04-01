@@ -6,6 +6,9 @@
 	. Minor BugFix discovered when porting it to AmigaOS. [hnl_dk]
 	. GP2X: Add support for CraigX's RAM timing hack (--ramhack option)
 	. GP2X: Add vsync option (--vsync)
+	. Update the YM2610 core to a more recent one (comming from NJ's ngpsp emu,
+	  comming from MAME)
+	. Win32 support. You need dev-c++, libSDL and libz to build gngeo32
 
  change in 0.7
 	. GP2X/ARM Save state support for cyclone and drz80

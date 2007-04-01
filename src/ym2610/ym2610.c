@@ -825,7 +825,9 @@ INLINE void set_timers( FM_ST *ST, int v )
 		{
 			ST->TBC = ( 256-ST->TB)<<4;
 			/* External timer handler */
+#if FM_INTERNAL_TIMER==0
 			(ST->Timer_Handler)(1,ST->TBC,ST->TimerBase);
+#endif
 		}
 	}
 	else
@@ -833,7 +835,9 @@ INLINE void set_timers( FM_ST *ST, int v )
 		if( ST->TBC != 0 )
 		{
 			ST->TBC = 0;
+#if FM_INTERNAL_TIMER==0
 			(ST->Timer_Handler)(1,0,ST->TimerBase);
+#endif
 		}
 	}
 	/* load a */
@@ -843,7 +847,9 @@ INLINE void set_timers( FM_ST *ST, int v )
 		{
 			ST->TAC = (1024-ST->TA);
 			/* External timer handler */
+#if FM_INTERNAL_TIMER==0
 			(ST->Timer_Handler)(0,ST->TAC,ST->TimerBase);
+#endif
 		}
 	}
 	else
@@ -851,7 +857,9 @@ INLINE void set_timers( FM_ST *ST, int v )
 		if( ST->TAC != 0 )
 		{
 			ST->TAC = 0;
+#if FM_INTERNAL_TIMER==0
 			(ST->Timer_Handler)(0,0,ST->TimerBase);
+#endif
 		}
 	}
 }
@@ -864,7 +872,9 @@ INLINE void TimerAOver(FM_ST *ST)
 	if(ST->mode & 0x04) FM_STATUS_SET(ST,0x01);
 	/* clear or reload the counter */
 	ST->TAC = (1024-ST->TA);
+#if FM_INTERNAL_TIMER==0
 	(ST->Timer_Handler)(0,ST->TAC,ST->TimerBase);
+#endif
 }
 /* Timer B Overflow */
 INLINE void TimerBOver(FM_ST *ST)
@@ -873,7 +883,9 @@ INLINE void TimerBOver(FM_ST *ST)
 	if(ST->mode & 0x08) FM_STATUS_SET(ST,0x02);
 	/* clear or reload the counter */
 	ST->TBC = ( 256-ST->TB)<<4;
+#if FM_INTERNAL_TIMER==0
 	(ST->Timer_Handler)(1,ST->TBC,ST->TimerBase);
+#endif
 }
 
 
@@ -881,10 +893,11 @@ INLINE void TimerBOver(FM_ST *ST)
 /* ----- internal timer mode , update timer */
 
 /* ---------- calculate timer A ---------- */
-	#define INTERNAL_TIMER_A(ST,CSM_CH)					\
+#define INTERNAL_TIMER_A(ST,CSM_CH)					\
 	{													\
-		if( ST.TAC &&  (ST.Timer_Handler==0) )		\
-			if( (ST.TAC -= (int)(ST.freqbase*4096)) <= 0 )	\
+		if( ST.TAC /*&&  (ST.Timer_Handler==0) */)		\
+			/*if( (ST.TAC -= (int)(ST.freqbase*4096)) <= 0 )*/	\
+			if( (ST.TAC -= (int)((1000.0/ST.rate)*4096)) <= 0 )	\
 			{											\
 				TimerAOver( &ST );						\
 				/* CSM mode total level latch and auto key on */	\
@@ -893,10 +906,11 @@ INLINE void TimerBOver(FM_ST *ST)
 			}											\
 	}
 /* ---------- calculate timer B ---------- */
-	#define INTERNAL_TIMER_B(ST,step)						\
+#define INTERNAL_TIMER_B(ST,step)						\
 	{														\
-		if( ST.TBC && (ST.Timer_Handler==0) )				\
-			if( (ST.TBC -= (int)(ST.freqbase*4096*step)) <= 0 )	\
+		if( ST.TBC /*&& (ST.Timer_Handler==0) */)				\
+			/*if( (ST.TBC -= (int)(ST.freqbase*4096*step)) <= 0 )*/	\
+			if( (ST.TBC -= (int)((1000.0/ST.rate)*4096*step)) <= 0 )	\
 				TimerBOver( &ST );							\
 	}
 #else /* FM_INTERNAL_TIMER */
@@ -3175,6 +3189,8 @@ void YM2610Update_stream(int length)
 		*pl++ = lt;
 		*pl++ = rt;
 
+		//my_timer();
+		
 		INTERNAL_TIMER_A( OPN->ST , cch[1] );
 	}
 	INTERNAL_TIMER_B(OPN->ST,length);
