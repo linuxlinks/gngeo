@@ -6,8 +6,11 @@
 	. Minor BugFix discovered when porting it to AmigaOS. [hnl_dk]
 	. GP2X: Add support for CraigX's RAM timing hack (--ramhack option)
 	. GP2X: Add vsync option (--vsync)
+	. GP2X: Add tvout option (--tvout)
+	. GP2X: Add tv_offset option (--tv_offset x,y)
+	. Add dumpsprite option to dump a gfx file from a romset (not complete for now)
 	. Update the YM2610 core to a more recent one (comming from NJ's ngpsp emu,
-	  comming from MAME)
+	  comming from MAME) (!! SaveState Broken !!)
 	. Win32 support. You need dev-c++, libSDL and libz to build gngeo32
 
  change in 0.7
