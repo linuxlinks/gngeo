@@ -31,7 +31,11 @@
 #include "transpack.h"
 #include "pbar.h"
 #include "driver.h"
-
+/*
+#ifdef GP2X
+#include "shared940.h"
+#endif
+*/
 extern int neogeo_fix_bank_type;
 
 
@@ -39,6 +43,7 @@ extern int neogeo_fix_bank_type;
 /* global declaration for video_arm.S */
 Uint8 *mem_gfx=0; /*=memory.gfx;*/
 Uint8 *mem_video=memory.video;
+
 void draw_one_char_arm(int byte1,int byte2,unsigned short *br);
 int draw_tile_arm_norm(unsigned int tileno, int color,unsigned char *bmp,int zy);
 #endif
@@ -890,13 +895,8 @@ void draw_screen(void)
 
     //    int drawtrans=0;
 
-#ifdef GP2X
-    //Gp2x_ClearBuffer(buffer->pixels+352*16*2,current_pc_pal[4095]|(current_pc_pal[4095]<<16));
     SDL_FillRect(buffer,NULL,current_pc_pal[4095]);
     SDL_LockSurface(buffer);
-#else
-    SDL_FillRect(buffer,NULL,current_pc_pal[4095]);
-#endif
 
     /* Draw sprites */
     for (count=0;count<0x300;count+=2) {
@@ -1051,47 +1051,15 @@ void draw_screen(void)
 	    
       
             if (sx >= -16 && sx+15 < 336 && sy>=0 && sy+15 <256) {
-		    /*
-		      if (memory.pen_usage[tileno]==TILE_UNCONVERTED) {
-		      convert_tile(tileno);
-		      }
-		    */
 #ifdef GP2X
-#if 0
-		switch (memory.pen_usage[tileno]) {
-			/*
-		case TILE_FULL: 
-			draw_tile_gp2x_norm(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
-					    tileatr & 0x01,tileatr & 0x02,
-					    (unsigned char*)buffer->pixels);
-		    break;
-			*/	
-		case TILE_NORMAL: 
-			draw_tile_gp2x_norm(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
-					    tileatr & 0x01,tileatr & 0x02,
-					    (unsigned char*)buffer->pixels);
-		    break;
-		case TILE_TRANSPARENT50:
-		    draw_tile_50(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
-				 tileatr & 0x01,tileatr & 0x02,
-				 (unsigned char*)buffer->pixels);
-		    break;
-		case TILE_TRANSPARENT25:
-		    draw_tile_25(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
-				 tileatr & 0x01,tileatr & 0x02,
-				 (unsigned char*)buffer->pixels);
-		    break;
-                }
-#else
-		if (memory.pen_usage[tileno]!=TILE_INVISIBLE)
-			draw_tile_gp2x_norm(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
-					    tileatr & 0x01,tileatr & 0x02,
-					    (unsigned char*)buffer->pixels);
-#endif
+		    if (memory.pen_usage[tileno]!=TILE_INVISIBLE)
+			    draw_tile_gp2x_norm(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
+						tileatr & 0x01,tileatr & 0x02,
+						(unsigned char*)buffer->pixels);
 #else
 #ifdef I386_ASM
-		switch (memory.pen_usage[tileno]) {
-		case TILE_NORMAL:
+		    switch (memory.pen_usage[tileno]) {
+		    case TILE_NORMAL:
 		    //printf("%d %d %x %x %x %x\n",tileno,sx,count,t1,t2,t3);
 		    draw_tile_i386_norm(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
 					tileatr & 0x01,tileatr & 0x02,
@@ -1145,6 +1113,7 @@ void draw_screen(void)
 
     draw_fix_char(buffer->pixels,0,0);
     SDL_UnlockSurface(buffer);
+
     if (conf.do_message) {
         SDL_textout(buffer,visible_area.x,visible_area.h+visible_area.y-13,conf.message);
         conf.do_message--;
@@ -1154,6 +1123,8 @@ void draw_screen(void)
 
 
     screen_update();
+
+    
 }
 
 void draw_screen_scanline(int start_line, int end_line,int refresh)

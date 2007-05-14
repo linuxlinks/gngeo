@@ -49,6 +49,7 @@
 #ifdef GP2X
 #include "gp2x.h"
 #include "menu.h"
+#include "ym2610-940/940shared.h"
 #endif
 
 int frame;
@@ -166,6 +167,11 @@ void neogeo_init(void)
     sound_code=0;
     pending_command=0;
     result_code=0;
+#ifdef ENABLE_940T
+    shared_ctl->sound_code=sound_code;
+    shared_ctl->pending_command=pending_command;
+    shared_ctl->result_code=result_code;
+#endif
     if (memory.cpu_size>0x100000)
 	cpu_68k_bankswitch(0x100000);
     else
@@ -177,19 +183,30 @@ void neogeo_init(void)
 
 void init_neo(char *rom_name)
 {
-
+#ifdef ENABLE_940T
+    int z80_overclk=CF_VAL(cf_get_item_by_name("z80clock"));
+#endif
     cpu_68k_init();
     neogeo_init();
     pd4990a_init();
     setup_misc_patch(rom_name);
 
     if (conf.sound) {
-	cpu_z80_init();
-	init_sdl_audio();
-	//streams_sh_start();
-	YM2610_sh_start();
-	SDL_PauseAudio(0);
-	conf.snd_st_reg_create=1;
+	    init_sdl_audio();
+#ifdef ENABLE_940T
+	    printf("Init all neo");
+	    shared_data->sample_rate=conf.sample_rate;
+	    shared_data->z80_cycle=(z80_overclk==0?73333:73333+(z80_overclk*73333/100.0));
+	    //gp2x_add_job940(JOB940_INITALL);
+	    gp2x_add_job940(JOB940_INITALL);
+	    wait_busy_940(JOB940_INITALL);
+#else
+	    cpu_z80_init();
+	    //streams_sh_start();
+	    YM2610_sh_start();
+#endif
+	    SDL_PauseAudio(0);
+	    conf.snd_st_reg_create=1;
     }
 
     cpu_68k_reset();
@@ -680,6 +697,8 @@ void main_loop(void)
     char volbuf[21];
     static SDL_Rect buf_rect    =	{24, 16, 304, 224};
     static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
+    FILE *sndbuf;
+    unsigned int sample_len=conf.sample_rate/60.0;
 #endif
 
     Uint32 cpu_68k_timeslice = (m68k_overclk==0?200000:200000+(m68k_overclk*200000/100.0));
@@ -698,7 +717,13 @@ void main_loop(void)
 #ifdef GP2X
     gp2x_sound_volume_set(snd_volume,snd_volume);
 #endif
-
+#ifdef ENABLE_940T
+    
+    shared_ctl->z80_run=0;
+    //gp2x_add_job940(JOB940_RUN_Z80_BIS);
+    //gp2x_add_job940(JOB940_RUN_Z80);
+    //sndbuf=fopen("./sample.raw","wb");
+#endif
     reset_frame_skip();
     my_timer();
     //printf("Cpuspeed: %d\n",cpu_68k_timeslice);
@@ -707,7 +732,7 @@ void main_loop(void)
     printf("NGH = %04x\n",READ_WORD(&memory.cpu[0x108]));
     printf("SSN = %04x\n",READ_WORD(&memory.cpu[0x114]));
 */
-
+    //SDL_PauseAudio(0);
     while (!neo_emu_done) {
 	if (conf.test_switch == 1)
 	    conf.test_switch = 0;
@@ -961,6 +986,7 @@ void main_loop(void)
 	if (slow_motion)
 	    SDL_Delay(100);
 
+#ifndef ENABLE_940T
 	if (conf.sound) {
 	    PROFILER_START(PROF_Z80);
 
@@ -976,7 +1002,11 @@ void main_loop(void)
 	} /*
 	    else
 	    my_timer();*/
+#else
+	/* Just to be sure we are running */
+	//shared_ctl->z80_run=1;
 
+#endif
 	if (!conf.debug) {
 	    if (conf.raster) {
 		for (i = 0; i < 261; i++) {
@@ -1006,11 +1036,22 @@ void main_loop(void)
 	    /* we arre in debug mode -> we are just here for event handling */
 	    neo_emu_done=1;
 	}
+#ifdef ENABLE_940T
+	if (conf.sound) {
+		while(CHECK_BUSY(JOB940_RUN_Z80));
+		gp2x_add_job940(JOB940_RUN_Z80);
+		//printf("--  %d\n",shared_ctl->test);
+	}
+#endif
 #ifdef ENABLE_PROFILER
 	profiler_show_stat();
 #endif
 	PROFILER_START(PROF_ALL);
     }
+#ifdef ENABLE_940T
+	shared_ctl->z80_run=0;
+	//fclose(sndbuf);
+#endif
 }
 
 void cpu_68k_dpg_step(void) {
@@ -1044,7 +1085,6 @@ void cpu_68k_dpg_step(void) {
 	    }
 	}
     }
-
 }
 
 void debug_loop(void) {

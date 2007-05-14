@@ -9,6 +9,8 @@
 #include "SDL_gp2x.h"
 #include "conf.h"
 
+#include <alloca.h>
+#include <stdlib.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -23,6 +25,8 @@
 
 #include "gp2x.h"
 #include "menu.h"
+#include "video.h"
+#include "ym2610-940/940shared.h"
 
 #define SYS_CLK_FREQ 7372800
 #define GP2X_VIDEO_MEM_SIZE ((5*1024*1024) - 4096)
@@ -43,6 +47,17 @@ volatile unsigned *arm940code;
 static int cpufreq;
 static Uint32 tvoutfix_sav;
 static char name[256];
+volatile _940_data_t *shared_data = 0;
+volatile _940_ctl_t *shared_ctl = 0;
+
+typedef struct video_bucket {
+  struct video_bucket *prev, *next;
+  char *base;
+  unsigned int size;
+  short used;
+  short dirty;
+} video_bucket;
+
 /*
   void cpuctrl_init()
   {
@@ -95,6 +110,132 @@ void set_RAM_Timings(int tRC, int tRAS, int tWR, int tMRD, int tRFC, int tRP, in
         gp2x_memregs[0x3804>>1] = /*0x9000 |*/ ((tRC & 0xF) << 8) | ((tRAS & 0xF) << 4) | (tWR & 0xF);
 }
 
+/* TODO */
+int spend_cycles(int cycles) {
+	int i,j;
+	for(i=cycles/2;i>0;i--) {
+		j=i+1;
+	}
+	return j;
+}
+
+
+void wait_busy_940(int job)
+{
+        int i;
+
+        job--;
+        for (i = 0; (gp2x_memregs[0x3b46>>1] & (1<<job)) && i < 0x10000; i++)
+		spend_cycles(8*1024); // tested to be best for mp3 dec
+        if (i < 0x10000) return;
+        /* 940 crashed */
+        printf("940 crashed (cnt: %i, ve: ", shared_ctl->loopc);
+        for (i = 0; i < 8; i++)
+                printf("%i ", shared_ctl->vstarts[i]);
+        printf(")\n");
+        printf("irq pending flags: DUALCPU %04x, SRCPND %08lx (see 26), INTPND %08lx\n",
+                gp2x_memregs[0x3b46>>1], gp2x_memregl[0x4500>>2], gp2x_memregl[0x4510>>2]);
+        printf("last lr: %08x, lastjob: %i\n", shared_ctl->last_lr, shared_ctl->lastjob);
+        printf("trying to interrupt..\n");
+        gp2x_memregs[0x3B3E>>1] = 0xffff;
+        for (i = 0; gp2x_memregs[0x3b46>>1] && i < 0x10000; i++)
+                spend_cycles(8*1024);
+        printf("i = 0x%x\n", i);
+        printf("irq pending flags: DUALCPU %04x, SRCPND %08lx (see 26), INTPND %08lx\n",
+                gp2x_memregs[0x3b46>>1], gp2x_memregl[0x4500>>2], gp2x_memregl[0x4510>>2]);
+        printf("last lr: %08x, lastjob: %i\n", shared_ctl->last_lr, shared_ctl->lastjob);
+}
+
+/* 940 utilities fuction (largely based on Notaz's picodirve) */
+void gp2x_add_job940(int job)
+{
+        if (job <= 0 || job > 16) {
+                printf("add_job_940: bad job: %i\n", job);
+                return;
+        }
+        // generate interrupt for this job
+        job--;
+        gp2x_memregs[(0x3B20+job*2)>>1] = 1;
+	//printf("added %i, pending %04x\n", job+1, gp2x_memregs[0x3b46>>1]);
+}
+
+/* 940 */
+void gp2x_pause940(int yes)
+{
+	printf ("Pause 940 %d\n",yes);
+        if(yes)
+                gp2x_memregs[0x0904>>1] &= 0xFFFE;
+        else
+                gp2x_memregs[0x0904>>1] |= 1;
+}
+void gp2x_reset940(int yes, int bank)
+{
+	printf ("Reset 940 %d\n",yes);
+        gp2x_memregs[0x3B48>>1] = ((yes&1) << 7) | (bank & 0x03);
+}
+void gp2x_load_bin940(char *file) {
+	FILE *f;
+	char *buf;
+	int size;
+	f=fopen(file,"rb");
+	if (!f) {
+		printf("Error while loading %s\n",file);
+		exit(1);
+	}
+	fseek(f,0,SEEK_END);
+	size=ftell(f);
+	fseek(f,0,SEEK_SET);
+	buf=alloca(size);
+
+	fread(buf,size,1,f);
+	fclose(f);
+	memcpy(gp2x_ram2_uncached,buf,size);
+	printf("CODE940 uploded [%02X %02X %02X %02X]\n",
+	       gp2x_ram2_uncached[0],
+	       gp2x_ram2_uncached[1],
+	       gp2x_ram2_uncached[2],
+	       gp2x_ram2_uncached[3]);
+}
+void gp2x_init_940(void) {
+	struct video_bucket *bucket;
+	gp2x_reset940(1, 2);
+        gp2x_pause940(1);
+	
+        gp2x_memregs[0x3B40>>1] = 0;      // disable DUALCPU interrupts for 920
+        gp2x_memregs[0x3B42>>1] = 1;      // enable  DUALCPU interrupts for 940
+	
+        gp2x_memregl[0x4504>>2] = 0;        // make sure no FIQs will be generated
+	gp2x_memregl[0x4508>>2] = ~(1<<26); // unmask DUALCPU ints in the undocumented 940's interrupt controller
+
+	gp2x_load_bin940("gngeo940.bin");
+
+	printf("Shared data reset...\n");
+	//memset(shared_data, 0, sizeof(*shared_data));
+        //memset(shared_ctl,  0, sizeof(*shared_ctl));
+	printf("Shared data reseted\n");
+
+	/* Ugliest hack ever? */
+	/*
+	  bucket=(struct video_bucket *)buffer->hwdata;
+	  while  (bucket->prev!=NULL) {
+	  bucket=bucket->prev;
+	  }
+	*/
+	//shared_data->buf=((Uint32)buffer->pixels-(Uint32)bucket->base)-0x1000000;
+	//shared_data->screen=((Uint32)screen->pixels-(Uint32)bucket->base)-0x1000000;
+	//printf("BUFFER %08x %p???\n",shared_data->buf,bucket->base);
+
+	gp2x_memregs[0x3B46>>1] = 0xffff; // clear pending DUALCPU interrupts for 940
+        gp2x_memregl[0x4500>>2] = 0xffffffff; // clear pending IRQs in SRCPND
+        gp2x_memregl[0x4510>>2] = 0xffffffff; // clear pending IRQs in INTPND
+	printf("Clear interrupt\n");
+	
+        /* start the 940 */
+        gp2x_reset940(0, 2);
+        gp2x_pause940(0);
+
+}
+
 void debug_gp2x_tvout(void)
 {
 	printf("Some TV out Regs\n");
@@ -118,14 +259,25 @@ void debug_gp2x_tvout(void)
 //volatile Uint32 *gp2x_ram;
 void gp2x_ram_init(void) {
 	if(!gp2x_dev_mem) gp2x_dev_mem = open("/dev/mem",   O_RDWR);
-	gp2x_ram=(Uint8 *)mmap(0, 0x1000000, PROT_READ|PROT_WRITE, MAP_SHARED, 
-				gp2x_dev_mem, 0x02000000);
+	gp2x_ram=(Uint8 *)mmap(0, 0x2000000, PROT_READ|PROT_WRITE, MAP_SHARED, 
+			       gp2x_dev_mem, 0x02000000);
 	gp2x_ram2=(Uint8 *)mmap(0, 0x1000000, PROT_READ|PROT_WRITE, MAP_SHARED, 
 				gp2x_dev_mem, 0x03000000);
-	//printf("gp2x_ram %p\n",gp2x_ram);
+
+	//printf("gp2x_ram %p %p %p\n",gp2x_ram,gp2x_ram2,gp2x_ram_all);
 	gp2x_memregl=(Uint32 *)mmap(0, 0x10000, PROT_READ|PROT_WRITE, MAP_SHARED, 
 				    gp2x_dev_mem, 0xc0000000);
 	gp2x_memregs=(Uint16*)gp2x_memregl ;
+}
+
+void gp2x_ram_init_uncached(void) {
+	/* Open non chached memory */
+	gp2x_ram2_uncached=(Uint8 *)mmap(0, 0x2000000, PROT_READ|PROT_WRITE, MAP_SHARED, 
+					 gp2x_dev_mem, 0x02000000);
+	shared_data = (_940_data_t *) (gp2x_ram2_uncached+0x1C00000);
+        /* this area must not get buffered on either side */
+        shared_ctl =  (_940_ctl_t *)  (gp2x_ram2_uncached+0x1C80000);
+
 }
 
 Uint8 *gp2x_ram_malloc(size_t size,Uint32 page) {
@@ -134,10 +286,11 @@ Uint8 *gp2x_ram_malloc(size_t size,Uint32 page) {
 	volatile Uint8 *t;
 	if (page==0) {
 		if (!ram_ptr) {
-			ram_ptr=gp2x_ram/*+0x8000+0x100000*/;
+			//ram_ptr=gp2x_ram/*+0x8000+0x100000*/;
+			ram_ptr=gp2x_ram+0x100000;
 			//printf("Ram_ptr=%p\n",ram_ptr);
 		}
-		if ((Uint32)ram_ptr-(Uint32)gp2x_ram+size<=0x1000000) {
+		if ((Uint32)ram_ptr-(Uint32)gp2x_ram+size<=0x1100000) {
 			t=ram_ptr;
 			ram_ptr+=(((Uint32)size)|0xF)+0x1;
 			//printf("allocating %d\n",size);
@@ -147,7 +300,8 @@ Uint8 *gp2x_ram_malloc(size_t size,Uint32 page) {
 		}
 	} else {
 		if (!ram_ptr2) {
-			ram_ptr2=gp2x_ram2+0x608100;
+			//ram_ptr2=gp2x_ram2+0x608100;
+			ram_ptr2=gp2x_ram2+0x800000;
 			//printf("Ram_ptr2=%p %p\n",ram_ptr2,gp2x_ram2);
 		}
 		if ((Uint32)ram_ptr2-(Uint32)gp2x_ram2+size<=0x1000000) {
@@ -194,7 +348,11 @@ void gp2x_set_cpu_speed(void) {
 
 void gp2x_quit(void) {
 	//hackpgtable(1);
-	
+#ifdef ENABLE_940T	
+	gp2x_reset940(1, 2);
+        gp2x_pause940(1);
+#endif
+
 	if (gp2x_dev_mem!=-1) close(gp2x_dev_mem);
 	if (gp2x_gfx_dump!=-1) close(gp2x_gfx_dump);
 	if (gp2x_mixer!=-1) close(gp2x_mixer);
@@ -286,11 +444,6 @@ void benchmark (void *memptr)
 
 int hack_the_mmu(void) {
 	int mmufd = open("/dev/mmuhack", O_RDWR);
-/*
-  volatile unsigned int *secbuf = (unsigned int *)malloc (204800);
-  benchmark ((void*)gp2x_ram);
-  benchmark ((void*)secbuf);
-*/
 
         if(mmufd < 0) {
                 system("/sbin/insmod -f mmuhack.o");
@@ -300,10 +453,8 @@ int hack_the_mmu(void) {
 	
         close(mmufd);
 
-/*
-	benchmark ((void*)gp2x_ram);
-	benchmark ((void*)secbuf);
-*/
+	gp2x_ram_init_uncached();
+
         return 0;
 }
 

@@ -26,6 +26,9 @@
 #include "pd4990a.h"
 #include "transpack.h"
 
+#ifdef GP2X
+#include "ym2610-940/940shared.h"
+#endif
 
 /* TODO: cleanup irq2 code */
 int irq2enable, irq2start, irq2repeat = 1000, irq2control, irq2taken;
@@ -133,10 +136,12 @@ void dump_hardware_reg(void) {
 void neogeo_sound_irq(int irq)
 {
     //printf("neogeo_sound_irq %d\n",irq);
+#ifndef ENABLE_940T
     if (irq) {
 	cpu_z80_raise_irq(0);
     } else
 	cpu_z80_lower_irq();
+#endif
     //printf("neogeo_sound_end %d\n",irq);
 }
 
@@ -198,6 +203,7 @@ __inline__ void write_irq2pos(Uint32 data)
     }
 }
 
+#ifndef ENABLE_940T
 /* Z80 IO port handler */
 Uint8 z80_port_read(Uint16 PortNo)
 {
@@ -281,6 +287,7 @@ void z80_port_write(Uint16 PortNb, Uint8 Value)
 		break;
 	}
 }
+#endif
 
 /* Protection hack */
 Uint16 protection_9a37(Uint32 addr)
@@ -497,9 +504,15 @@ Uint8 mem68k_fetch_coin_byte(Uint32 addr)
 	int res = 0;
 	if (conf.sound) {
 		//printf("fetch coin byte, rescoe= %x\n",result_code);
+#ifdef ENABLE_940T
+		res |= shared_ctl->result_code;
+		if (shared_ctl->pending_command)
+			res &= 0x7f;	
+#else
 	    res |= result_code;
 	    if (pending_command)
 		res &= 0x7f;
+#endif
 	} else {
 	    res |= 0x01;
 	}
@@ -770,8 +783,14 @@ void mem68k_store_z80_byte(Uint32 addr, Uint8 data)
 	pending_command = 1;
 	//printf("Pending command. Sound_code=%02x\n",sound_code);
 	if (conf.sound) {
+#ifdef ENABLE_940T
+		shared_ctl->sound_code=sound_code;
+		shared_ctl->pending_command=pending_command;
+		shared_ctl->nmi_pending=1;
+#else
 	    cpu_z80_nmi();
 	    cpu_z80_run(300);
+#endif
 	}
     }
 }
@@ -783,8 +802,14 @@ void mem68k_store_z80_word(Uint32 addr, Uint16 data)
 	pending_command = 1;
 	//printf("Pending command. Sound_code=%02x\n",sound_code);
 	if (conf.sound) {
-	    cpu_z80_nmi();
-	    cpu_z80_run(300);
+#ifdef ENABLE_940T
+		shared_ctl->sound_code=sound_code;
+		shared_ctl->pending_command=pending_command;
+		shared_ctl->nmi_pending=1;
+#else
+		cpu_z80_nmi();
+		cpu_z80_run(300);
+#endif
 	}
     }
 }

@@ -43,6 +43,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "menu.h"
+#include "ym2610-940/940shared.h"
 
 #ifndef MAP_NONBLOCK
 # define MAP_NONBLOCK  0x10000
@@ -667,7 +668,7 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 	//      printf("%p %d \n",dr->section[i].item,i);
 	switch (i) {
 	case SEC_CPU:
-#         ifdef GP2X
+#         ifdef GP2X_
 		memory.cpu = gp2x_ram_malloc(s,1);
 #         else
 		memory.cpu = malloc(s); CHECK_ALLOC(memory.cpu);
@@ -676,7 +677,7 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 		memory.cpu_size = s;
 	    break;
 	case SEC_SFIX:
-#         ifdef GP2X
+#         ifdef GP2X_
 		memory.sfix_game = gp2x_ram_malloc(s,1);
 		memory.fix_game_usage = gp2x_ram_malloc(s >> 5,1);
 #         else
@@ -691,6 +692,10 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 #         ifdef GP2X
 		if (conf.sound) 
 			memory.sm1 = gp2x_ram_malloc(s,1);
+#ifdef ENABLE_940T
+		shared_data->sm1=(Uint8*)((memory.sm1-gp2x_ram2)+0x1000000);
+		printf("Z80 code: %08x\n",(Uint32)shared_data->sm1);
+#endif
 #         else
 		memory.sm1 = malloc(s); CHECK_ALLOC(memory.sm1 );
 #         endif
@@ -706,6 +711,11 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 #         endif
 		memory.sound1_size = s;
 		current_buf = memory.sound1;
+#ifdef ENABLE_940T
+		shared_data->pcmbufa=(Uint8*)(memory.sound1-gp2x_ram);
+		printf("SOUND1 code: %08x\n",(Uint32)shared_data->pcmbufa);
+		shared_data->pcmbufa_size=s;
+#endif
 		break;
 	case SEC_SOUND2:
 #         ifdef GP2X
@@ -716,6 +726,11 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 #         endif
 		memory.sound2_size = s;
 		current_buf = memory.sound2;
+#ifdef ENABLE_940T
+		shared_data->pcmbufb=(Uint8*)(memory.sound2-gp2x_ram);
+		printf("SOUND2 code: %08x\n",(Uint32)shared_data->pcmbufb);
+		shared_data->pcmbufb_size=s;
+#endif
 		break;
 	case SEC_GFX:
 		memory.gfx = malloc(s); 
@@ -864,6 +879,11 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
     if (memory.sound2 == NULL) {
 	memory.sound2 = memory.sound1;
 	memory.sound2_size = memory.sound1_size;
+#ifdef ENABLE_940T
+	shared_data->pcmbufb=(Uint8*)(memory.sound2-gp2x_ram);
+	printf("SOUND2 code: %08x\n",(Uint32)shared_data->pcmbufb);
+	shared_data->pcmbufb_size=memory.sound2_size;
+#endif
     }
 
     //backup neogeo game vectors

@@ -10,6 +10,7 @@ int gp2x_mixer;
 
 volatile Uint8 *gp2x_ram;
 volatile Uint8 *gp2x_ram2;
+volatile Uint8 *gp2x_ram2_uncached;
 volatile Uint16 *gp2x_memregs;
 volatile Uint32 *gp2x_memregl;
 
@@ -22,6 +23,8 @@ void gp2x_init(void);
 void gp2x_video_RGB_setscaling(int W, int H);
 void gp2x_set_cpu_speed(void);
 Uint32 gp2x_is_tvout_on(void);
+void gp2x_init_940(void);
+void gp2x_add_job940(int job);
 
 enum  { GP2X_UP=0,
 	GP2X_UP_LEFT,
@@ -44,5 +47,7 @@ enum  { GP2X_UP=0,
 	GP2X_PUSH
 };
 
+#define CHECK_BUSY(job) \
+        (gp2x_memregs[0x3b46>>1] & (1<<(job-1)))
 
 #endif

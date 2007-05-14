@@ -29,6 +29,10 @@
 #include "emu.h"
 #include "memory.h"
 #include "profiler.h"
+#ifdef GP2X
+#include "ym2610-940/940shared.h"
+#endif
+
 SDL_AudioSpec * desired, *obtain;
 
 #define MIXER_MAX_CHANNELS 16
@@ -41,19 +45,42 @@ Uint16 play_buffer[BUFFER_LEN];
 #ifndef GP2X
 #define NB_SAMPLES 512 /* better resolution */
 #else
-#define NB_SAMPLES 128
+//#define NB_SAMPLES 128
+#define NB_SAMPLES 64
 #endif
 
 void update_sdl_stream(void *userdata, Uint8 * stream, int len)
 {
 	static Uint32 play_buffer_pos;
-    //printf("sdl %d\n", len);
-    PROFILER_START(PROF_SOUND);
-    //streamupdate(len);
-    YM2610Update_stream(len/4);
-    memcpy(stream, (Uint8 *) play_buffer, len);
+	//printf("sdl %d\n", len);
+	PROFILER_START(PROF_SOUND);
+	//streamupdate(len);
+	
+#ifdef ENABLE_940T
+#if 1
+	if ( play_buffer_pos+len>SAMPLE_BUFLEN) {
+		unsigned int last=(SAMPLE_BUFLEN-play_buffer_pos);
+		memcpy(stream, (Uint8 *) shared_ctl->play_buffer+ play_buffer_pos, last);
+		memcpy(stream+last, (Uint8 *) shared_ctl->play_buffer, len-last);
+		//printf("Case 1\n");
+		play_buffer_pos=len-last;
+	} else
+	{
+		memcpy(stream, (Uint8 *) shared_ctl->play_buffer+play_buffer_pos, len);
+		play_buffer_pos+=len;
+		//printf("Case 2\n");
+	}
+#else
+	shared_ctl->updateym=len/4;
+	while (shared_ctl->updateym);
+	memcpy(stream, (Uint8 *) shared_ctl->play_buffer, len);
+#endif
 
-    PROFILER_STOP(PROF_SOUND);
+#else
+	YM2610Update_stream(len/4);
+	memcpy(stream, (Uint8 *) play_buffer, len);
+#endif
+	PROFILER_STOP(PROF_SOUND);
 
 }
 

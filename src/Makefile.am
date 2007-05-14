@@ -71,7 +71,8 @@ gngeo_SOURCES = fileio.c         pd4990a.c        gngeo_icon.h      crypt.h     
 EXTRA_DIST = c32.mac screen_i386.asm video_i386.asm video_i386.inc getopt.h video_arm.s memcpy.S
 
 if USE_GP2X
-gngeo_LDADD = blitter/libblitter.a ym2610/libym2610.a $(m68k_lib) $(z80_lib) $(asm_lib) $(gui_lib) #$(LIBOBJS)
+#gngeo_LDADD = blitter/libblitter.a ym2610/libym2610.a $(m68k_lib) $(z80_lib) $(asm_lib) $(gui_lib) #$(LIBOBJS)
+gngeo_LDADD = blitter/libblitter.a $(m68k_lib) $(asm_lib) $(gui_lib) #$(LIBOBJS)
 else
 gngeo_LDADD = effect/libeffect.a blitter/libblitter.a ym2610/libym2610.a $(m68k_lib) $(z80_lib) $(asm_lib) $(gui_lib) #$(LIBOBJS)
 endif

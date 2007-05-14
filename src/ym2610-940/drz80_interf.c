@@ -16,22 +16,12 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
-#ifdef USE_DRZ80
+#include "940shared.h"
+#include "mvs.h"
+#include "DrZ80.h"
+#include "2610intf.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#include "emu.h"
-#include "memory.h"
-#include "drz80/DrZ80.h"
-#include "state.h"
-#ifdef GP2X
-#include "ym2610-940/940shared.h"
-#endif
-
-#ifndef ENABLE_940T
-
+Uint16 z80_bank[4];
 static Uint8 *z80map1, *z80map2, *z80map3, *z80map4;
 Uint8 drz80mem[0x10000];
 Uint32 mydrz80_Z80PC,mydrz80_Z80SP;
@@ -72,6 +62,117 @@ void drz80_write16(unsigned short data,unsigned short address) {
         drz80_write8(data & 0xFF,address);
         drz80_write8(data >> 8,address + 1);
 }
+/* cpu interface implementation */
+void cpu_z80_switchbank(Uint8 bank, Uint16 PortNo)
+{
+	//printf("Switch bank %x %x\n",bank,PortNo);
+    if (bank<=3)
+	z80_bank[bank]=PortNo;
+
+    switch (bank) {
+    case 0:
+	z80map1 = shared_data->sm1 + (0x4000 * ((PortNo >> 8) & 0x0f));
+	memcpy(drz80mem + 0x8000, z80map1, 0x4000);
+	break;
+    case 1:
+	z80map2 = shared_data->sm1 + (0x2000 * ((PortNo >> 8) & 0x1f));
+	memcpy(drz80mem + 0xc000, z80map2, 0x2000);
+	break;
+    case 2:
+	z80map3 = shared_data->sm1 + (0x1000 * ((PortNo >> 8) & 0x3f));
+	memcpy(drz80mem + 0xe000, z80map3, 0x1000);
+	break;
+    case 3:
+	z80map4 = shared_data->sm1 + (0x0800 * ((PortNo >> 8) & 0x7f));
+	memcpy(drz80mem + 0xf000, z80map4, 0x0800);
+	break;
+    }
+}
+
+
+/* Z80 IO port handler */
+Uint8 z80_port_read(Uint16 PortNo)
+{
+        //printf("z80_port_read PC=%04x p=%04x ",cpu_z80_get_pc(),PortNo);
+	//printf("z80_port_read p=%04x \n",PortNo);
+	switch (PortNo & 0xff) {
+	case 0x0:
+		shared_ctl->pending_command = 0;
+		//printf("Reseting command. Return sndcode %x\n",sound_code);
+		return shared_ctl->sound_code;
+		break;
+
+	case 0x4:
+		//printf("v=%02x\n",YM2610_status_port_0_A_r(0));
+		return YM2610_status_port_A_r(0);
+		break;
+
+	case 0x5:
+		//printf("v=%02x\n",YM2610_read_port_0_r(0));
+		return YM2610_read_port_r(0);
+		break;
+
+	case 0x6:
+		//printf("v=%02x\n",YM2610_status_port_0_B_r(0));
+		return YM2610_status_port_B_r(0);
+		break;
+
+	case 0x08:
+		//printf("v=00 (sb3)\n");
+		cpu_z80_switchbank(3, PortNo);
+		return 0;
+		break;
+
+	case 0x09:
+		//printf("v=00 (sb2)\n");
+		cpu_z80_switchbank(2, PortNo);
+		return 0;
+		break;
+
+	case 0x0a:
+		//printf("v=00 (sb1)\n");
+		cpu_z80_switchbank(1, PortNo);
+		return 0;
+		break;
+
+	case 0x0b:
+		//printf("v=00 (sb0)\n");
+		cpu_z80_switchbank(0, PortNo);
+		return 0;
+		break;
+	};
+
+	return 0;
+}
+
+void z80_port_write(Uint16 PortNb, Uint8 Value)
+{
+	Uint8 data = Value;
+	//printf("z80_port_write PC=%04x OP=%02x p=%04x v=%02x\n",cpu_z80_get_pc(),memory.sm1[cpu_z80_get_pc()],PortNb,Value);
+	//printf("Write port %04x %02x\n",PortNb,Value);
+	switch (PortNb & 0xff) {
+	case 0x4:
+		YM2610_control_port_A_w(0, data);
+		break;
+
+	case 0x5:
+		YM2610_data_port_A_w(0, data);
+		break;
+
+	case 0x6:
+		YM2610_control_port_B_w(0, data);
+		break;
+
+	case 0x7:
+		YM2610_data_port_B_w(0, data);
+		break;
+
+	case 0xC:
+		//printf("Setting result code to %0x\n",Value);
+		shared_ctl->result_code = Value;
+		break;
+	}
+}
 
 void drz80_writeport16(Uint16 port, Uint8 value)
 {
@@ -85,32 +186,6 @@ Uint8 drz80_readport16(Uint16 port)
     return z80_port_read(port);
 }
 
-/* cpu interface implementation */
-void cpu_z80_switchbank(Uint8 bank, Uint16 PortNo)
-{
-	//printf("Switch bank %x %x\n",bank,PortNo);
-    if (bank<=3)
-	z80_bank[bank]=PortNo;
-
-    switch (bank) {
-    case 0:
-	z80map1 = memory.sm1 + (0x4000 * ((PortNo >> 8) & 0x0f));
-	memcpy(drz80mem + 0x8000, z80map1, 0x4000);
-	break;
-    case 1:
-	z80map2 = memory.sm1 + (0x2000 * ((PortNo >> 8) & 0x1f));
-	memcpy(drz80mem + 0xc000, z80map2, 0x2000);
-	break;
-    case 2:
-	z80map3 = memory.sm1 + (0x1000 * ((PortNo >> 8) & 0x3f));
-	memcpy(drz80mem + 0xe000, z80map3, 0x1000);
-	break;
-    case 3:
-	z80map4 = memory.sm1 + (0x0800 * ((PortNo >> 8) & 0x7f));
-	memcpy(drz80mem + 0xf000, z80map4, 0x0800);
-	break;
-    }
-}
 
 void drz80_irq_callback(void)
 {
@@ -118,9 +193,11 @@ void drz80_irq_callback(void)
 	//mydrz80.Z80_IRQ = 0x00;
 	//printf("Irq have been accepted %x %x\n",mydrz80.Z80_IRQ,mydrz80.Z80IF);
 }
+
+#if 0
 static void pre_save_state(void) {
 
-    memcpy(memory.z80_ram,drz80mem+0xf800,0x800);
+    memcpy(shared_data->z80_ram,drz80mem+0xf800,0x800);
     mydrz80_Z80PC=mydrz80.Z80PC-mydrz80.Z80PC_BASE;
     mydrz80_Z80SP=mydrz80.Z80SP-mydrz80.Z80SP_BASE;
 }
@@ -143,7 +220,7 @@ static void post_load_state(void) {
     for (i=0;i<4;i++) {
 	cpu_z80_switchbank(i,z80_bank[i]);
     }
-    memcpy(drz80mem+0xf800,memory.z80_ram,0x800);
+    memcpy(drz80mem+0xf800,shared_data->z80_ram,0x800);
     
 }
 
@@ -153,15 +230,19 @@ static void z80_init_save_state(void) {
 	create_state_register(ST_Z80,"pc",1,(void *)&mydrz80_Z80PC,sizeof(Uint16),REG_UINT32);
 	create_state_register(ST_Z80,"sp",1,(void *)&mydrz80_Z80SP,sizeof(Uint16),REG_UINT32);
 	create_state_register(ST_Z80,"bank",1,(void *)z80_bank,sizeof(Uint16)*4,REG_UINT16);
-	create_state_register(ST_Z80,"z80_ram",1,(void *)memory.z80_ram,sizeof(Uint8)*0x800,REG_UINT8);
+	create_state_register(ST_Z80,"z80_ram",1,(void *)shared_data->z80_ram,sizeof(Uint8)*0x800,REG_UINT8);
     
     set_post_load_function(ST_Z80,post_load_state);
     set_pre_save_function(ST_Z80,pre_save_state);
 }
+#endif
 
 void cpu_z80_init(void)
 {
+
+
         memset (&mydrz80, 0, sizeof(mydrz80));
+
         mydrz80.z80_rebasePC=drz80_rebasePC;
         mydrz80.z80_rebaseSP=drz80_rebaseSP;
         mydrz80.z80_read8   =drz80_read8;
@@ -190,44 +271,39 @@ void cpu_z80_init(void)
         mydrz80.Z80PC=mydrz80.z80_rebasePC(0);
         mydrz80.Z80SP=mydrz80.z80_rebaseSP(0xffff);/*0xf000;*/
 
+
+
 /* bank initalisation */
-	z80map1 = memory.sm1 + 0x8000;
-	z80map2 = memory.sm1 + 0xc000;
-	z80map3 = memory.sm1 + 0xe000;
-	z80map4 = memory.sm1 + 0xf000;
+	z80map1 = shared_data->sm1 + 0x8000;
+	z80map2 = shared_data->sm1 + 0xc000;
+	z80map3 = shared_data->sm1 + 0xe000;
+	z80map4 = shared_data->sm1 + 0xf000;
+
+
 	
 	z80_bank[0]=0x8000;
 	z80_bank[1]=0xc000;
 	z80_bank[2]=0xe000;
 	z80_bank[3]=0xf000;
-	
-	memcpy(drz80mem, memory.sm1, 0xf800);
-	z80_init_save_state();
+
+	memcpy(drz80mem, shared_data->sm1, 0xf800);
+
+	//z80_init_save_state();
 }
 void cpu_z80_run(int nbcycle)
 {
 	DrZ80Run(&mydrz80, nbcycle);
 }
-/*
-#define PUSH_PC() { mydrz80.Z80SP-=2; mydrz80.z80_write16(mydrz80.Z80PC - mydrz80.Z80PC_BASE,mydrz80.Z80SP); }
-*/
 
 void cpu_z80_nmi(void)
 {
-	//printf("Cause NMI %x %x\n",mydrz80.Z80_IRQ,mydrz80.Z80IF);
 	mydrz80.Z80_IRQ |= 0x02;
-	//DrZ80Run(&mydrz80, 30);
 }
 void cpu_z80_raise_irq(int l)
 {
-	//printf("raise irq %x %x\n",mydrz80.Z80_IRQ,mydrz80.Z80IF);
 	mydrz80.Z80_IRQ |= 0x1;
-	//mydrz80.z80irqvector= l & 0xff;
 }
 void cpu_z80_lower_irq(void)
 {
-	//printf("Lower irq %x %x\n",mydrz80.Z80_IRQ,mydrz80.Z80IF);
 	mydrz80.Z80_IRQ &= ~0x1;
 }
-#endif /* ENABLE_940T */
-#endif

@@ -16,18 +16,10 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <stdlib.h>
-#include "emu.h"
 #include "timer.h"
-#include "state.h"
-#include "ym2610/ym2610.h"
-#ifdef GP2X
-#include "ym2610-940/940shared.h"
-#endif
+#include "ym2610.h"
+#include "940shared.h"
 
 double timer_count;
 //Uint32 timer_count;
@@ -57,7 +49,7 @@ timer_struct *insert_timer(double duration, int param, void (*func) (int))
 	    return &timers[i];
 	}
     }
-    printf("YM2610: No timer free!\n");
+    //printf("YM2610: No timer free!\n");
     return NULL;		/* No timer free */
 }
 
@@ -68,11 +60,8 @@ void free_all_timer(void) {
     }
 }
 
-#ifdef ENABLE_940T
-void timer_callback_2610(int param){}
-#else
+
 void timer_callback_2610(int param);
-#endif
 void timer_post_load_state(void) {
     int i;
     for (i = 0; i < MAX_TIMER; i++) {
@@ -85,24 +74,6 @@ void timer_post_load_state(void) {
     }
 }
 
-void timer_pre_save_state(void)
-{
-
-}
-
-void timer_init_save_state(void) {
-    int i;
-    create_state_register(ST_TIMER,"timer_count",1,&timer_count,sizeof(double),REG_UINT32);
-
-    for(i=0;i<MAX_TIMER;i++) {
-	create_state_register(ST_TIMER,"t.del_it",i,&timers[i].del_it,sizeof(Uint32),REG_UINT32);
-	create_state_register(ST_TIMER,"t.time",i,&timers[i].time,sizeof(double),REG_UINT32);
-	create_state_register(ST_TIMER,"t.param",i,&timers[i].param,sizeof(Sint32),REG_INT32);
-    }
-    set_post_load_function(ST_TIMER,timer_post_load_state);
-    set_pre_save_function(ST_TIMER,timer_pre_save_state);
-}
-
 void del_timer(timer_struct * ts)
 {
     ts->del_it = 1;
@@ -111,25 +82,19 @@ void del_timer(timer_struct * ts)
 static double inc;
 //static Uint32 inc;
 
+void init_timer(void) {
+	int i;
+	shared_ctl->test++;
+	inc = ((double) (0.01666) / nb_interlace);// *(1<<TIMER_SH);
+
+	for (i = 0; i < MAX_TIMER; i++)
+		timers[i].del_it = 1;	
+}
+
 void my_timer(void)
 {
-    static int init = 1;
+ 
     int i;
-
-    if (init) {
-	timer_init_save_state();
-	init = 0;
-
-	if (conf.pal) {
-		inc = ((double) (0.02) / nb_interlace);/* *(1<<TIMER_SH);*/
-			  //(conf.sound ? (double) nb_interlace : 1.0);
-	} else {
-		inc = ((double) (0.01666) / nb_interlace); /* *(1<<TIMER_SH); */
-		//(conf.sound ? (double) nb_interlace : 1.0);
-	}
-	for (i = 0; i < MAX_TIMER; i++)
-	    timers[i].del_it = 1;
-    }
 
     timer_count += inc;		/* 16ms par frame */
 

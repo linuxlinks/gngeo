@@ -47,6 +47,9 @@
 #ifdef USE_GUI
 #include "gui/gui.h"
 #endif
+#ifdef GP2X
+#include "ym2610-940/940shared.h"
+#endif
 
 Uint8 *current_buf;
 //extern Uint8 fix_buffer[0x20000];
@@ -296,7 +299,9 @@ SDL_bool init_game(char *rom_name) {
 	save_memcard(conf.game);
 	if (conf.sound) {
 	    close_sdl_audio();
+#ifndef ENABLE_940T
 	    YM2610_sh_stop();
+#endif
 	    //streams_sh_stop();
 	}
 	free_game_memory();

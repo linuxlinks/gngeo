@@ -49,6 +49,7 @@
 #ifdef GP2X
 #include "gp2x.h"
 #include "menu.h"
+#include "ym2610-940/940shared.h"
 #endif
 
 #ifdef __AMIGA__
@@ -282,6 +283,8 @@ int main(int argc, char *argv[])
 
 #ifdef GP2X
     gp2x_init();
+    gp2x_set_cpu_speed();
+
     init_sdl();
 
     sdl_set_title(NULL);
@@ -294,6 +297,10 @@ int main(int argc, char *argv[])
 	    SDL_textout(screen, 1, 231, "Patching MMU ... FAILED :(");SDL_Flip(screen);
 	    SDL_Delay(300);
     }
+#ifdef ENABLE_940T
+    gp2x_init_940();
+    
+#endif
     //SDL_Delay(200);
     //benchmark ((void*)screen->pixels);
     gn_init_skin();
@@ -328,7 +335,7 @@ int main(int argc, char *argv[])
 
 #ifdef GP2X
     gp2x_init_mixer();
-    gp2x_set_cpu_speed();
+
     SDL_FillRect(screen,NULL,0);
 #else
     if (!rom_name) {

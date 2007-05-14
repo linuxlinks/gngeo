@@ -98,7 +98,7 @@ gngeo_SOURCES = fileio.c         pd4990a.c        gngeo_icon.h      crypt.h     
 
 
 EXTRA_DIST = c32.mac screen_i386.asm video_i386.asm video_i386.inc getopt.h video_arm.s memcpy.S
-@USE_GP2X_TRUE@gngeo_LDADD = blitter/libblitter.a ym2610/libym2610.a $(m68k_lib) $(z80_lib) $(asm_lib) $(gui_lib) #$(LIBOBJS)
+@USE_GP2X_TRUE@gngeo_LDADD = blitter/libblitter.a $(m68k_lib) $(asm_lib) $(gui_lib) #$(LIBOBJS)
 @USE_GP2X_FALSE@gngeo_LDADD = effect/libeffect.a blitter/libblitter.a ym2610/libym2610.a $(m68k_lib) $(z80_lib) $(asm_lib) $(gui_lib) #$(LIBOBJS)
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
@@ -120,15 +120,15 @@ drz80_interf.o menu.o ioapi.o
 @HAVE_NASM_TRUE@@USE_GP2X_FALSE@blitter/libblitter.a ym2610/libym2610.a \
 @HAVE_NASM_TRUE@@USE_GP2X_FALSE@screen_i386.o video_i386.o
 @HAVE_NASM_TRUE@@USE_GP2X_TRUE@gngeo_DEPENDENCIES =  \
-@HAVE_NASM_TRUE@@USE_GP2X_TRUE@blitter/libblitter.a ym2610/libym2610.a \
-@HAVE_NASM_TRUE@@USE_GP2X_TRUE@screen_i386.o video_i386.o
+@HAVE_NASM_TRUE@@USE_GP2X_TRUE@blitter/libblitter.a screen_i386.o \
+@HAVE_NASM_TRUE@@USE_GP2X_TRUE@video_i386.o
 @HAVE_NASM_FALSE@@USE_GP2X_FALSE@gngeo_DEPENDENCIES =  \
 @HAVE_NASM_FALSE@@USE_GP2X_FALSE@effect/libeffect.a \
 @HAVE_NASM_FALSE@@USE_GP2X_FALSE@blitter/libblitter.a \
 @HAVE_NASM_FALSE@@USE_GP2X_FALSE@ym2610/libym2610.a
 @HAVE_NASM_FALSE@@USE_GP2X_TRUE@gngeo_DEPENDENCIES =  \
-@HAVE_NASM_FALSE@@USE_GP2X_TRUE@blitter/libblitter.a ym2610/libym2610.a \
-@HAVE_NASM_FALSE@@USE_GP2X_TRUE@video_arm.o memcpy.o
+@HAVE_NASM_FALSE@@USE_GP2X_TRUE@blitter/libblitter.a video_arm.o \
+@HAVE_NASM_FALSE@@USE_GP2X_TRUE@memcpy.o
 gngeo_LDFLAGS = 
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)

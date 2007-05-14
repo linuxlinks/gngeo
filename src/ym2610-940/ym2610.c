@@ -122,7 +122,7 @@
 
 /* --- speedup optimize --- */
 /* busy flag enulation , The definition of FM_GET_TIME_NOW() is necessary. */
-#define FM_BUSY_FLAG_SUPPORT 1
+#define FM_BUSY_FLAG_SUPPORT 0
 
 
 /*------------------------------------------------------------------------*/
@@ -572,6 +572,7 @@ typedef struct
 	int		rate;		/* sampling rate (Hz)   */
 	double	freqbase;	/* frequency base       */
 	double	TimerBase;	/* Timer base time      */
+	Uint32  TimerBasef;
 #if FM_BUSY_FLAG_SUPPORT
 	double	BusyExpire;	/* ExpireTime of Busy clear */
 #endif
@@ -1209,6 +1210,7 @@ INLINE void advance_eg_channel(FM_OPN *OPN, FM_SLOT *SLOT)
 
 
 	i = 4; /* four operators per channel */
+
 	do
 	{
 		switch(SLOT->state)
@@ -1389,7 +1391,7 @@ INLINE void chan_calc(FM_OPN *OPN, FM_CH *CH)
 
 	/* store current MEM */
 	CH->mem_value = mem;
-
+#if 1
 	/* update phase counters AFTER output calculations */
 	if(CH->pms)
 	{
@@ -1439,6 +1441,13 @@ INLINE void chan_calc(FM_OPN *OPN, FM_CH *CH)
 		CH->SLOT[SLOT3].phase += CH->SLOT[SLOT3].Incr;
 		CH->SLOT[SLOT4].phase += CH->SLOT[SLOT4].Incr;
 	}
+#else
+		CH->SLOT[SLOT1].phase += CH->SLOT[SLOT1].Incr;
+		CH->SLOT[SLOT2].phase += CH->SLOT[SLOT2].Incr;
+		CH->SLOT[SLOT3].phase += CH->SLOT[SLOT3].Incr;
+		CH->SLOT[SLOT4].phase += CH->SLOT[SLOT4].Incr;
+
+#endif
 }
 
 /* update phase increment and envelope generator */
@@ -1684,6 +1693,7 @@ static void OPNSetPres(FM_OPN *OPN , int pres , int TimerPres, int SSGpres)
 
 	/* Timer base time */
 	OPN->ST.TimerBase = 1.0/((double)OPN->ST.clock / (double)TimerPres);
+	OPN->ST.TimerBasef = (1.0/((double)OPN->ST.clock / (double)TimerPres))*(1<<TIMER_SH);
 
 	/* SSG part  prescaler set */
 	if (SSGpres) SSG.step = ((double)SSG_STEP * OPN->ST.rate * 8) / (OPN->ST.clock * 2 / SSGpres);
@@ -3073,9 +3083,9 @@ int YM2610TimerOver(int ch)
 }
 
 
-s16 mixing_buffer[2][16384];
-extern Uint16 play_buffer[16384];
-static Uint32 buf_pos;
+//s16 mixing_buffer[2][16384];
+//extern Uint16 play_buffer[16384];
+static Uint32 buf_pos=0;
 
 /* Generate samples for one of the YM2610s */
 void YM2610Update_stream(int length)
@@ -3084,8 +3094,8 @@ void YM2610Update_stream(int length)
 	int i, j, outn;
 	FMSAMPLE_MIX lt, rt;
 	FM_CH *cch[6];
-	Uint16 *pl = play_buffer;
-
+	Uint16 *pl = (Uint8*)shared_ctl->play_buffer+buf_pos;
+	shared_ctl->buf_pos=buf_pos;
 
 	cch[0] = &YM2610.CH[1];
 	cch[1] = &YM2610.CH[2];
@@ -3117,7 +3127,9 @@ void YM2610Update_stream(int length)
 	/* buffering */
 	for (i = 0; i < length; i++)
 	{
+#if 1
 		advance_lfo(OPN);
+#endif
 
 		/* clear output acc. */
 		out_adpcma[OUTD_LEFT] = out_adpcma[OUTD_RIGHT]= out_adpcma[OUTD_CENTER] = 0;
@@ -3131,7 +3143,7 @@ void YM2610Update_stream(int length)
 
 		/* clear outputs SSG */
 		out_ssg = 0;
-
+#if 1
 		/* advance envelope generator */
 		OPN->eg_timer += OPN->eg_timer_add;
 		while (OPN->eg_timer >= OPN->eg_timer_overflow)
@@ -3145,15 +3157,21 @@ void YM2610Update_stream(int length)
 			advance_eg_channel(OPN, &cch[3]->SLOT[SLOT1]);
 		}
 
+
+
+
 		/* calculate FM */
 		chan_calc(OPN, cch[0]);	/*remapped to 1*/
 		chan_calc(OPN, cch[1]);	/*remapped to 2*/
 		chan_calc(OPN, cch[2]);	/*remapped to 4*/
 		chan_calc(OPN, cch[3]);	/*remapped to 5*/
+#endif
 
 		/* calculate SSG */
 		outn = SSG_CALC(outn);
+
 		/* deltaT ADPCM */
+
 		if (YM2610.adpcmb.portstate & 0x80)
 			OPNB_ADPCMB_CALC(&YM2610.adpcmb);
 
@@ -3192,6 +3210,11 @@ void YM2610Update_stream(int length)
 		mixing_buffer[0][i] = lt;
 		mixing_buffer[1][i] = rt;
 */
+		buf_pos+=4;
+		if (buf_pos>SAMPLE_BUFLEN) {
+			buf_pos=0;
+			pl = (Uint16*)shared_ctl->play_buffer;
+		}
 		*pl++ = lt;
 		*pl++ = rt;
 
@@ -3200,58 +3223,8 @@ void YM2610Update_stream(int length)
 		INTERNAL_TIMER_A( OPN->ST , cch[1] );
 	}
 	INTERNAL_TIMER_B(OPN->ST,length);
-
 }
 
-
-void YM2610Update(int p)
-{
-	int i;
-	s16 *buffer = (s16 *)p;
-	s16 lt, rt;
-
-	switch (/*option_samplerate*/0)
-	{
-	case 0:
-		YM2610Update_stream(SOUND_SAMPLES >> 2);
-		for (i = 0; i < SOUND_SAMPLES >> 2; i++)
-		{
-			lt = mixing_buffer[0][i];
-			rt = mixing_buffer[1][i];
-			*buffer++ = lt;
-			*buffer++ = rt;
-			*buffer++ = lt;
-			*buffer++ = rt;
-			*buffer++ = lt;
-			*buffer++ = rt;
-			*buffer++ = lt;
-			*buffer++ = rt;
-		}
-		break;
-
-	case 1:
-		YM2610Update_stream(SOUND_SAMPLES >> 1);
-		for (i = 0; i < SOUND_SAMPLES >> 1; i++)
-		{
-			lt = mixing_buffer[0][i];
-			rt = mixing_buffer[1][i];
-			*buffer++ = lt;
-			*buffer++ = rt;
-			*buffer++ = lt;
-			*buffer++ = rt;
-		}
-		break;
-
-	case 2:
-		YM2610Update_stream(SOUND_SAMPLES);
-		for (i = 0; i < SOUND_SAMPLES; i++)
-		{
-			*buffer++ = mixing_buffer[0][i];
-			*buffer++ = mixing_buffer[1][i];
-		}
-		break;
-	}
-}
 
 #ifdef SOUND_TEST
 static int stream_pos;

@@ -1,4 +1,4 @@
-/*  gngeo, a neogeo emulator
+/*  gngeo a neogeo emulator
  *  Copyright (C) 2001 Peponas Mathieu
  * 
  *  This program is free software; you can redistribute it and/or modify  
@@ -16,16 +16,31 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
+#ifndef _TIMER_H_
+#define _TIMER_H_
 
-#ifndef _FRAME_SKIP_H
-#define _FRAME_SKIP_H
+#include "mvs.h"
 
-extern char skip_next_frame;
-Uint8 autoframeskip,show_fps,sleep_idle;
-char fps_str[32];
+typedef struct timer_struct {
+    double time;		// when
+//    Uint32 time;		// when
+    Uint32 odo_debut;
+    Uint32 nb_cycle;
+    int param;
+    Uint32 del_it;
+    void (*func) (int param);
+    struct timer_struct *next;
+} timer_struct;
 
-void reset_frame_skip(void);
-int frame_skip(int init);
+extern double timer_count;
+//extern Uint32 timer_count;
 
+timer_struct *insert_timer(double duration, int param, void (*func) (int));
+//timer_struct *insert_timer(Uint32 duration, int param, void (*func) (int));
+void del_timer(timer_struct * ts);
+void my_timer(void);
+double timer_get_time(void);
+//Uint32 timer_get_time(void);
+void free_all_timer(void);
 
 #endif
