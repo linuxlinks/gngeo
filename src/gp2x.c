@@ -21,22 +21,26 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <string.h>
+#include <libgen.h>
+#include <stdio.h>
 
 
 #include "gp2x.h"
 #include "menu.h"
 #include "video.h"
+#include "emu.h"
 #include "ym2610-940/940shared.h"
+#include "ym2610-940/940private.h"
 
 #define SYS_CLK_FREQ 7372800
 #define GP2X_VIDEO_MEM_SIZE ((5*1024*1024) - 4096)
 
-// system registers
+
 static struct
 {
-        unsigned short SYSCLKENREG,SYSCSETREG,
-		FPLLVSETREG,DUALINT920,DUALINT940,
-		DUALCTRL940,DISPCSETREG;
+        unsigned short SYSCLKENREG,SYSCSETREG,UPLLVSETREG,FPLLVSETREG,
+                DUALINT920,DUALINT940,DUALCTRL940,MEMTIMEX0,MEMTIMEX1,DISPCSETREG,
+                DPC_HS_WIDTH,DPC_HS_STR,DPC_HS_END,DPC_VS_END,DPC_DE;
 }
 system_reg;
 
@@ -47,8 +51,9 @@ volatile unsigned *arm940code;
 static int cpufreq;
 static Uint32 tvoutfix_sav;
 static char name[256];
-volatile _940_data_t *shared_data = 0;
-volatile _940_ctl_t *shared_ctl = 0;
+volatile _940_data_t *shared_data;
+volatile _940_ctl_t *shared_ctl;
+volatile _940_private_t *private_data;
 
 typedef struct video_bucket {
   struct video_bucket *prev, *next;
@@ -58,49 +63,155 @@ typedef struct video_bucket {
   short dirty;
 } video_bucket;
 
+
+
 /*
   void cpuctrl_init()
   {
   MEM_REG=&gp2x_memregs[0];
   }*/
 
-void set_FCLK(unsigned MHZ)
+void cpuctrl_init(void)
 {
-        unsigned v;
-        unsigned mdiv,pdiv=3,scale=0;
-        MHZ*=1000000;
-        mdiv=(MHZ*pdiv)/SYS_CLK_FREQ;
-        //printf ("Old value = %04X\r",MEM_REG[0x924>>1]," ");
-        //printf ("APLL = %04X\r",MEM_REG[0x91A>>1]," ");
-        mdiv=((mdiv-8)<<8) & 0xff00;
-        pdiv=((pdiv-2)<<2) & 0xfc;
-        scale&=3;
-        v=mdiv | pdiv | scale;
-        gp2x_memregs[0x910>>1]=v;
+        system_reg.DISPCSETREG=gp2x_memregs[0x924>>1];
+        system_reg.UPLLVSETREG=gp2x_memregs[0x916>>1];
+        system_reg.FPLLVSETREG=gp2x_memregs[0x912>>1];
+        system_reg.SYSCSETREG=gp2x_memregs[0x91c>>1];
+        system_reg.SYSCLKENREG=gp2x_memregs[0x904>>1];
+        system_reg.DUALINT920=gp2x_memregs[0x3B40>>1];
+        system_reg.DUALINT940=gp2x_memregs[0x3B42>>1];
+        system_reg.DUALCTRL940=gp2x_memregs[0x3B48>>1];
+        system_reg.MEMTIMEX0=gp2x_memregs[0x3802>>1];
+        system_reg.MEMTIMEX1=gp2x_memregs[0x3804>>1];
+        system_reg.DPC_HS_WIDTH=gp2x_memregs[0x281A>>1];
+        system_reg.DPC_HS_STR=gp2x_memregs[0x281C>>1];
+        system_reg.DPC_HS_END=gp2x_memregs[0x281E>>1];
+        system_reg.DPC_VS_END=gp2x_memregs[0x2822>>1];
+        system_reg.DPC_DE=gp2x_memregs[0x2826>>1];
 }
 
-unsigned get_FCLK()
+
+void cpuctrl_deinit(void)
 {
-        return gp2x_memregs[0x910>>1];
+        gp2x_memregs[0x910>>1]=system_reg.FPLLVSETREG;
+        gp2x_memregs[0x91c>>1]=system_reg.SYSCSETREG;
+        gp2x_memregs[0x3B40>>1]=system_reg.DUALINT920;
+        gp2x_memregs[0x3B42>>1]=system_reg.DUALINT940;
+        gp2x_memregs[0x3B48>>1]=system_reg.DUALCTRL940;
+        gp2x_memregs[0x904>>1]=system_reg.SYSCLKENREG;
+        gp2x_memregs[0x3802>>1]=system_reg.MEMTIMEX0;
+        gp2x_memregs[0x3804>>1]=system_reg.MEMTIMEX1 /*| 0x9000*/;
+        unset_LCD_custom_rate();
 }
 
-unsigned get_freq_920_CLK()
+#define SYS_CLK_FREQ 7372800
+
+void SetClock(unsigned int MHZ)
 {
-        unsigned i;
-        unsigned reg,mdiv,pdiv,scale;
-        reg=gp2x_memregs[0x912>>1];
-        mdiv = ((reg & 0xff00) >> 8) + 8;
-        pdiv = ((reg & 0xfc) >> 2) + 2;
-        scale = reg & 3;
-        MDIV=mdiv;
-        PDIV=pdiv;
-        SCALE=scale;
-        i = (gp2x_memregs[0x91c>>1] & 7)+1;
-        return ((SYS_CLK_FREQ * mdiv)/(pdiv << scale))/i;
+#ifdef GP2X
+  unsigned int v;
+  unsigned int mdiv,pdiv=3,scale=0;
+  MHZ*=1000000;
+  mdiv=(MHZ*pdiv)/SYS_CLK_FREQ;
+
+  mdiv=((mdiv-8)<<8) & 0xff00;
+  pdiv=((pdiv-2)<<2) & 0xfc;
+  scale&=3;
+  v = mdiv | pdiv | scale;
+  
+  unsigned int l = gp2x_memregl[0x808>>2];// Get interupt flags
+  gp2x_memregl[0x808>>2] = 0xFF8FFFE7;   //Turn off interrupts
+  gp2x_memregs[0x910>>1]=v;              //Set frequentie
+  while(gp2x_memregs[0x0902>>1] & 1);    //Wait for the frequentie to be ajused
+  gp2x_memregl[0x808>>2] = l;            //Turn on interrupts
+#endif
 }
-unsigned short get_920_Div()
+
+typedef struct
 {
-        return (gp2x_memregs[0x91c>>1] & 0x7);
+        unsigned short reg, valmask, val;
+}
+reg_setting;
+
+// ~59.998, couldn't figure closer values
+static reg_setting rate_almost60[] =
+{
+        { 0x0914, 0xffff, (212<<8)|(2<<2)|1 },  /* UPLLSETVREG */
+        { 0x0924, 0xff00, (2<<14)|(36<<8) },    /* DISPCSETREG */
+        { 0x281A, 0x00ff, 1 },                  /* .HSWID(T2) */
+        { 0x281C, 0x00ff, 0 },                  /* .HSSTR(T8) */
+        { 0x281E, 0x00ff, 2 },                  /* .HSEND(T7) */
+        { 0x2822, 0x01ff, 12 },                 /* .VSEND (T9) */
+        { 0x2826, 0x0ff0, 34<<4 },              /* .DESTR(T3) */
+        { 0, 0, 0 }
+};
+
+// perfect 50Hz?
+static reg_setting rate_50[] =
+{
+        { 0x0914, 0xffff, (39<<8)|(0<<2)|2 },   /* UPLLSETVREG */
+        { 0x0924, 0xff00, (2<<14)|(7<<8) },     /* DISPCSETREG */
+        { 0x281A, 0x00ff, 31 },                 /* .HSWID(T2) */
+        { 0x281C, 0x00ff, 16 },                 /* .HSSTR(T8) */
+        { 0x281E, 0x00ff, 15 },                 /* .HSEND(T7) */
+        { 0x2822, 0x01ff, 15 },                 /* .VSEND (T9) */
+        { 0x2826, 0x0ff0, 37<<4 },              /* .DESTR(T3) */
+        { 0, 0, 0 }
+};
+// 16639/2 ~120.20
+static reg_setting rate_120_20[] =
+{
+        { 0x0914, 0xffff, (96<<8)|(0<<2)|2 },   /* UPLLSETVREG */
+        { 0x0924, 0xff00, (2<<14)|(7<<8) },     /* DISPCSETREG */
+        { 0x281A, 0x00ff, 19 },                 /* .HSWID(T2) */
+        { 0x281C, 0x00ff, 7 },                  /* .HSSTR(T8) */
+        { 0x281E, 0x00ff, 7 },                  /* .HSEND(T7) */
+        { 0x2822, 0x01ff, 12 },                 /* .VSEND (T9) */
+        { 0x2826, 0x0ff0, 37<<4 },              /* .DESTR(T3) */
+        { 0, 0, 0 }
+};
+
+// 19997/2 ~100.02
+static reg_setting rate_100_02[] =
+{
+        { 0x0914, 0xffff, (98<<8)|(0<<2)|2 },   /* UPLLSETVREG */
+        { 0x0924, 0xff00, (2<<14)|(8<<8) },     /* DISPCSETREG */
+        { 0x281A, 0x00ff, 26 },                 /* .HSWID(T2) */
+        { 0x281C, 0x00ff, 6 },                  /* .HSSTR(T8) */
+        { 0x281E, 0x00ff, 6 },                  /* .HSEND(T7) */
+        { 0x2822, 0x01ff, 31 },                 /* .VSEND (T9) */
+        { 0x2826, 0x0ff0, 37<<4 },              /* .DESTR(T3) */
+        { 0, 0, 0 }
+};
+
+
+
+static reg_setting *possible_rates[] = { rate_almost60, rate_50, rate_120_20, rate_100_02 };
+void set_LCD_custom_rate(lcd_rate_t rate)
+{
+        reg_setting *set;
+
+        printf("setting custom LCD refresh, mode=%i... ", rate); fflush(stdout);
+        for (set = possible_rates[rate]; set->reg; set++)
+        {
+                unsigned short val = gp2x_memregs[set->reg >> 1];
+                val &= ~set->valmask;
+                val |= set->val;
+                gp2x_memregs[set->reg >> 1] = val;
+        }
+        printf("done.\n");
+}
+
+void unset_LCD_custom_rate(void)
+{
+        printf("reset to prev LCD refresh.\n");
+        gp2x_memregs[0x914>>1]=system_reg.UPLLVSETREG;
+        gp2x_memregs[0x924>>1]=system_reg.DISPCSETREG;
+        gp2x_memregs[0x281A>>1]=system_reg.DPC_HS_WIDTH;
+        gp2x_memregs[0x281C>>1]=system_reg.DPC_HS_STR;
+        gp2x_memregs[0x281E>>1]=system_reg.DPC_HS_END;
+        gp2x_memregs[0x2822>>1]=system_reg.DPC_VS_END;
+        gp2x_memregs[0x2826>>1]=system_reg.DPC_DE;
 }
 
 void set_RAM_Timings(int tRC, int tRAS, int tWR, int tMRD, int tRFC, int tRP, int tRCD)
@@ -112,13 +223,28 @@ void set_RAM_Timings(int tRC, int tRAS, int tWR, int tMRD, int tRFC, int tRP, in
 
 /* TODO */
 int spend_cycles(int cycles) {
-	int i,j;
-	for(i=cycles/2;i>0;i--) {
+	int i,j=0;
+	for(i=cycles/4;i>0;i--) {
 		j=i+1;
 	}
 	return j;
 }
 
+
+void print_shared_struct(void) {
+	printf("Shared data:\n");
+	printf("Cylce: %d sample_rate: %d\n",shared_data->z80_cycle,shared_data->sample_rate);
+	printf("pcma: %08x pcmb: %08x\n",(Uint32)shared_data->pcmbufa,(Uint32)shared_data->pcmbufb);
+	printf("asize: %d bsize: %d\n",shared_data->pcmbufa_size,shared_data->pcmbufb_size);
+	printf("sm1: %08x",(Uint32)shared_data->sm1);
+	printf("Shared ctl:\n");
+	printf("result: %d sound_code: %d pending_cmd: %d nmi_pending: %d\n",
+	       shared_ctl->result_code,shared_ctl->sound_code,shared_ctl->pending_command,
+	       shared_ctl->nmi_pending);
+	printf("z80_run: %d updateym: %d, play_buff:%08x\n",
+	       shared_ctl->z80_run,shared_ctl->updateym,(Uint32)shared_ctl->play_buffer);
+
+}
 
 void wait_busy_940(int job)
 {
@@ -129,11 +255,13 @@ void wait_busy_940(int job)
 		spend_cycles(8*1024); // tested to be best for mp3 dec
         if (i < 0x10000) return;
         /* 940 crashed */
-        printf("940 crashed (cnt: %i, ve: ", shared_ctl->loopc);
+        printf("940 crashed %d (cnt: %i, ve: ", job, shared_ctl->loopc);
         for (i = 0; i < 8; i++)
                 printf("%i ", shared_ctl->vstarts[i]);
         printf(")\n");
-        printf("irq pending flags: DUALCPU %04x, SRCPND %08lx (see 26), INTPND %08lx\n",
+	print_shared_struct();
+
+        printf("irq pending flags: DUALCPU %04x, SRCPND %08x (see 26), INTPND %08x\n",
                 gp2x_memregs[0x3b46>>1], gp2x_memregl[0x4500>>2], gp2x_memregl[0x4510>>2]);
         printf("last lr: %08x, lastjob: %i\n", shared_ctl->last_lr, shared_ctl->lastjob);
         printf("trying to interrupt..\n");
@@ -141,7 +269,7 @@ void wait_busy_940(int job)
         for (i = 0; gp2x_memregs[0x3b46>>1] && i < 0x10000; i++)
                 spend_cycles(8*1024);
         printf("i = 0x%x\n", i);
-        printf("irq pending flags: DUALCPU %04x, SRCPND %08lx (see 26), INTPND %08lx\n",
+        printf("irq pending flags: DUALCPU %04x, SRCPND %08x (see 26), INTPND %08x\n",
                 gp2x_memregs[0x3b46>>1], gp2x_memregl[0x4500>>2], gp2x_memregl[0x4510>>2]);
         printf("last lr: %08x, lastjob: %i\n", shared_ctl->last_lr, shared_ctl->lastjob);
 }
@@ -175,6 +303,8 @@ void gp2x_reset940(int yes, int bank)
 }
 void gp2x_load_bin940(char *file) {
 	FILE *f;
+	unsigned char ucData[1024];
+	int nRead, i, nLen = 0;
 	char *buf;
 	int size;
 	f=fopen(file,"rb");
@@ -182,6 +312,7 @@ void gp2x_load_bin940(char *file) {
 		printf("Error while loading %s\n",file);
 		exit(1);
 	}
+/*
 	fseek(f,0,SEEK_END);
 	size=ftell(f);
 	fseek(f,0,SEEK_SET);
@@ -190,6 +321,16 @@ void gp2x_load_bin940(char *file) {
 	fread(buf,size,1,f);
 	fclose(f);
 	memcpy(gp2x_ram2_uncached,buf,size);
+*/
+	while(1)
+	{
+		nRead = fread(ucData, 1, 1024, f);
+		if(nRead <= 0)
+			break;
+		memcpy((void*)gp2x_ram2_uncached + nLen, ucData, nRead);
+		nLen += nRead;
+	}
+	fclose(f);
 	printf("CODE940 uploded [%02X %02X %02X %02X]\n",
 	       gp2x_ram2_uncached[0],
 	       gp2x_ram2_uncached[1],
@@ -207,11 +348,13 @@ void gp2x_init_940(void) {
         gp2x_memregl[0x4504>>2] = 0;        // make sure no FIQs will be generated
 	gp2x_memregl[0x4508>>2] = ~(1<<26); // unmask DUALCPU ints in the undocumented 940's interrupt controller
 
+
+
 	gp2x_load_bin940("gngeo940.bin");
 
 	printf("Shared data reset...\n");
-	//memset(shared_data, 0, sizeof(*shared_data));
-        //memset(shared_ctl,  0, sizeof(*shared_ctl));
+	memset((void*)shared_data, 0, sizeof(*shared_data));
+        memset((void*)shared_ctl,  0, sizeof(*shared_ctl));
 	printf("Shared data reseted\n");
 
 	/* Ugliest hack ever? */
@@ -233,7 +376,7 @@ void gp2x_init_940(void) {
         /* start the 940 */
         gp2x_reset940(0, 2);
         gp2x_pause940(0);
-
+	//sleep(2);
 }
 
 void debug_gp2x_tvout(void)
@@ -276,18 +419,21 @@ void gp2x_ram_init_uncached(void) {
 					 gp2x_dev_mem, 0x02000000);
 	shared_data = (_940_data_t *) (gp2x_ram2_uncached+0x1C00000);
         /* this area must not get buffered on either side */
-        shared_ctl =  (_940_ctl_t *)  (gp2x_ram2_uncached+0x1C80000);
+        shared_ctl =  (_940_ctl_t *)  (gp2x_ram2_uncached+0x1C00100);
+        private_data =  (_940_private_t *)  (gp2x_ram2_uncached+0x1B00000);
 
+	memset((void*)gp2x_ram2_uncached,0,0x100000);
+	memset((void*)gp2x_ram2_uncached+0x1800000,0,0x800000);
 }
 
 Uint8 *gp2x_ram_malloc(size_t size,Uint32 page) {
-	static volatile Uint8 *ram_ptr=0;
-	static volatile Uint8 *ram_ptr2=0;
-	volatile Uint8 *t;
+	static Uint8 *ram_ptr=0;
+	static Uint8 *ram_ptr2=0;
+	Uint8 *t;
 	if (page==0) {
 		if (!ram_ptr) {
 			//ram_ptr=gp2x_ram/*+0x8000+0x100000*/;
-			ram_ptr=gp2x_ram+0x100000;
+			ram_ptr=(Uint8*)gp2x_ram+0x100000;
 			//printf("Ram_ptr=%p\n",ram_ptr);
 		}
 		if ((Uint32)ram_ptr-(Uint32)gp2x_ram+size<=0x1100000) {
@@ -301,7 +447,7 @@ Uint8 *gp2x_ram_malloc(size_t size,Uint32 page) {
 	} else {
 		if (!ram_ptr2) {
 			//ram_ptr2=gp2x_ram2+0x608100;
-			ram_ptr2=gp2x_ram2+0x800000;
+			ram_ptr2=(Uint8*)gp2x_ram2+0x800000;
 			//printf("Ram_ptr2=%p %p\n",ram_ptr2,gp2x_ram2);
 		}
 		if ((Uint32)ram_ptr2-(Uint32)gp2x_ram2+size<=0x1000000) {
@@ -336,48 +482,65 @@ void gp2x_set_cpu_speed(void) {
         unsigned sysfreq=0;
 
 	/* save FCLOCK */
-	sysfreq=get_freq_920_CLK();
-        sysfreq*=get_920_Div()+1;
-        cpufreq=sysfreq/1000000;
+	//sysfreq=get_freq_920_CLK();
+        //sysfreq*=get_920_Div()+1;
+        //cpufreq=sysfreq/1000000;
+
 	if (overclock!=0) {
 		if (overclock<66) overclock=66;
 		if (overclock>320) overclock=320;
-		set_FCLK(overclock);
+		SetClock(overclock);
 	}
 }
 
 void gp2x_quit(void) {
 	//hackpgtable(1);
+	char *frontend=strdup(CF_STR(cf_get_item_by_name("frontend")));
+	char *fullpath=CF_STR(cf_get_item_by_name("frontend"));
+
 #ifdef ENABLE_940T	
+	sleep(1);
+	print_shared_struct();
 	gp2x_reset940(1, 2);
         gp2x_pause940(1);
 #endif
+	printf("cpuctrl_deinit \n");
+	cpuctrl_deinit();
+
+	printf("closing opend device \n");
 
 	if (gp2x_dev_mem!=-1) close(gp2x_dev_mem);
 	if (gp2x_gfx_dump!=-1) close(gp2x_gfx_dump);
 	if (gp2x_mixer!=-1) close(gp2x_mixer);
 
-	if (CF_VAL(cf_get_item_by_name("cpu_speed"))!=0) {
-		set_FCLK(cpufreq);
-	}
+	printf("stop tvout mode \n");	
 	if (CF_BOOL(cf_get_item_by_name("tvout"))) 
 		SDL_GP2X_TV(0);
 
+	printf("sync\n");
 	sync();
+	printf("SDLQuit\n");
 	SDL_Quit();
 
-	if (strcmp("null",CF_STR(cf_get_item_by_name("frontend")))!=0) {
-		/* TODO: chdir to the gpe dir before executing it */
-		execl(CF_STR(cf_get_item_by_name("frontend")),
-		      CF_STR(cf_get_item_by_name("frontend")),NULL);
-	} else {
-		/*
-		  chdir("/usr/gp2x");
-		  execl("gp2xmenu","gp2xmenu",NULL);
-		*/
+	printf("Restart menu\n");
+	if (strcmp("null",frontend)!=0) {
+		/* TODO: Special case for Rage2x */
+		char *base=basename(frontend);
+		char *dir=dirname(frontend);
+		
+		if (dir) {
+			chdir(dir);
+			printf("changinf dir to %s - %s - %s\n",dir,base,frontend);
+		}
+		if (strcmp("rage2x.gpe",base)==0) {
+			char opt[128];
+			snprintf(opt,120,"rom=%s",conf.game);
+			printf("opt= %s\n",opt);
+			execl(fullpath,fullpath,opt,NULL);
+		} else
+			execl(fullpath,fullpath,NULL);
 	}
-
-
+	
 }
 
 void benchmark (void *memptr)
@@ -388,7 +551,7 @@ void benchmark (void *memptr)
 
     while (starttime == time (NULL));
 
-    printf ("\n\nmemory benchmark of volatile VA: %08X\n\nread test\n", memptr);
+    printf ("\n\nmemory benchmark of volatile VA: %08X\n\nread test\n",(Uint32)memptr);
     for (d = 0; d < 3; d ++)
     {
         starttime = time (NULL);
@@ -443,6 +606,7 @@ void benchmark (void *memptr)
 }
 
 int hack_the_mmu(void) {
+
 	int mmufd = open("/dev/mmuhack", O_RDWR);
 
         if(mmufd < 0) {
@@ -472,7 +636,7 @@ Uint32 gp2x_is_tvout_on(void) {
 	SDL_Rect r;
 	SDL_GP2X_GetPhysicalScreenSize(&r);
 	printf("screen= %d %d\n",r.w,r.h);
-	if (r.w!=320) return 1;
+	if (r.w!=320) return r.h;
 	return 0;
 }
 
@@ -481,6 +645,7 @@ void gp2x_init(void) {
 	volatile unsigned int *secbuf = (unsigned int *)malloc (204800);
 
 	gp2x_ram_init();
+	cpuctrl_init();
 
 	/* Fix tvout */
 	//tvoutfix_sav=gp2x_memregs[0x28E4>>1];

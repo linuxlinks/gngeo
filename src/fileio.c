@@ -344,8 +344,8 @@ SDL_bool init_game(char *rom_name) {
     sdl_set_title(conf.game);
 #endif
     init_neo(conf.game);
-    if (conf.sound) 
-	init_sdl_audio();
+    //if (conf.sound) 
+    //init_sdl_audio();
     return SDL_TRUE;
 }
 

@@ -42,5 +42,6 @@ void my_timer(void);
 double timer_get_time(void);
 //Uint32 timer_get_time(void);
 void free_all_timer(void);
+void init_timer(int nb_interlace);
 
 #endif

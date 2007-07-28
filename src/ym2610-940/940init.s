@@ -103,9 +103,9 @@ code940:
     @mcr p15, 0, r0, c6, c4, 1
 
     @ region 5: 4K 0x00000000-0x00001000 (boot code protection region)
-    mov r0, #(0x0b<<1)|1
-    mcr p15, 0, r0, c6, c5, 0
-    mcr p15, 0, r0, c6, c5, 1
+    @mov r0, #(0x01<<1)|1
+    @mcr p15, 0, r0, c6, c5, 0
+    @mcr p15, 0, r0, c6, c5, 1
 
     @ set regions 1, 2, 4 and 5 to be cacheable (so the first 1M and adpcm area will be cacheable)
     @mov r0, #(1<<1)|(1<<2)|(1<<4)
@@ -132,8 +132,8 @@ code940:
     orr r0, r0, #4              @ 0x00000004: enable D cache
     orr r0, r0, #0x1000         @ 0x00001000: enable I cache
 @    bic r0, r0, #0xC0000000
-    orr r0, r0, #0x40000000     @ 0x40000000: synchronous, faster?
-    @orr r0, r0, #0xC0000000     @ 0xC0000000: async
+    @orr r0, r0, #0x40000000     @ 0x40000000: synchronous, faster?
+    orr r0, r0, #0xC0000000     @ 0xC0000000: async
     mcr p15, 0, r0, c1, c0, 0   @ set control reg
 
     @ flush (invalidate) the cache (just in case)

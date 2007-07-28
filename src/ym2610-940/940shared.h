@@ -9,7 +9,8 @@ enum _940_job_t {
 	JOB940_INITALL = 1,
 	JOB940_INVALIDATE_DCACHE,
 	JOB940_RUN_Z80,
-	JOB940_RUN_Z80_BIS,
+	JOB940_RUN_Z80_NMI,
+	JOB940_RUN_Z80_300,
 };
 
 //#define MAX_940JOBS	2
@@ -23,11 +24,12 @@ typedef struct
 	unsigned int pcmbufa_size;
 	unsigned int pcmbufb_size;
 	unsigned char *sm1;
-	/* TODO ym2610 + Z80 data */
+
 } _940_data_t;
 
 
-#define SAMPLE_BUFLEN 16384
+//#define SAMPLE_BUFLEN 16384
+#define SAMPLE_BUFLEN 8096
 
 typedef struct
 {
@@ -37,7 +39,7 @@ typedef struct
 //	int		busy_;					/* unused */
 	int		lastjob;			/* debug: last job id */
 	int             loopc;
-	/* TODO Sound latch register */
+
 	int test;
 	int result_code;
 	int sound_code;
@@ -47,8 +49,8 @@ typedef struct
 	int z80_render_a_frame;
 	int updateym;
 	unsigned int buf_pos;
+	unsigned int sample_len;
 	unsigned short play_buffer[SAMPLE_BUFLEN];
-
 } _940_ctl_t;
 
 extern volatile _940_data_t *shared_data;

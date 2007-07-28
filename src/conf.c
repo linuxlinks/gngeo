@@ -90,6 +90,7 @@ void cf_cache_conf(void) {
     conf.debug=CF_BOOL(cf_get_item_by_name("debug"));
     conf.raster=CF_BOOL(cf_get_item_by_name("raster"));
     conf.pal=CF_BOOL(cf_get_item_by_name("pal"));
+    conf.accurate940=CF_BOOL(cf_get_item_by_name("940sync"));
     country=CF_STR(cf_get_item_by_name("country"));
     system=CF_STR(cf_get_item_by_name("system"));
     if (!strcmp(system,"unibios")) {
@@ -385,6 +386,7 @@ void cf_init(void)
     cf_create_bool_item("tvout","Enable Tvout (NTSC)",0,SDL_FALSE);
     cf_create_array_item("tv_offset","Shift TV screen by x,y pixel",0,2,default_tvoffset);
     cf_create_bool_item("vsync","Synchronise the display with VBLANK",0,SDL_FALSE);
+    cf_create_bool_item("940sync","Accurate synchronise between the both core",0,SDL_TRUE);
 #endif
     //cf_create_bool_item("convtile","Convert tile in internal format at loading",'c',SDL_TRUE);
     cf_create_bool_item("pal","Use PAL timing (buggy)",'P',SDL_FALSE);

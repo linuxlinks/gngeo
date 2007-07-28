@@ -27,6 +27,7 @@
 
 
 SDL_Surface *buffer, *screen, *sprbuf, *fps_buf, *scan, *fontbuf;
+SDL_Surface *triplebuf[2];
 /*
 SDL_Overlay *overlay;
 SDL_Rect ov_rect;

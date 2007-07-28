@@ -505,6 +505,7 @@ Uint8 mem68k_fetch_coin_byte(Uint32 addr)
 	if (conf.sound) {
 		//printf("fetch coin byte, rescoe= %x\n",result_code);
 #ifdef ENABLE_940T
+		
 		res |= shared_ctl->result_code;
 		if (shared_ctl->pending_command)
 			res &= 0x7f;	
@@ -779,14 +780,23 @@ void mem68k_store_pd4990_long(Uint32 addr, Uint32 data)
 void mem68k_store_z80_byte(Uint32 addr, Uint8 data)
 {
     if (addr == 0x320000) {
-	sound_code = data & 0xff;
-	pending_command = 1;
-	//printf("Pending command. Sound_code=%02x\n",sound_code);
-	if (conf.sound) {
+	    sound_code = data & 0xff;
+	    pending_command = 1;
+	    //printf("B Pending command. Sound_code=%02x\n",sound_code);
+	    if (conf.sound) {
 #ifdef ENABLE_940T
-		shared_ctl->sound_code=sound_code;
-		shared_ctl->pending_command=pending_command;
-		shared_ctl->nmi_pending=1;
+		    //printf("%d\n",shared_ctl->pending_command);
+		    shared_ctl->sound_code=sound_code;
+		    shared_ctl->pending_command=pending_command;
+		    //shared_ctl->pending_command=pending_command++;
+		    shared_ctl->nmi_pending=1;
+		    
+		    if ( conf.accurate940) {
+			    while(CHECK_BUSY(JOB940_RUN_Z80) && shared_ctl->pending_command);
+			    if (shared_ctl->nmi_pending) {
+				    gp2x_add_job940(JOB940_RUN_Z80_NMI);while(CHECK_BUSY(JOB940_RUN_Z80_NMI));
+			    }
+		    }
 #else
 	    cpu_z80_nmi();
 	    cpu_z80_run(300);
@@ -800,12 +810,18 @@ void mem68k_store_z80_word(Uint32 addr, Uint16 data)
     if (addr == 0x320000) {
 	sound_code = data >> 8;
 	pending_command = 1;
-	//printf("Pending command. Sound_code=%02x\n",sound_code);
+	//printf("W Pending command. Sound_code=%02x\n",sound_code);
 	if (conf.sound) {
 #ifdef ENABLE_940T
 		shared_ctl->sound_code=sound_code;
 		shared_ctl->pending_command=pending_command;
 		shared_ctl->nmi_pending=1;
+		if ( conf.accurate940) {
+			while(CHECK_BUSY(JOB940_RUN_Z80));
+			if (shared_ctl->nmi_pending) {
+				gp2x_add_job940(JOB940_RUN_Z80_NMI);while(CHECK_BUSY(JOB940_RUN_Z80_NMI));
+			}
+		}
 #else
 		cpu_z80_nmi();
 		cpu_z80_run(300);

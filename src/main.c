@@ -181,9 +181,11 @@ void init_sdl(void /*char *rom_name*/)
 	printf("Screen initialization failed.\n");
 	exit(-1);
     }
+
     buffer = SDL_CreateRGBSurface(surface_type, 352, 256, 16, 0xF800, 0x7E0,
 				  0x1F, 0);
     SDL_FillRect(buffer,NULL,SDL_MapRGB(buffer->format,0xE5,0xE5,0xE5));
+
 #endif
 
     fontbuf = SDL_CreateRGBSurfaceFrom(font_image.pixel_data, font_image.width, font_image.height
@@ -195,16 +197,14 @@ void init_sdl(void /*char *rom_name*/)
 				    gngeo_icon.width * gngeo_icon.bytes_per_pixel,
 				    0xFF, 0xFF00, 0xFF0000, 0);
     
+/*
 #ifdef GP2X
     sprbuf=SDL_CreateRGBSurface(surface_type, 16, 16, 16, 0xF800, 0x7E0,
 				0x1F, 0);
     SDL_SetColorKey(sprbuf,SDL_SRCCOLORKEY,0xF81F);
 #endif
+*/
 
-    /*
-      strncat(title, rom_name, 8);
-      SDL_WM_SetCaption(title, NULL);
-    */
     SDL_WM_SetIcon(icon,NULL);
 
     calculate_hotkey_bitmasks();    
@@ -283,7 +283,6 @@ int main(int argc, char *argv[])
 
 #ifdef GP2X
     gp2x_init();
-    gp2x_set_cpu_speed();
 
     init_sdl();
 
@@ -299,7 +298,7 @@ int main(int argc, char *argv[])
     }
 #ifdef ENABLE_940T
     gp2x_init_940();
-    
+    gp2x_set_cpu_speed();    
 #endif
     //SDL_Delay(200);
     //benchmark ((void*)screen->pixels);

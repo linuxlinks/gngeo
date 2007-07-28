@@ -29,6 +29,7 @@ blitter_soft_init()
 	Uint32 width = visible_area.w;
 	Uint32 height = visible_area.h;
 #ifdef GP2X
+	Uint32 screen_w;
 	int hw_surface=SDL_HWSURFACE/*|SDL_FULLSCREEN|SDL_DOUBLEBUF*/;
 	int *tvoffset = CF_ARRAY(cf_get_item_by_name("tv_offset"));
 	// TVTEST
@@ -58,10 +59,14 @@ blitter_soft_init()
 
 	//gp2x_video_RGB_setscaling(320, 240);
 	//screen = SDL_SetVideoMode(320, 240, 16, 
-	if (gp2x_is_tvout_on()==0) {
+	if ((screen_w=gp2x_is_tvout_on())==0) {
 		screen = SDL_SetVideoMode(width, height, 16, 
 					  sdl_flags|
 					  (CF_BOOL(cf_get_item_by_name("vsync"))?SDL_DOUBLEBUF:0));
+
+		if (CF_BOOL(cf_get_item_by_name("vsync"))) {
+			set_LCD_custom_rate(LCDR_60);
+		}
 		
 		if (width!=320) {
 			//screen_rect.x=8;
@@ -71,10 +76,14 @@ blitter_soft_init()
 			SDL_GP2X_MiniDisplay(0,8);
 		}
 	} else {
-		screen = SDL_SetVideoMode(320, 240, 16, 
-					  sdl_flags|
-					  (CF_BOOL(cf_get_item_by_name("vsync"))?SDL_DOUBLEBUF:0));
-		
+		if (screen_w==240) /* ntsc */
+			screen = SDL_SetVideoMode(360, 240, 16, 
+						  sdl_flags|
+						  (CF_BOOL(cf_get_item_by_name("vsync"))?SDL_DOUBLEBUF:0));
+		else /* pal */
+			screen = SDL_SetVideoMode(360, 288, 16, 
+						  sdl_flags|
+						  (CF_BOOL(cf_get_item_by_name("vsync"))?SDL_DOUBLEBUF:0));
 		if (width!=320) {
 			screen_rect.x=8;
 		}
@@ -85,6 +94,7 @@ blitter_soft_init()
 		if (screen_rect.x<0) {visible_area.x-=screen_rect.x;screen_rect.x=0;}
 		if (screen_rect.y<0) {visible_area.y-=screen_rect.y;screen_rect.y=0;}
 	}
+
 
 #else		
 	screen = SDL_SetVideoMode(width, height, 16, sdl_flags);
@@ -187,12 +197,23 @@ update_triple()
 		dst += (visible_area.w*6);
 	}
 }
-
+#ifdef GP2X
+int threaded_blit(void *buf)
+{
+	SDL_Surface *b=(SDL_Surface*)buf;
+	SDL_BlitSurface(b, &visible_area, screen, &screen_rect);
+	SDL_Flip(screen);
+	return 0;
+}
+#endif
 void
 blitter_soft_update()
 {
     int i;
-
+#ifdef GP2X
+    SDL_BlitSurface(buffer, &visible_area, screen, &screen_rect);
+    SDL_Flip(screen);
+#else
   if (neffect == 0) {
       switch (scale) {
       case 2: update_double(); break;
@@ -203,10 +224,6 @@ blitter_soft_update()
     }
 
   }
-
-#ifdef GP2X
-  SDL_Flip(screen);
-#else
   SDL_UpdateRect(screen, 0, 0, 0, 0);
 #endif
  

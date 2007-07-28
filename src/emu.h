@@ -64,6 +64,7 @@ struct {
     Uint8 special_bios;
     Uint8 extra_xor;
     Uint8 pal;
+    Uint8 accurate940;
     SYSTEM system;
     COUNTRY country;
     char message[128];

@@ -20,15 +20,12 @@
 #include "timer.h"
 #include "ym2610.h"
 #include "940shared.h"
+#include "940private.h"
 
 double timer_count;
-//Uint32 timer_count;
 
-timer_struct *timer_list;
 #define MAX_TIMER 3
 timer_struct timers[MAX_TIMER];
-extern int nb_interlace;
-//int nb_timer=0;
 
 double timer_get_time(void) {
 //Uint32 timer_get_time(void) {
@@ -79,13 +76,13 @@ void del_timer(timer_struct * ts)
     ts->del_it = 1;
 }
 
-static double inc;
+//static double inc;
 //static Uint32 inc;
 
-void init_timer(void) {
+void init_timer(int nb_interlace) {
 	int i;
-	shared_ctl->test++;
-	inc = ((double) (0.01666) / nb_interlace);// *(1<<TIMER_SH);
+	//shared_ctl->test++;
+	private_data->inc = ((double) (0.01666) / nb_interlace);// *(1<<TIMER_SH);
 
 	for (i = 0; i < MAX_TIMER; i++)
 		timers[i].del_it = 1;	
@@ -96,8 +93,8 @@ void my_timer(void)
  
     int i;
 
-    timer_count += inc;		/* 16ms par frame */
-
+    timer_count += private_data->inc;		/* 16ms par frame */
+    
     for (i = 0; i < MAX_TIMER; i++) {
 	if (timer_count >= timers[i].time && timers[i].del_it == 0) {
 	    //printf("Timer_expire %d duration=%f param=%d\n",i,timers[i].time,timers[i].param);

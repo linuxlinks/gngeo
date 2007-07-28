@@ -633,7 +633,8 @@ typedef struct
 
 
 /* SSG struct */
-static struct SSG_t
+//static struct SSG_t
+struct SSG_t
 {
 	int		lastEnable;
 	u32		step;
@@ -655,7 +656,9 @@ static struct SSG_t
 	u8		holding;
 	int		RNG;
 	u32		vol_table[32];
-} SSG;
+//} SSG;
+};
+struct SSG_t *SSG;
 
 
 /* ADPCM type A channel struct */
@@ -726,7 +729,8 @@ typedef struct adpcmb_state
 
 
 /* here's the virtual YM2610 */
-static struct ym2610_t
+//static struct ym2610_t
+struct ym2610_t
 {
 	u8		regs[512];			/* registers            */
 	FM_OPN	OPN;				/* OPN state            */
@@ -741,8 +745,9 @@ static struct ym2610_t
 	/* ADPCM-B unit */
 	ADPCMB	adpcmb;				/* Delta-T ADPCM unit   */
 
-} ALIGN_DATA YM2610;
-
+//} ALIGN_DATA YM2610;
+};
+struct ym2610_t *YM2610;
 
 /* current chip state */
 static s32	m2,c1,c2;		/* Phase Modulation input for operators 2,3,4 */
@@ -1376,18 +1381,21 @@ INLINE void chan_calc(FM_OPN *OPN, FM_CH *CH)
 		}
 	}
 
+
+
 	eg_out = volume_calc(&CH->SLOT[SLOT3]);
 	if( eg_out < ENV_QUIET )		/* SLOT 3 */
 		*CH->connect3 += op_calc(CH->SLOT[SLOT3].phase, eg_out, m2);
-
+	
 	eg_out = volume_calc(&CH->SLOT[SLOT2]);
 	if( eg_out < ENV_QUIET )		/* SLOT 2 */
 		*CH->connect2 += op_calc(CH->SLOT[SLOT2].phase, eg_out, c1);
+	//*CH->connect2 += 0x1;
 
 	eg_out = volume_calc(&CH->SLOT[SLOT4]);
 	if( eg_out < ENV_QUIET )		/* SLOT 4 */
 		*CH->connect4 += op_calc(CH->SLOT[SLOT4].phase, eg_out, c2);
-
+	//*CH->connect4 += 0x1;
 
 	/* store current MEM */
 	CH->mem_value = mem;
@@ -1696,7 +1704,7 @@ static void OPNSetPres(FM_OPN *OPN , int pres , int TimerPres, int SSGpres)
 	OPN->ST.TimerBasef = (1.0/((double)OPN->ST.clock / (double)TimerPres))*(1<<TIMER_SH);
 
 	/* SSG part  prescaler set */
-	if (SSGpres) SSG.step = ((double)SSG_STEP * OPN->ST.rate * 8) / (OPN->ST.clock * 2 / SSGpres);
+	if (SSGpres) SSG->step = ((double)SSG_STEP * OPN->ST.rate * 8) / (OPN->ST.clock * 2 / SSGpres);
 
 	/* make time tables */
 	init_timetables( &OPN->ST, dt_tab );
@@ -1979,7 +1987,7 @@ static void SSGWriteReg(int r, int v)
 {
 	int old;
 
-	YM2610.regs[r] = v;
+	YM2610->regs[r] = v;
 
 	switch (r)
 	{
@@ -1989,68 +1997,68 @@ static void SSGWriteReg(int r, int v)
 			int ch = r >> 1;
 
 			r &= ~1;
-			YM2610.regs[r + 1] &= 0x0f;
-			old = SSG.period[ch];
-			SSG.period[ch] = (YM2610.regs[r] + 256 * YM2610.regs[r + 1]) * SSG.step;
-			if (SSG.period[ch] == 0) SSG.period[ch] = SSG.step;
-			SSG.count[ch] += SSG.period[ch] - old;
-			if (SSG.count[ch] <= 0) SSG.count[ch] = 1;
+			YM2610->regs[r + 1] &= 0x0f;
+			old = SSG->period[ch];
+			SSG->period[ch] = (YM2610->regs[r] + 256 * YM2610->regs[r + 1]) * SSG->step;
+			if (SSG->period[ch] == 0) SSG->period[ch] = SSG->step;
+			SSG->count[ch] += SSG->period[ch] - old;
+			if (SSG->count[ch] <= 0) SSG->count[ch] = 1;
 		}
 		break;
 
 	case 0x06:	/* Noise percent */
-		YM2610.regs[SSG_NOISEPER] &= 0x1f;
-		old = SSG.PeriodN;
-		SSG.PeriodN = YM2610.regs[SSG_NOISEPER] * SSG.step;
-		if (SSG.PeriodN == 0) SSG.PeriodN = SSG.step;
-		SSG.CountN += SSG.PeriodN - old;
-		if (SSG.CountN <= 0) SSG.CountN = 1;
+		YM2610->regs[SSG_NOISEPER] &= 0x1f;
+		old = SSG->PeriodN;
+		SSG->PeriodN = YM2610->regs[SSG_NOISEPER] * SSG->step;
+		if (SSG->PeriodN == 0) SSG->PeriodN = SSG->step;
+		SSG->CountN += SSG->PeriodN - old;
+		if (SSG->CountN <= 0) SSG->CountN = 1;
 		break;
 
 	case 0x07:	/* Enable */
-		SSG.lastEnable = YM2610.regs[SSG_ENABLE];
+		SSG->lastEnable = YM2610->regs[SSG_ENABLE];
 		break;
 
 	case 0x08: case 0x09: case 0x0a: /* Channel A/B/C Volume */
 		{
 			int ch = r & 3;
 
-			YM2610.regs[r] &= 0x1f;
-			SSG.envelope[ch] = YM2610.regs[r] & 0x10;
-			SSG.vol[ch] = SSG.envelope[ch] ? SSG.VolE : SSG.vol_table[YM2610.regs[r] ? YM2610.regs[r] * 2 + 1 : 0];
+			YM2610->regs[r] &= 0x1f;
+			SSG->envelope[ch] = YM2610->regs[r] & 0x10;
+			SSG->vol[ch] = SSG->envelope[ch] ? SSG->VolE : SSG->vol_table[YM2610->regs[r] ? YM2610->regs[r] * 2 + 1 : 0];
 		}
 		break;
 
 	case SSG_EFINE:		// Envelope Fine
 	case SSG_ECOARSE:	// Envelope Coarse
-		old = SSG.PeriodE;
-		SSG.PeriodE = (YM2610.regs[SSG_EFINE] + 256 * YM2610.regs[SSG_ECOARSE]) * SSG.step;
-		if (SSG.PeriodE == 0) SSG.PeriodE = SSG.step / 2;
-		SSG.CountE += SSG.PeriodE - old;
-		if (SSG.CountE <= 0) SSG.CountE = 1;
+		old = SSG->PeriodE;
+		SSG->PeriodE = (YM2610->regs[SSG_EFINE] + 256 * YM2610->regs[SSG_ECOARSE]) * SSG->step;
+		if (SSG->PeriodE == 0) SSG->PeriodE = SSG->step / 2;
+		SSG->CountE += SSG->PeriodE - old;
+		if (SSG->CountE <= 0) SSG->CountE = 1;
 		break;
 
 	case SSG_ESHAPE:	// Envelope Shapes
-		YM2610.regs[SSG_ESHAPE] &= 0x0f;
-		SSG.attack = (YM2610.regs[SSG_ESHAPE] & 0x04) ? 0x1f : 0x00;
-		if ((YM2610.regs[SSG_ESHAPE] & 0x08) == 0)
+		YM2610->regs[SSG_ESHAPE] &= 0x0f;
+		SSG->attack = (YM2610->regs[SSG_ESHAPE] & 0x04) ? 0x1f : 0x00;
+		if ((YM2610->regs[SSG_ESHAPE] & 0x08) == 0)
 		{
 			/* if Continue = 0, map the shape to the equivalent one which has Continue = 1 */
-			SSG.hold = 1;
-			SSG.alternate = SSG.attack;
+			SSG->hold = 1;
+			SSG->alternate = SSG->attack;
 		}
 		else
 		{
-			SSG.hold = YM2610.regs[SSG_ESHAPE] & 0x01;
-			SSG.alternate = YM2610.regs[SSG_ESHAPE] & 0x02;
+			SSG->hold = YM2610->regs[SSG_ESHAPE] & 0x01;
+			SSG->alternate = YM2610->regs[SSG_ESHAPE] & 0x02;
 		}
-		SSG.CountE = SSG.PeriodE;
-		SSG.count_env = 0x1f;
-		SSG.holding = 0;
-		SSG.VolE = SSG.vol_table[SSG.count_env ^ SSG.attack];
-		if (SSG.envelope[0]) SSG.vol[0] = SSG.VolE;
-		if (SSG.envelope[1]) SSG.vol[1] = SSG.VolE;
-		if (SSG.envelope[2]) SSG.vol[2] = SSG.VolE;
+		SSG->CountE = SSG->PeriodE;
+		SSG->count_env = 0x1f;
+		SSG->holding = 0;
+		SSG->VolE = SSG->vol_table[SSG->count_env ^ SSG->attack];
+		if (SSG->envelope[0]) SSG->vol[0] = SSG->VolE;
+		if (SSG->envelope[1]) SSG->vol[1] = SSG->VolE;
+		if (SSG->envelope[2]) SSG->vol[2] = SSG->VolE;
 		break;
 
 	case SSG_PORTA:	// Port A
@@ -2066,28 +2074,28 @@ static int SSG_calc_count(int length)
 	/* calc SSG count */
 	for (i = 0; i < 3; i++)
 	{
-		if (YM2610.regs[SSG_ENABLE] & (0x01 << i))
+		if (YM2610->regs[SSG_ENABLE] & (0x01 << i))
 		{
-			if (SSG.count[i] <= length * SSG_STEP)
-				SSG.count[i] += length * SSG_STEP;
-			SSG.output[i] = 1;
+			if (SSG->count[i] <= length * SSG_STEP)
+				SSG->count[i] += length * SSG_STEP;
+			SSG->output[i] = 1;
 		}
-		else if (YM2610.regs[0x08 + i] == 0)
+		else if (YM2610->regs[0x08 + i] == 0)
 		{
-			if (SSG.count[i] <= length * SSG_STEP)
-				SSG.count[i] += length * SSG_STEP;
+			if (SSG->count[i] <= length * SSG_STEP)
+				SSG->count[i] += length * SSG_STEP;
 		}
 	}
 
 	/* for the noise channel we must not touch OutputN - it's also not necessary */
 	/* since we use outn. */
-	if ((YM2610.regs[SSG_ENABLE] & 0x38) == 0x38)	/* all off */
+	if ((YM2610->regs[SSG_ENABLE] & 0x38) == 0x38)	/* all off */
 	{
-		if (SSG.CountN <= length * SSG_STEP)
-			SSG.CountN += length * SSG_STEP;
+		if (SSG->CountN <= length * SSG_STEP)
+			SSG->CountN += length * SSG_STEP;
 	}
 
-	return (SSG.OutputN | YM2610.regs[SSG_ENABLE]);
+	return (SSG->OutputN | YM2610->regs[SSG_ENABLE]);
 }
 
 static int SSG_CALC(int outn)
@@ -2106,105 +2114,105 @@ static int SSG_CALC(int outn)
 	{
 		int nextevent;
 
-		nextevent = (SSG.CountN < left) ? SSG.CountN : left;
+		nextevent = (SSG->CountN < left) ? SSG->CountN : left;
 
 		for (ch = 0; ch < 3; ch++)
 		{
 			if (outn & (0x08 << ch))
 			{
-				if (SSG.output[ch]) vol[ch] += SSG.count[ch];
-				SSG.count[ch] -= nextevent;
+				if (SSG->output[ch]) vol[ch] += SSG->count[ch];
+				SSG->count[ch] -= nextevent;
 
-				while (SSG.count[ch] <= 0)
+				while (SSG->count[ch] <= 0)
 				{
-					SSG.count[ch] += SSG.period[ch];
-					if (SSG.count[ch] > 0)
+					SSG->count[ch] += SSG->period[ch];
+					if (SSG->count[ch] > 0)
 					{
-						SSG.output[ch] ^= 1;
-						if (SSG.output[ch]) vol[ch] += SSG.period[ch];
+						SSG->output[ch] ^= 1;
+						if (SSG->output[ch]) vol[ch] += SSG->period[ch];
 						break;
 					}
-					SSG.count[ch] += SSG.period[ch];
-					vol[ch] += SSG.period[ch];
+					SSG->count[ch] += SSG->period[ch];
+					vol[ch] += SSG->period[ch];
 				}
-				if (SSG.output[ch]) vol[ch] -= SSG.count[ch];
+				if (SSG->output[ch]) vol[ch] -= SSG->count[ch];
 			}
 			else
 			{
-				SSG.count[ch] -= nextevent;
-				while (SSG.count[ch] <= 0)
+				SSG->count[ch] -= nextevent;
+				while (SSG->count[ch] <= 0)
 				{
-					SSG.count[ch] += SSG.period[ch];
-					if (SSG.count[ch] > 0)
+					SSG->count[ch] += SSG->period[ch];
+					if (SSG->count[ch] > 0)
 					{
-						SSG.output[ch] ^= 1;
+						SSG->output[ch] ^= 1;
 						break;
 					}
-					SSG.count[ch] += SSG.period[ch];
+					SSG->count[ch] += SSG->period[ch];
 				}
 			}
 		}
 
-		SSG.CountN -= nextevent;
-		if (SSG.CountN <= 0)
+		SSG->CountN -= nextevent;
+		if (SSG->CountN <= 0)
 		{
 			/* Is noise output going to change? */
-			if ((SSG.RNG + 1) & 2)	/* (bit0^bit1)? */
+			if ((SSG->RNG + 1) & 2)	/* (bit0^bit1)? */
 			{
-				SSG.OutputN = ~SSG.OutputN;
-				outn = (SSG.OutputN | YM2610.regs[SSG_ENABLE]);
+				SSG->OutputN = ~SSG->OutputN;
+				outn = (SSG->OutputN | YM2610->regs[SSG_ENABLE]);
 			}
 
-			if (SSG.RNG & 1) SSG.RNG ^= 0x24000;
-			SSG.RNG >>= 1;
-			SSG.CountN += SSG.PeriodN;
+			if (SSG->RNG & 1) SSG->RNG ^= 0x24000;
+			SSG->RNG >>= 1;
+			SSG->CountN += SSG->PeriodN;
 		}
 
 		left -= nextevent;
 	} while (left > 0);
 
 	/* update envelope */
-	if (SSG.holding == 0)
+	if (SSG->holding == 0)
 	{
-		SSG.CountE -= SSG_STEP;
-		if (SSG.CountE <= 0)
+		SSG->CountE -= SSG_STEP;
+		if (SSG->CountE <= 0)
 		{
 			do
 			{
-				SSG.count_env--;
-				SSG.CountE += SSG.PeriodE;
-			} while (SSG.CountE <= 0);
+				SSG->count_env--;
+				SSG->CountE += SSG->PeriodE;
+			} while (SSG->CountE <= 0);
 
 			/* check envelope current position */
-			if (SSG.count_env < 0)
+			if (SSG->count_env < 0)
 			{
-				if (SSG.hold)
+				if (SSG->hold)
 				{
-					if (SSG.alternate)
-						SSG.attack ^= 0x1f;
-					SSG.holding = 1;
-					SSG.count_env = 0;
+					if (SSG->alternate)
+						SSG->attack ^= 0x1f;
+					SSG->holding = 1;
+					SSG->count_env = 0;
 				}
 				else
 				{
 					/* if count_env has looped an odd number of times (usually 1), */
 					/* invert the output. */
-					if (SSG.alternate && (SSG.count_env & 0x20))
-						SSG.attack ^= 0x1f;
+					if (SSG->alternate && (SSG->count_env & 0x20))
+						SSG->attack ^= 0x1f;
 
-					SSG.count_env &= 0x1f;
+					SSG->count_env &= 0x1f;
 				}
 			}
 
-			SSG.VolE = SSG.vol_table[SSG.count_env ^ SSG.attack];
+			SSG->VolE = SSG->vol_table[SSG->count_env ^ SSG->attack];
 			/* reload volume */
-			if (SSG.envelope[0]) SSG.vol[0] = SSG.VolE;
-			if (SSG.envelope[1]) SSG.vol[1] = SSG.VolE;
-			if (SSG.envelope[2]) SSG.vol[2] = SSG.VolE;
+			if (SSG->envelope[0]) SSG->vol[0] = SSG->VolE;
+			if (SSG->envelope[1]) SSG->vol[1] = SSG->VolE;
+			if (SSG->envelope[2]) SSG->vol[2] = SSG->VolE;
 		}
 	}
 
-	out_ssg = (((vol[0] * SSG.vol[0]) + (vol[1] * SSG.vol[1]) + (vol[2] * SSG.vol[2])) / SSG_STEP) / 3;
+	out_ssg = (((vol[0] * SSG->vol[0]) + (vol[1] * SSG->vol[1]) + (vol[2] * SSG->vol[2])) / SSG_STEP) / 3;
 
 	return outn;
 }
@@ -2222,11 +2230,11 @@ static void SSG_init_table(void)
 	out = SSG_MAX_OUTPUT;
 	for (i = 31; i > 0; i--)
 	{
-		SSG.vol_table[i] = out + 0.5;	/* round to nearest */
+		SSG->vol_table[i] = out + 0.5;	/* round to nearest */
 
 		out /= 1.188502227;	/* = 10 ^ (1.5/20) = 1.5dB */
 	}
-	SSG.vol_table[0] = 0;
+	SSG->vol_table[0] = 0;
 }
 
 
@@ -2234,15 +2242,15 @@ static void SSG_reset(void)
 {
 	int i;
 
-	SSG.RNG = 1;
-	SSG.output[0] = 0;
-	SSG.output[1] = 0;
-	SSG.output[2] = 0;
-	SSG.OutputN = 0xff;
-	SSG.lastEnable = -1;
+	SSG->RNG = 1;
+	SSG->output[0] = 0;
+	SSG->output[1] = 0;
+	SSG->output[2] = 0;
+	SSG->OutputN = 0xff;
+	SSG->lastEnable = -1;
 	for (i = 0; i < SSG_PORTA; i++)
 	{
-		YM2610.regs[i] = 0x00;
+		YM2610->regs[i] = 0x00;
 		SSGWriteReg(i, 0x00);
 	}
 }
@@ -2324,7 +2332,7 @@ INLINE void OPNB_ADPCMA_calc_chan(ADPCMA *ch)
 			if ((ch->now_addr & ((1 << 21) - 1)) == ((ch->end << 1) & ((1 << 21) - 1)))
 			{
 				ch->flag = 0;
-				YM2610.adpcm_arrivedEndAddress |= ch->flagMask;
+				YM2610->adpcm_arrivedEndAddress |= ch->flagMask;
 				return;
 			}
 
@@ -2362,10 +2370,10 @@ INLINE void OPNB_ADPCMA_calc_chan(ADPCMA *ch)
 /* ADPCM type A Write */
 static void OPNB_ADPCMA_write(int r, int v)
 {
-	ADPCMA *adpcma = YM2610.adpcma;
+	ADPCMA *adpcma = YM2610->adpcma;
 	u8 c = r & 0x07;
 
-	YM2610.regs[r] = v & 0xff; /* stock data */
+	YM2610->regs[r] = v & 0xff; /* stock data */
 
 	switch (r)
 	{
@@ -2378,7 +2386,7 @@ static void OPNB_ADPCMA_write(int r, int v)
 				if ((v >> c) & 1)
 				{
 					/**** start adpcm ****/
-					adpcma[c].step        = (u32)((float)(1 << ADPCM_SHIFT) * ((float)YM2610.OPN.ST.freqbase) / 3.0);
+					adpcma[c].step        = (u32)((float)(1 << ADPCM_SHIFT) * ((float)YM2610->OPN.ST.freqbase) / 3.0);
 					adpcma[c].now_addr    = adpcma[c].start << 1;
 					adpcma[c].now_step    = 0;
 					adpcma[c].adpcma_acc  = 0;
@@ -2419,10 +2427,10 @@ static void OPNB_ADPCMA_write(int r, int v)
 		break;
 
 	case 0x101:	/* B0-5 = TL */
-		YM2610.adpcmaTL = (v & 0x3f) ^ 0x3f;
+		YM2610->adpcmaTL = (v & 0x3f) ^ 0x3f;
 		for (c = 0; c < 6; c++)
 		{
-			int volume = YM2610.adpcmaTL + adpcma[c].IL;
+			int volume = YM2610->adpcmaTL + adpcma[c].IL;
 
 			if (volume >= 63)	/* This is correct, 63 = quiet */
 			{
@@ -2451,7 +2459,7 @@ static void OPNB_ADPCMA_write(int r, int v)
 
 				adpcma[c].IL = (v & 0x1f) ^ 0x1f;
 
-				volume = YM2610.adpcmaTL + adpcma[c].IL;
+				volume = YM2610->adpcmaTL + adpcma[c].IL;
 
 				if (volume >= 63)	/* This is correct, 63 = quiet */
 				{
@@ -2473,12 +2481,12 @@ static void OPNB_ADPCMA_write(int r, int v)
 
 		case 0x110:
 		case 0x118:
-			adpcma[c].start = ((YM2610.regs[0x118 + c] << 8) | YM2610.regs[0x110 + c]) << ADPCMA_ADDRESS_SHIFT;
+			adpcma[c].start = ((YM2610->regs[0x118 + c] << 8) | YM2610->regs[0x110 + c]) << ADPCMA_ADDRESS_SHIFT;
 			break;
 
 		case 0x120:
 		case 0x128:
-			adpcma[c].end  = ((YM2610.regs[0x128 + c] << 8) | YM2610.regs[0x120 + c]) << ADPCMA_ADDRESS_SHIFT;
+			adpcma[c].end  = ((YM2610->regs[0x128 + c] << 8) | YM2610->regs[0x120 + c]) << ADPCMA_ADDRESS_SHIFT;
 			adpcma[c].end += (1 << ADPCMA_ADDRESS_SHIFT) - 1;
 			break;
 		}
@@ -2523,7 +2531,7 @@ static void OPNB_ADPCMB_write(ADPCMB *adpcmb, int r, int v)
 {
 	if (r >= 0x20) return;
 
-	YM2610.regs[r] = v; /* stock data */
+	YM2610->regs[r] = v; /* stock data */
 
 	switch (r)
 	{
@@ -2621,7 +2629,7 @@ value:   START, REC, MEMDAT, REPEAT, SPOFF, x,x,RESET   meaning:
 
 			/* set BRDY flag */
 			if (adpcmb->status_change_BRDY_bit)
-				YM2610.adpcm_arrivedEndAddress |= adpcmb->status_change_BRDY_bit;
+				YM2610->adpcm_arrivedEndAddress |= adpcmb->status_change_BRDY_bit;
 		}
 		break;
 
@@ -2643,10 +2651,10 @@ value:   START, REC, MEMDAT, REPEAT, SPOFF, x,x,RESET   meaning:
                 */
 
 				/* refresh addresses */
-				adpcmb->start  = ((YM2610.regs[0x13] << 8) | YM2610.regs[0x12]) << adpcmb->portshift;
-				adpcmb->end    = ((YM2610.regs[0x15] << 8) | YM2610.regs[0x14]) << adpcmb->portshift;
+				adpcmb->start  = ((YM2610->regs[0x13] << 8) | YM2610->regs[0x12]) << adpcmb->portshift;
+				adpcmb->end    = ((YM2610->regs[0x15] << 8) | YM2610->regs[0x14]) << adpcmb->portshift;
 				adpcmb->end   += (1 << adpcmb->portshift) - 1;
-				adpcmb->limit  = ((YM2610.regs[0x1d] << 8) | YM2610.regs[0x1c]) << adpcmb->portshift;
+				adpcmb->limit  = ((YM2610->regs[0x1d] << 8) | YM2610->regs[0x1c]) << adpcmb->portshift;
 			}
 		}
 		adpcmb->control2 = v;
@@ -2654,22 +2662,22 @@ value:   START, REC, MEMDAT, REPEAT, SPOFF, x,x,RESET   meaning:
 
 	case 0x12:	/* Start Address L */
 	case 0x13:	/* Start Address H */
-		adpcmb->start = ((YM2610.regs[0x13] << 8) | YM2610.regs[0x12]) << adpcmb->portshift;
-		/*logerror("DELTAT start: 02=%2x 03=%2x addr=%8x\n", YM2610.regs[0x12], YM2610.regs[0x13], adpcmb->start);*/
+		adpcmb->start = ((YM2610->regs[0x13] << 8) | YM2610->regs[0x12]) << adpcmb->portshift;
+		/*logerror("DELTAT start: 02=%2x 03=%2x addr=%8x\n", YM2610->regs[0x12], YM2610->regs[0x13], adpcmb->start);*/
 		break;
 
 	case 0x14:	/* Stop Address L */
 	case 0x15:	/* Stop Address H */
-		adpcmb->end   = ((YM2610.regs[0x15] << 8) | YM2610.regs[0x14]) << adpcmb->portshift;
+		adpcmb->end   = ((YM2610->regs[0x15] << 8) | YM2610->regs[0x14]) << adpcmb->portshift;
 		adpcmb->end  += (1 << adpcmb->portshift) - 1;
-		/*logerror("DELTAT end  : 04=%2x 05=%2x addr=%8x\n", YM2610.regs[0x14], YM2610.reg[0x15], adpcmb->end);*/
+		/*logerror("DELTAT end  : 04=%2x 05=%2x addr=%8x\n", YM2610->regs[0x14], YM2610->reg[0x15], adpcmb->end);*/
 		break;
 
 	case 0x19:	/* DELTA-N L (ADPCM Playback Prescaler) */
 	case 0x1a:	/* DELTA-N H */
-		adpcmb->delta = (YM2610.regs[0x1a] << 8) | YM2610.regs[0x19];
+		adpcmb->delta = (YM2610->regs[0x1a] << 8) | YM2610->regs[0x19];
 		adpcmb->step  = (u32)((double)(adpcmb->delta /* * (1 << (ADPCMb_SHIFT - 16)) */) * (adpcmb->freqbase));
-		/*logerror("DELTAT deltan:09=%2x 0a=%2x\n", YM2610.regs[0x19], YM2610.regs[0x1a]);*/
+		/*logerror("DELTAT deltan:09=%2x 0a=%2x\n", YM2610->regs[0x19], YM2610->regs[0x1a]);*/
 		break;
 
 	case 0x1b:	/* Output level control (volume, linear) */
@@ -2722,7 +2730,7 @@ INLINE void OPNB_ADPCMB_CALC(ADPCMB *adpcmb)
 				{
 					/* set EOS bit in status register */
 					if (adpcmb->status_change_EOS_bit)
-						YM2610.adpcm_arrivedEndAddress |= adpcmb->status_change_EOS_bit;
+						YM2610->adpcm_arrivedEndAddress |= adpcmb->status_change_EOS_bit;
 
 					/* clear PCM BUSY bit (reflected in status register) */
 					adpcmb->PCM_BSY = 0;
@@ -2809,22 +2817,26 @@ void YM2610Init(int clock, int rate,
 */
 
 	/* clear */
-	memset(&YM2610, 0, sizeof(YM2610));
-	memset(&SSG, 0, sizeof(SSG));
+	YM2610=(struct ym2610_t*)0x1900000;
+	//SSG=(struct SSG_t*)0x1900000+(sizeof(struct ym2610_t)|0xFF)+1;
+	SSG=(struct SSG_t*)0x1A00000;
+	memset(YM2610, 0, sizeof(struct ym2610_t));
+	memset(SSG, 0, sizeof(struct SSG_t));
 
 	OPNInitTable();
 	SSG_init_table();
 	OPNB_ADPCMA_init_table();
 
 	/* FM */
-	YM2610.OPN.P_CH = YM2610.CH;
-	YM2610.OPN.ST.clock = clock;
-	YM2610.OPN.ST.rate = rate;
+	YM2610->OPN.P_CH = YM2610->CH;
+	YM2610->OPN.ST.clock = clock;
+	YM2610->OPN.ST.rate = rate;
 	/* Extend handler */
-	YM2610.OPN.ST.Timer_Handler = TimerHandler;
-	YM2610.OPN.ST.IRQ_Handler   = IRQHandler;
+	YM2610->OPN.ST.Timer_Handler = TimerHandler;
+	YM2610->OPN.ST.IRQ_Handler   = IRQHandler;
 	/* SSG */
-	SSG.step = ((double)SSG_STEP * rate * 8) / clock;
+	SSG->step = ((double)SSG_STEP * rate * 8) / clock;
+	//SSG->step = ((double)SSG_STEP * (rate/2) * 8) / clock;
 	/* ADPCM-A */
 	pcmbufA = (u8 *)pcmroma;
 	pcmsizeA = pcmsizea;
@@ -2832,7 +2844,7 @@ void YM2610Init(int clock, int rate,
 	pcmbufB = (u8 *)pcmromb;
 	pcmsizeB = pcmsizeb;
 
-	YM2610.adpcmb.status_change_EOS_bit = 0x80;	/* status flag: set bit7 on End Of Sample */
+	YM2610->adpcmb.status_change_EOS_bit = 0x80;	/* status flag: set bit7 on End Of Sample */
 
 	YM2610Reset();
 }
@@ -2841,7 +2853,7 @@ void YM2610Init(int clock, int rate,
 void YM2610Reset(void)
 {
 	int i;
-	FM_OPN *OPN = &YM2610.OPN;
+	FM_OPN *OPN = &YM2610->OPN;
 
 	/* Reset Prescaler */
 	OPNSetPres(OPN, 6*24, 6*24, 4*2); /* OPN 1/6, SSG 1/4 */
@@ -2857,7 +2869,7 @@ void YM2610Reset(void)
 
 	FM_STATUS_RESET(&OPN->ST, 0xff);
 
-	reset_channels(&OPN->ST, YM2610.CH, 6);
+	reset_channels(&OPN->ST, YM2610->CH, 6);
 	/* reset OPerator paramater */
 	for (i = 0xb6; i >= 0xb4; i--)
 	{
@@ -2876,49 +2888,49 @@ void YM2610Reset(void)
 	/**** ADPCM work initial ****/
 	for (i = 0; i < 6; i++)
 	{
-		YM2610.adpcma[i].step        = (u32)((float)(1 << ADPCM_SHIFT) * ((float)YM2610.OPN.ST.freqbase) / 3.0);
-		YM2610.adpcma[i].now_addr    = 0;
-		YM2610.adpcma[i].now_step    = 0;
-		YM2610.adpcma[i].start       = 0;
-		YM2610.adpcma[i].end         = 0;
-		YM2610.adpcma[i].vol_mul     = 0;
-		YM2610.adpcma[i].pan         = &out_adpcma[OUTD_CENTER]; /* default center */
-		YM2610.adpcma[i].flagMask    = 1 << i;
-		YM2610.adpcma[i].flag        = 0;
-		YM2610.adpcma[i].adpcma_acc  = 0;
-		YM2610.adpcma[i].adpcma_step = 0;
-		YM2610.adpcma[i].adpcma_out  = 0;
+		YM2610->adpcma[i].step        = (u32)((float)(1 << ADPCM_SHIFT) * ((float)YM2610->OPN.ST.freqbase) / 3.0);
+		YM2610->adpcma[i].now_addr    = 0;
+		YM2610->adpcma[i].now_step    = 0;
+		YM2610->adpcma[i].start       = 0;
+		YM2610->adpcma[i].end         = 0;
+		YM2610->adpcma[i].vol_mul     = 0;
+		YM2610->adpcma[i].pan         = &out_adpcma[OUTD_CENTER]; /* default center */
+		YM2610->adpcma[i].flagMask    = 1 << i;
+		YM2610->adpcma[i].flag        = 0;
+		YM2610->adpcma[i].adpcma_acc  = 0;
+		YM2610->adpcma[i].adpcma_step = 0;
+		YM2610->adpcma[i].adpcma_out  = 0;
 	}
-	YM2610.adpcmaTL = 0x3f;
+	YM2610->adpcmaTL = 0x3f;
 
-	YM2610.adpcm_arrivedEndAddress = 0;
+	YM2610->adpcm_arrivedEndAddress = 0;
 
 	/* ADPCM-B unit */
-	YM2610.adpcmb.freqbase     = OPN->ST.freqbase;
-	YM2610.adpcmb.portshift    = 8;		/* allways 8bits shift */
-	YM2610.adpcmb.output_range = 1 << 23;
+	YM2610->adpcmb.freqbase     = OPN->ST.freqbase;
+	YM2610->adpcmb.portshift    = 8;		/* allways 8bits shift */
+	YM2610->adpcmb.output_range = 1 << 23;
 
-	YM2610.adpcmb.now_addr     = 0;
-	YM2610.adpcmb.now_step     = 0;
-	YM2610.adpcmb.step         = 0;
-	YM2610.adpcmb.start        = 0;
-	YM2610.adpcmb.end          = 0;
-	YM2610.adpcmb.limit        = ~0; /* this way YM2610 and Y8950 (both of which don't have limit address reg) will still work */
-	YM2610.adpcmb.volume       = 0;
-	YM2610.adpcmb.pan          = &out_delta[OUTD_CENTER];
-	YM2610.adpcmb.acc          = 0;
-	YM2610.adpcmb.prev_acc     = 0;
-	YM2610.adpcmb.adpcmd       = 127;
-	YM2610.adpcmb.adpcml       = 0;
-	YM2610.adpcmb.portstate    = 0x20;
-	YM2610.adpcmb.control2     = 0x01;
+	YM2610->adpcmb.now_addr     = 0;
+	YM2610->adpcmb.now_step     = 0;
+	YM2610->adpcmb.step         = 0;
+	YM2610->adpcmb.start        = 0;
+	YM2610->adpcmb.end          = 0;
+	YM2610->adpcmb.limit        = ~0; /* this way YM2610 and Y8950 (both of which don't have limit address reg) will still work */
+	YM2610->adpcmb.volume       = 0;
+	YM2610->adpcmb.pan          = &out_delta[OUTD_CENTER];
+	YM2610->adpcmb.acc          = 0;
+	YM2610->adpcmb.prev_acc     = 0;
+	YM2610->adpcmb.adpcmd       = 127;
+	YM2610->adpcmb.adpcml       = 0;
+	YM2610->adpcmb.portstate    = 0x20;
+	YM2610->adpcmb.control2     = 0x01;
 
 	/* The flag mask register disables the BRDY after the reset, however
     ** as soon as the mask is enabled the flag needs to be set. */
 
 	/* set BRDY bit in status register */
-	if (YM2610.adpcmb.status_change_BRDY_bit)
-		YM2610.adpcm_arrivedEndAddress |= YM2610.adpcmb.status_change_BRDY_bit;
+	if (YM2610->adpcmb.status_change_BRDY_bit)
+		YM2610->adpcm_arrivedEndAddress |= YM2610->adpcmb.status_change_BRDY_bit;
 
 #ifdef SOUND_TEST
 	stream_pos = 0;
@@ -2931,7 +2943,7 @@ void YM2610Reset(void)
 /* v = value   */
 int YM2610Write(int a, u8 v)
 {
-	FM_OPN *OPN = &YM2610.OPN;
+	FM_OPN *OPN = &YM2610->OPN;
 	int addr;
 	int ch;
 
@@ -2941,19 +2953,19 @@ int YM2610Write(int a, u8 v)
 	{
 	case 0:	/* address port 0 */
 		OPN->ST.address = v;
-		YM2610.addr_A1 = 0;
+		YM2610->addr_A1 = 0;
 
 		/* Write register to SSG emulator */
 //		if (v < 16) SSG_write(0, v);
 		break;
 
 	case 1:	/* data port 0    */
-		if (YM2610.addr_A1 != 0)
+		if (YM2610->addr_A1 != 0)
 			break;	/* verified on real YM2608 */
 
 		YM2610UpdateRequest();
 		addr = OPN->ST.address;
-		YM2610.regs[addr] = v;
+		YM2610->regs[addr] = v;
 		switch (addr & 0xf0)
 		{
 		case 0x00:	/* SSG section */
@@ -2974,7 +2986,7 @@ int YM2610Write(int a, u8 v)
 			case 0x19:	/* delta-n L */
 			case 0x1a:	/* delta-n H */
 			case 0x1b:	/* volume */
-				OPNB_ADPCMB_write(&YM2610.adpcmb, addr, v);
+				OPNB_ADPCMB_write(&YM2610->adpcmb, addr, v);
 				break;
 
 			case 0x1c: /*  FLAG CONTROL : Extend Status Clear/Mask */
@@ -2982,12 +2994,12 @@ int YM2610Write(int a, u8 v)
 					u8 statusmask = ~v;
 					/* set arrived flag mask */
 					for (ch = 0; ch < 6; ch++)
-						YM2610.adpcma[ch].flagMask = statusmask & (1 << ch);
+						YM2610->adpcma[ch].flagMask = statusmask & (1 << ch);
 
-					YM2610.adpcmb.status_change_EOS_bit = statusmask & 0x80;	/* status flag: set bit7 on End Of Sample */
+					YM2610->adpcmb.status_change_EOS_bit = statusmask & 0x80;	/* status flag: set bit7 on End Of Sample */
 
 					/* clear arrived flag */
-					YM2610.adpcm_arrivedEndAddress &= statusmask;
+					YM2610->adpcm_arrivedEndAddress &= statusmask;
 				}
 				break;
 			}
@@ -3006,16 +3018,16 @@ int YM2610Write(int a, u8 v)
 
 	case 2:	/* address port 1 */
 		OPN->ST.address = v;
-		YM2610.addr_A1 = 1;
+		YM2610->addr_A1 = 1;
 		break;
 
 	case 3:	/* data port 1    */
-		if (YM2610.addr_A1 != 1)
+		if (YM2610->addr_A1 != 1)
 			break;	/* verified on real YM2608 */
 
 		YM2610UpdateRequest();
-		addr = YM2610.OPN.ST.address | 0x100;
-		YM2610.regs[addr | 0x100] = v;
+		addr = YM2610->OPN.ST.address | 0x100;
+		YM2610->regs[addr | 0x100] = v;
 		if (addr < 0x130)
 			/* 100-12f : ADPCM A section */
 			OPNB_ADPCMA_write(addr, v);
@@ -3030,15 +3042,15 @@ int YM2610Write(int a, u8 v)
 
 u8 YM2610Read(int a)
 {
-	int addr = YM2610.OPN.ST.address;
+	int addr = YM2610->OPN.ST.address;
 
 	switch (a & 3)
 	{
 	case 0:	/* status 0 : YM2203 compatible */
-		return FM_STATUS_FLAG(&YM2610.OPN.ST) & 0x83;
+		return FM_STATUS_FLAG(&YM2610->OPN.ST) & 0x83;
 
 	case 1:	/* data 0 */
-		if (addr < SSG_PORTA) return YM2610.regs[addr];
+		if (addr < SSG_PORTA) return YM2610->regs[addr];
 		if (addr == 0xff) return 0x01;
 		break;
 
@@ -3047,7 +3059,7 @@ u8 YM2610Read(int a)
 		/* B, --, A5, A4, A3, A2, A1, A0 */
 		/* B     = ADPCM-B(DELTA-T) arrived end address */
 		/* A0-A5 = ADPCM-A          arrived end address */
-		return YM2610.adpcm_arrivedEndAddress;
+		return YM2610->adpcm_arrivedEndAddress;
 	}
 	return 0;
 }
@@ -3055,7 +3067,7 @@ u8 YM2610Read(int a)
 
 int YM2610TimerOver(int ch)
 {
-	FM_ST *ST = &YM2610.OPN.ST;
+	FM_ST *ST = &YM2610->OPN.ST;
 
 	if (ch)
 	{
@@ -3075,7 +3087,7 @@ int YM2610TimerOver(int ch)
 		if (ST->mode & 0x80)
 		{
 			/* CSM mode total level latch and auto key on */
-			CSMKeyControll(&YM2610.CH[2]);
+			CSMKeyControll(&YM2610->CH[2]);
 		}
 	}
 
@@ -3090,17 +3102,18 @@ static Uint32 buf_pos=0;
 /* Generate samples for one of the YM2610s */
 void YM2610Update_stream(int length)
 {
-	FM_OPN *OPN = &YM2610.OPN;
+	FM_OPN *OPN = &YM2610->OPN;
 	int i, j, outn;
 	FMSAMPLE_MIX lt, rt;
 	FM_CH *cch[6];
 	Uint16 *pl = (Uint8*)shared_ctl->play_buffer+buf_pos;
 	shared_ctl->buf_pos=buf_pos;
+	shared_ctl->sample_len=length*4;
 
-	cch[0] = &YM2610.CH[1];
-	cch[1] = &YM2610.CH[2];
-	cch[2] = &YM2610.CH[4];
-	cch[3] = &YM2610.CH[5];
+	cch[0] = &YM2610->CH[1];
+	cch[1] = &YM2610->CH[2];
+	cch[2] = &YM2610->CH[4];
+	cch[3] = &YM2610->CH[5];
 
 	/* update frequency counter */
 	refresh_fc_eg_chan(cch[0]);
@@ -3124,6 +3137,8 @@ void YM2610Update_stream(int length)
 	/* calc SSG count */
 	outn = SSG_calc_count(length);
 
+
+
 	/* buffering */
 	for (i = 0; i < length; i++)
 	{
@@ -3143,7 +3158,7 @@ void YM2610Update_stream(int length)
 
 		/* clear outputs SSG */
 		out_ssg = 0;
-#if 1
+
 		/* advance envelope generator */
 		OPN->eg_timer += OPN->eg_timer_add;
 		while (OPN->eg_timer >= OPN->eg_timer_overflow)
@@ -3157,7 +3172,7 @@ void YM2610Update_stream(int length)
 			advance_eg_channel(OPN, &cch[3]->SLOT[SLOT1]);
 		}
 
-
+#if 1
 
 
 		/* calculate FM */
@@ -3172,14 +3187,14 @@ void YM2610Update_stream(int length)
 
 		/* deltaT ADPCM */
 
-		if (YM2610.adpcmb.portstate & 0x80)
-			OPNB_ADPCMB_CALC(&YM2610.adpcmb);
+		if (YM2610->adpcmb.portstate & 0x80)
+			OPNB_ADPCMB_CALC(&YM2610->adpcmb);
 
 		for (j = 0; j < 6; j++)
 		{
 			/* ADPCM */
-			if (YM2610.adpcma[j].flag)
-				OPNB_ADPCMA_calc_chan(&YM2610.adpcma[j]);
+			if (YM2610->adpcma[j].flag)
+				OPNB_ADPCMA_calc_chan(&YM2610->adpcma[j]);
 		}
 		/* buffering */
 		lt =  out_adpcma[OUTD_LEFT]  + out_adpcma[OUTD_CENTER];
@@ -3217,7 +3232,6 @@ void YM2610Update_stream(int length)
 		}
 		*pl++ = lt;
 		*pl++ = rt;
-
 		//my_timer();
 		
 		INTERNAL_TIMER_A( OPN->ST , cch[1] );
@@ -3274,29 +3288,29 @@ STATE_SAVE( ym2610 )
 {
 	int slot, ch;
 
-	state_save_byte(YM2610.regs, 512);
+	state_save_byte(YM2610->regs, 512);
 
-	state_save_double(&YM2610.OPN.ST.BusyExpire, 1);
-	state_save_byte(&YM2610.OPN.ST.address, 1);
-	state_save_byte(&YM2610.OPN.ST.irq, 1);
-	state_save_byte(&YM2610.OPN.ST.irqmask, 1);
-	state_save_byte(&YM2610.OPN.ST.status, 1);
-	state_save_long(&YM2610.OPN.ST.mode, 1);
-	state_save_byte(&YM2610.OPN.ST.prescaler_sel, 1);
-	state_save_byte(&YM2610.OPN.ST.fn_h, 1);
-	state_save_long(&YM2610.OPN.ST.TA, 1);
-	state_save_long(&YM2610.OPN.ST.TAC, 1);
-	state_save_byte(&YM2610.OPN.ST.TB, 1);
-	state_save_long(&YM2610.OPN.ST.TBC, 1);
+	state_save_double(&YM2610->OPN.ST.BusyExpire, 1);
+	state_save_byte(&YM2610->OPN.ST.address, 1);
+	state_save_byte(&YM2610->OPN.ST.irq, 1);
+	state_save_byte(&YM2610->OPN.ST.irqmask, 1);
+	state_save_byte(&YM2610->OPN.ST.status, 1);
+	state_save_long(&YM2610->OPN.ST.mode, 1);
+	state_save_byte(&YM2610->OPN.ST.prescaler_sel, 1);
+	state_save_byte(&YM2610->OPN.ST.fn_h, 1);
+	state_save_long(&YM2610->OPN.ST.TA, 1);
+	state_save_long(&YM2610->OPN.ST.TAC, 1);
+	state_save_byte(&YM2610->OPN.ST.TB, 1);
+	state_save_long(&YM2610->OPN.ST.TBC, 1);
 
 	for (ch = 0; ch < 6; ch++)
 	{
-		state_save_long(YM2610.CH[ch].op1_out, 2);
-		state_save_long(&YM2610.CH[ch].fc, 1);
+		state_save_long(YM2610->CH[ch].op1_out, 2);
+		state_save_long(&YM2610->CH[ch].fc, 1);
 
 		for (slot = 0; slot < 4; slot++)
 		{
-			FM_SLOT *SLOT = &YM2610.CH[ch].SLOT[slot];
+			FM_SLOT *SLOT = &YM2610->CH[ch].SLOT[slot];
 
 			state_save_long(&SLOT->phase, 1);
 			state_save_byte(&SLOT->state, 1);
@@ -3304,31 +3318,31 @@ STATE_SAVE( ym2610 )
 		}
 	}
 
-	state_save_long(YM2610.OPN.SL3.fc, 3);
-	state_save_byte(&YM2610.OPN.SL3.fn_h, 1);
-	state_save_byte(YM2610.OPN.SL3.kcode, 3);
+	state_save_long(YM2610->OPN.SL3.fc, 3);
+	state_save_byte(&YM2610->OPN.SL3.fn_h, 1);
+	state_save_byte(YM2610->OPN.SL3.kcode, 3);
 
-	state_save_byte(&YM2610.addr_A1, 1);
-	state_save_byte(&YM2610.adpcm_arrivedEndAddress, 1);
+	state_save_byte(&YM2610->addr_A1, 1);
+	state_save_byte(&YM2610->adpcm_arrivedEndAddress, 1);
 
 	for (ch = 0; ch < 6; ch++)
 	{
-		state_save_byte(&YM2610.adpcma[ch].flag, 1);
-		state_save_byte(&YM2610.adpcma[ch].now_data, 1);
-		state_save_long(&YM2610.adpcma[ch].now_addr, 1);
-		state_save_long(&YM2610.adpcma[ch].now_step, 1);
-		state_save_long(&YM2610.adpcma[ch].adpcma_acc, 1);
-		state_save_long(&YM2610.adpcma[ch].adpcma_step, 1);
-		state_save_long(&YM2610.adpcma[ch].adpcma_out, 1);
+		state_save_byte(&YM2610->adpcma[ch].flag, 1);
+		state_save_byte(&YM2610->adpcma[ch].now_data, 1);
+		state_save_long(&YM2610->adpcma[ch].now_addr, 1);
+		state_save_long(&YM2610->adpcma[ch].now_step, 1);
+		state_save_long(&YM2610->adpcma[ch].adpcma_acc, 1);
+		state_save_long(&YM2610->adpcma[ch].adpcma_step, 1);
+		state_save_long(&YM2610->adpcma[ch].adpcma_out, 1);
 	}
 
-	state_save_byte(&YM2610.adpcmb.portstate, 1);
-	state_save_long(&YM2610.adpcmb.now_addr, 1);
-	state_save_long(&YM2610.adpcmb.now_step, 1);
-	state_save_long(&YM2610.adpcmb.acc, 1);
-	state_save_long(&YM2610.adpcmb.prev_acc, 1);
-	state_save_long(&YM2610.adpcmb.adpcmd, 1);
-	state_save_long(&YM2610.adpcmb.adpcml, 1);
+	state_save_byte(&YM2610->adpcmb.portstate, 1);
+	state_save_long(&YM2610->adpcmb.now_addr, 1);
+	state_save_long(&YM2610->adpcmb.now_step, 1);
+	state_save_long(&YM2610->adpcmb.acc, 1);
+	state_save_long(&YM2610->adpcmb.prev_acc, 1);
+	state_save_long(&YM2610->adpcmb.adpcmd, 1);
+	state_save_long(&YM2610->adpcmb.adpcml, 1);
 
 	state_save_long(&option_samplerate, 1);
 }
@@ -3337,29 +3351,29 @@ STATE_LOAD( ym2610 )
 {
 	int slot, ch, r;
 
-	state_load_byte(YM2610.regs, 512);
+	state_load_byte(YM2610->regs, 512);
 
-	state_load_double(&YM2610.OPN.ST.BusyExpire, 1);
-	state_load_byte(&YM2610.OPN.ST.address, 1);
-	state_load_byte(&YM2610.OPN.ST.irq, 1);
-	state_load_byte(&YM2610.OPN.ST.irqmask, 1);
-	state_load_byte(&YM2610.OPN.ST.status, 1);
-	state_load_long(&YM2610.OPN.ST.mode, 1);
-	state_load_byte(&YM2610.OPN.ST.prescaler_sel, 1);
-	state_load_byte(&YM2610.OPN.ST.fn_h, 1);
-	state_load_long(&YM2610.OPN.ST.TA, 1);
-	state_load_long(&YM2610.OPN.ST.TAC, 1);
-	state_load_byte(&YM2610.OPN.ST.TB, 1);
-	state_load_long(&YM2610.OPN.ST.TBC, 1);
+	state_load_double(&YM2610->OPN.ST.BusyExpire, 1);
+	state_load_byte(&YM2610->OPN.ST.address, 1);
+	state_load_byte(&YM2610->OPN.ST.irq, 1);
+	state_load_byte(&YM2610->OPN.ST.irqmask, 1);
+	state_load_byte(&YM2610->OPN.ST.status, 1);
+	state_load_long(&YM2610->OPN.ST.mode, 1);
+	state_load_byte(&YM2610->OPN.ST.prescaler_sel, 1);
+	state_load_byte(&YM2610->OPN.ST.fn_h, 1);
+	state_load_long(&YM2610->OPN.ST.TA, 1);
+	state_load_long(&YM2610->OPN.ST.TAC, 1);
+	state_load_byte(&YM2610->OPN.ST.TB, 1);
+	state_load_long(&YM2610->OPN.ST.TBC, 1);
 
 	for (ch = 0; ch < 6; ch++)
 	{
-		state_load_long(YM2610.CH[ch].op1_out, 2);
-		state_load_long(&YM2610.CH[ch].fc, 1);
+		state_load_long(YM2610->CH[ch].op1_out, 2);
+		state_load_long(&YM2610->CH[ch].fc, 1);
 
 		for (slot = 0; slot < 4; slot++)
 		{
-			FM_SLOT *SLOT = &YM2610.CH[ch].SLOT[slot];
+			FM_SLOT *SLOT = &YM2610->CH[ch].SLOT[slot];
 
 			state_load_long(&SLOT->phase, 1);
 			state_load_byte(&SLOT->state, 1);
@@ -3367,46 +3381,46 @@ STATE_LOAD( ym2610 )
 		}
 	}
 
-	state_load_long(YM2610.OPN.SL3.fc, 3);
-	state_load_byte(&YM2610.OPN.SL3.fn_h, 1);
-	state_load_byte(YM2610.OPN.SL3.kcode, 3);
+	state_load_long(YM2610->OPN.SL3.fc, 3);
+	state_load_byte(&YM2610->OPN.SL3.fn_h, 1);
+	state_load_byte(YM2610->OPN.SL3.kcode, 3);
 
-	state_load_byte(&YM2610.addr_A1, 1);
-	state_load_byte(&YM2610.adpcm_arrivedEndAddress, 1);
+	state_load_byte(&YM2610->addr_A1, 1);
+	state_load_byte(&YM2610->adpcm_arrivedEndAddress, 1);
 
 	for (ch = 0; ch < 6; ch++)
 	{
-		state_load_byte(&YM2610.adpcma[ch].flag, 1);
-		state_load_byte(&YM2610.adpcma[ch].now_data, 1);
-		state_load_long(&YM2610.adpcma[ch].now_addr, 1);
-		state_load_long(&YM2610.adpcma[ch].now_step, 1);
-		state_load_long(&YM2610.adpcma[ch].adpcma_acc, 1);
-		state_load_long(&YM2610.adpcma[ch].adpcma_step, 1);
-		state_load_long(&YM2610.adpcma[ch].adpcma_out, 1);
+		state_load_byte(&YM2610->adpcma[ch].flag, 1);
+		state_load_byte(&YM2610->adpcma[ch].now_data, 1);
+		state_load_long(&YM2610->adpcma[ch].now_addr, 1);
+		state_load_long(&YM2610->adpcma[ch].now_step, 1);
+		state_load_long(&YM2610->adpcma[ch].adpcma_acc, 1);
+		state_load_long(&YM2610->adpcma[ch].adpcma_step, 1);
+		state_load_long(&YM2610->adpcma[ch].adpcma_out, 1);
 	}
 
-	state_load_byte(&YM2610.adpcmb.portstate, 1);
-	state_load_long(&YM2610.adpcmb.now_addr, 1);
-	state_load_long(&YM2610.adpcmb.now_step, 1);
-	state_load_long(&YM2610.adpcmb.acc, 1);
-	state_load_long(&YM2610.adpcmb.prev_acc, 1);
-	state_load_long(&YM2610.adpcmb.adpcmd, 1);
-	state_load_long(&YM2610.adpcmb.adpcml, 1);
+	state_load_byte(&YM2610->adpcmb.portstate, 1);
+	state_load_long(&YM2610->adpcmb.now_addr, 1);
+	state_load_long(&YM2610->adpcmb.now_step, 1);
+	state_load_long(&YM2610->adpcmb.acc, 1);
+	state_load_long(&YM2610->adpcmb.prev_acc, 1);
+	state_load_long(&YM2610->adpcmb.adpcmd, 1);
+	state_load_long(&YM2610->adpcmb.adpcml, 1);
 
 	state_load_long(&option_samplerate, 1);
 
 	for (r = 0; r < 16; r++)
 	{
 		SSG_write(0, r);
-		SSG_write(1, YM2610.regs[r]);
+		SSG_write(1, YM2610->regs[r]);
 	}
 
 	for (r = 0x30; r <0x9e; r++)
 	{
 		if ((r & 3) != 3)
 		{
-			OPNWriteReg(&YM2610.OPN, r, YM2610.regs[r]);
-			OPNWriteReg(&YM2610.OPN, r | 0x100, YM2610.regs[r | 0x100]);
+			OPNWriteReg(&YM2610->OPN, r, YM2610->regs[r]);
+			OPNWriteReg(&YM2610->OPN, r | 0x100, YM2610->regs[r | 0x100]);
 		}
 	}
 
@@ -3414,28 +3428,28 @@ STATE_LOAD( ym2610 )
 	{
 		if ((r & 3) != 3)
 		{
-			OPNWriteReg(&YM2610.OPN, r, YM2610.regs[r]);
-			OPNWriteReg(&YM2610.OPN, r | 0x100, YM2610.regs[r | 0x100]);
+			OPNWriteReg(&YM2610->OPN, r, YM2610->regs[r]);
+			OPNWriteReg(&YM2610->OPN, r | 0x100, YM2610->regs[r | 0x100]);
 		}
 	}
 
-	OPNB_ADPCMA_write(0x101, YM2610.regs[0x101]);
+	OPNB_ADPCMA_write(0x101, YM2610->regs[0x101]);
 	for (r = 0; r < 6; r++)
 	{
-		OPNB_ADPCMA_write(r + 0x108, YM2610.regs[r + 0x108]);
-		OPNB_ADPCMA_write(r + 0x110, YM2610.regs[r + 0x110]);
-		OPNB_ADPCMA_write(r + 0x118, YM2610.regs[r + 0x118]);
-		OPNB_ADPCMA_write(r + 0x120, YM2610.regs[r + 0x120]);
-		OPNB_ADPCMA_write(r + 0x128, YM2610.regs[r + 0x128]);
+		OPNB_ADPCMA_write(r + 0x108, YM2610->regs[r + 0x108]);
+		OPNB_ADPCMA_write(r + 0x110, YM2610->regs[r + 0x110]);
+		OPNB_ADPCMA_write(r + 0x118, YM2610->regs[r + 0x118]);
+		OPNB_ADPCMA_write(r + 0x120, YM2610->regs[r + 0x120]);
+		OPNB_ADPCMA_write(r + 0x128, YM2610->regs[r + 0x128]);
 	}
 
-	YM2610.adpcmb.volume = 0;
+	YM2610->adpcmb.volume = 0;
 
 	for (r = 1; r < 16; r++)
-		OPNB_ADPCMB_write(&YM2610.adpcmb, r + 0x10, YM2610.regs[r + 0x10]);
+		OPNB_ADPCMB_write(&YM2610->adpcmb, r + 0x10, YM2610->regs[r + 0x10]);
 
 	if (pcmbufB)
-		YM2610.adpcmb.now_data = *(pcmbufB + (YM2610.adpcmb.now_addr >> 1));
+		YM2610->adpcmb.now_data = *(pcmbufB + (YM2610->adpcmb.now_addr >> 1));
 }
 
 #endif /* SAVE_STATE */

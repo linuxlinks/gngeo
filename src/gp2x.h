@@ -46,6 +46,16 @@ enum  { GP2X_UP=0,
 	GP2X_VOL_DOWN,
 	GP2X_PUSH
 };
+typedef enum
+{
+        LCDR_60 = 0,    /* as close as possible to 60.00Hz, currently only managed to set to ~59.998Hz, has interlacing problems */
+        LCDR_50,        /* 50Hz, has interlacing problems */
+        LCDR_120_20,    /* ~60.10*2Hz, used by FCE Ultra */
+        LCDR_100_02,    /* ~50.01*2Hz, used by FCE Ultra */
+} lcd_rate_t;
+
+extern void set_LCD_custom_rate(lcd_rate_t rate);
+extern void unset_LCD_custom_rate(void);
 
 #define CHECK_BUSY(job) \
         (gp2x_memregs[0x3b46>>1] & (1<<(job-1)))

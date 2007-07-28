@@ -12,7 +12,7 @@ CROSS = $(devkit_path)bin/arm-linux-
 DEFINC = -I../.. -I. -D__GP2X__ -DARM # -DBENCHMARK
 #COPT_COMMON = -static -s -O3 -msoft-float -ftracer -fstrength-reduce -Wall -funroll-loops -fomit-frame-pointer -fstrict-aliasing -ffast-math
 #COPT_COMMON = -static -s -O2 -msoft-float -ftracer -fstrength-reduce -Wall -fomit-frame-pointer -fstrict-aliasing -ffast-math
-COPT_COMMON = -static -s -Os  -ftracer -fstrength-reduce -Wall -fomit-frame-pointer -fstrict-aliasing -ffast-math -freorder-blocks-and-partition
+COPT_COMMON = -static -s -Os  -ftracer -fstrength-reduce -Wall -fomit-frame-pointer -fstrict-aliasing -ffast-math
 #COPT_COMMON = -static -s -Os -Wall -fomit-frame-pointer -fstrict-aliasing
 COPT = $(COPT_COMMON) -mtune=arm940t
 

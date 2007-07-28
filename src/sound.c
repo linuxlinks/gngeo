@@ -57,7 +57,19 @@ void update_sdl_stream(void *userdata, Uint8 * stream, int len)
 	//streamupdate(len);
 	
 #ifdef ENABLE_940T
-#if 1
+
+	if (shared_ctl->buf_pos >= play_buffer_pos && 
+	    shared_ctl->buf_pos <= play_buffer_pos + len) {
+		printf("SOUND WARN 1 %d %d\n",shared_ctl->buf_pos,play_buffer_pos);
+		
+		return;
+	}
+	if (shared_ctl->buf_pos + shared_ctl->sample_len >= play_buffer_pos && 
+	    shared_ctl->buf_pos + shared_ctl->sample_len <= play_buffer_pos + len) {
+		printf("SOUND WARN 2 %d %d\n",shared_ctl->buf_pos,play_buffer_pos);
+		
+		return;
+	}
 	if ( play_buffer_pos+len>SAMPLE_BUFLEN) {
 		unsigned int last=(SAMPLE_BUFLEN-play_buffer_pos);
 		memcpy(stream, (Uint8 *) shared_ctl->play_buffer+ play_buffer_pos, last);
@@ -70,12 +82,6 @@ void update_sdl_stream(void *userdata, Uint8 * stream, int len)
 		play_buffer_pos+=len;
 		//printf("Case 2\n");
 	}
-#else
-	shared_ctl->updateym=len/4;
-	while (shared_ctl->updateym);
-	memcpy(stream, (Uint8 *) shared_ctl->play_buffer, len);
-#endif
-
 #else
 	YM2610Update_stream(len/4);
 	memcpy(stream, (Uint8 *) play_buffer, len);
@@ -103,7 +109,10 @@ int init_sdl_audio(void)
     desired->channels = 2;
     desired->callback = update_sdl_stream;
     desired->userdata = NULL;
-    SDL_OpenAudio(desired, NULL);
+    //SDL_OpenAudio(desired, NULL);
+    SDL_OpenAudio(desired, obtain);
+    printf("Obtained sample rate: %d\n",obtain->freq);
+    conf.sample_rate=obtain->freq;
     return 1;
 }
 

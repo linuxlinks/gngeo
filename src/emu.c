@@ -50,6 +50,7 @@
 #include "gp2x.h"
 #include "menu.h"
 #include "ym2610-940/940shared.h"
+#include "ym2610-940/940private.h"
 #endif
 
 int frame;
@@ -200,6 +201,7 @@ void init_neo(char *rom_name)
 	    //gp2x_add_job940(JOB940_INITALL);
 	    gp2x_add_job940(JOB940_INITALL);
 	    wait_busy_940(JOB940_INITALL);
+	    printf("The YM2610 have been initialized\n");
 #else
 	    cpu_z80_init();
 	    //streams_sh_start();
@@ -814,7 +816,7 @@ void main_loop(void)
 		}
 #ifdef GP2X
 		if ((joy_button[0][GP2X_VOL_UP]) && conf.sound) {
-			if (snd_volume<100) snd_volume+=5;
+			if (snd_volume<100) snd_volume+=5; else snd_volume=100;
 			gp2x_sound_volume_set(snd_volume,snd_volume);
 			for (i=0;i<snd_volume/5;i++) volbuf[i]='|';
 			for (i=snd_volume/5;i<20;i++) volbuf[i]='-';
@@ -822,14 +824,16 @@ void main_loop(void)
 			draw_message(volbuf);
 		}
 		if ((joy_button[0][GP2X_VOL_DOWN] && conf.sound)) {
-			if (snd_volume>0) snd_volume-=5;
+			if (snd_volume>0) snd_volume-=5; else snd_volume=0;
 			gp2x_sound_volume_set(snd_volume,snd_volume);
 			for (i=0;i<snd_volume/5;i++) volbuf[i]='|';
 			for (i=snd_volume/5;i<20;i++) volbuf[i]='-';
 			volbuf[20]=0;
 			draw_message(volbuf);
 		}
-		if ((joy_button[0][GP2X_PUSH]) && (joy_button[0][GP2X_L])) {
+		if ((joy_button[0][GP2X_PUSH]) && 
+		    (joy_button[0][GP2X_VOL_DOWN]) &&
+		    (joy_button[0][GP2X_VOL_UP]) ) {
 			//if ((joy_button[0][GP2X_L])) {
 			draw_message("Test Switch ON");
 			conf.test_switch = 1;
@@ -1006,6 +1010,15 @@ void main_loop(void)
 	/* Just to be sure we are running */
 	//shared_ctl->z80_run=1;
 
+	if (conf.sound) {
+		//while(CHECK_BUSY(JOB940_RUN_Z80)) {
+			//printf("%d %d\n",shared_ctl->z80_run,shared_ctl->updateym);
+		//};
+		//printf("%f\n",private_data->inc);
+		wait_busy_940(JOB940_RUN_Z80);
+		gp2x_add_job940(JOB940_RUN_Z80);
+	}
+
 #endif
 	if (!conf.debug) {
 	    if (conf.raster) {
@@ -1033,25 +1046,25 @@ void main_loop(void)
 		}
 	    }
 	} else {
-	    /* we arre in debug mode -> we are just here for event handling */
+	    /* we are in debug mode -> we are just here for event handling */
 	    neo_emu_done=1;
 	}
-#ifdef ENABLE_940T
-	if (conf.sound) {
-		while(CHECK_BUSY(JOB940_RUN_Z80));
-		gp2x_add_job940(JOB940_RUN_Z80);
-		//printf("--  %d\n",shared_ctl->test);
-	}
-#endif
+
 #ifdef ENABLE_PROFILER
 	profiler_show_stat();
 #endif
 	PROFILER_START(PROF_ALL);
     }
+    SDL_PauseAudio(1);
 #ifdef ENABLE_940T
-	shared_ctl->z80_run=0;
+    //while(CHECK_BUSY(JOB940_RUN_Z80));
+    //while(CHECK_BUSY(JOB940_RUN_Z80_NMI));
+    wait_busy_940(JOB940_RUN_Z80);
+    wait_busy_940(JOB940_RUN_Z80_NMI);
+    shared_ctl->z80_run=0;
 	//fclose(sndbuf);
 #endif
+
 }
 
 void cpu_68k_dpg_step(void) {
