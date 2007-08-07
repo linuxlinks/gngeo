@@ -31,6 +31,7 @@
 #include "transpack.h"
 #include "pbar.h"
 #include "driver.h"
+#include "unzip.h"
 /*
 #ifdef GP2X
 #include "shared940.h"
@@ -43,6 +44,21 @@ extern int neogeo_fix_bank_type;
 /* global declaration for video_arm.S */
 Uint8 *mem_gfx=0; /*=memory.gfx;*/
 Uint8 *mem_video=memory.video;
+//#define TOTAL_GFX_BANK 256
+#define TOTAL_GFX_BANK 4096
+
+typedef struct gfx_cache {
+	Uint8 *data;  /* The cache */
+	Uint32 size;  /* Tha allocated size of the cache */      
+	Uint8 *ptr[TOTAL_GFX_BANK]; /* ptr[i] Contain a pointer to cached data for bank i */
+	int max_slot; /* Maximal numer of bank that can be cached (depend on cache size) */
+	int slot_size;
+	int *usage;   /* contain index to the banks in used order */
+	unz_file_pos z_pos[TOTAL_GFX_BANK];
+}GFX_CACHE;
+
+GFX_CACHE gcache;
+
 
 void draw_one_char_arm(int byte1,int byte2,unsigned short *br);
 int draw_tile_arm_norm(unsigned int tileno, int color,unsigned char *bmp,int zy);
@@ -69,6 +85,8 @@ void draw_scanline_tile_i386_50(unsigned int tileno,int yoffs,int sx,int line,in
 #endif
 
 Uint8 strip_usage[0x300];
+#define PEN_USAGE(tileno) ((memory.pen_usage[tileno>>4]>>((tileno&0xF)*2))&0x3)
+
 
 char *ldda_y_skip;
 char *dda_x_skip;
@@ -132,6 +150,60 @@ SDL_Rect buf_rect={16,16,304,224};
 SDL_Rect screen_rect={0,0,304,224};
 */
 
+#ifdef GP2X
+Uint8 *cache_get_gfx_ptr(Uint32 tileno) {
+	static int pos=0;
+	static int init=1;
+	char filename[32];
+	// tileno<<7;
+	int bank=((tileno&0xFFF80)>>7);
+	int a;
+
+	if (init && memory.gp2x_gfx_mapped==GZX_MAPPED) {
+		int i;
+		init=0;
+		unzGoToFirstFile(gp2x_gfx_dump_gz);
+		/* TODO: check if the order is good */
+		for(i=0;i<TOTAL_GFX_BANK;i++) {
+			printf("%d\n",i);
+			unzGetFilePos(gp2x_gfx_dump_gz,&gcache.z_pos[i]);
+			if (unzGoToNextFile(gp2x_gfx_dump_gz)!=UNZ_OK) break;
+		}
+	}
+
+	if (gcache.ptr[bank]) {
+		/* The bank is present in the cache */
+		//printf("bank %d is in cache %p\n",bank,gcache.ptr[bank]);
+		return gcache.ptr[bank];
+	}
+	/* We have to find a slot for this bank */
+	//a=rand()%gcache.max_slot;
+	a=pos;pos++;
+	if (pos>=gcache.max_slot) pos=0;
+
+	if (memory.gp2x_gfx_mapped==GFX_MAPPED) {
+		lseek(gp2x_gfx_dump,(tileno&0xFFF80)<<7,SEEK_SET);
+		read(gp2x_gfx_dump,gcache.data+a*gcache.slot_size,gcache.slot_size);
+		gcache.ptr[bank]=gcache.data+a*gcache.slot_size;
+	} else {
+		//sprintf(filename,"%s.%04d",conf.game,bank);
+		//printf("Need info for %s\n",filename);
+		unzGoToFilePos(gp2x_gfx_dump_gz,&gcache.z_pos[bank]);
+		//printf("Get File %d %d!!\n",bank,gcache.z_pos[bank].num_of_file);
+		unzOpenCurrentFile(gp2x_gfx_dump_gz);
+		unzReadCurrentFile(gp2x_gfx_dump_gz,gcache.data+a*gcache.slot_size,gcache.slot_size);
+		unzCloseCurrentFile(gp2x_gfx_dump_gz);
+		gcache.ptr[bank]=gcache.data+a*gcache.slot_size;
+	}		
+
+	if (gcache.usage[a]!=-1) {
+		gcache.ptr[gcache.usage[a]]=0;
+	}
+	gcache.usage[a]=bank;
+	return gcache.ptr[bank];
+}
+#endif
+
 static void fix_value_init(void) {
     int x, y;
     for(x=0;x<40;x++) {
@@ -150,13 +222,13 @@ void convert_tile(int tileno)
     unsigned char swap[128];
     unsigned int *gfxdata;
     int x,y;
-    unsigned int pen,filed;
+    unsigned int pen,usage=0;
     TRANS_PACK *t;
     gfxdata = (unsigned int *)&memory.gfx[ tileno<<7];
   
     memcpy(swap,gfxdata,128);
 
-    filed=1;
+    //filed=1;
     for (y = 0;y < 16;y++) {
         unsigned int dw;
     
@@ -167,12 +239,13 @@ void convert_tile(int tileno)
             pen |= ((swap[64 + (y<<2) + 1] >> x) & 1) << 2;
             pen |= ((swap[64 + (y<<2) + 2] >> x) & 1) << 1;
             pen |=  (swap[64 + (y<<2)    ] >> x) & 1;
-	    if (!pen) filed=0;
+	    //if (!pen) filed=0;
             dw |= pen << ((7-x)<<2);
-            memory.pen_usage[tileno]  |= (1 << pen);
+            //memory.pen_usage[tileno]  |= (1 << pen);
+	    usage |= (1 << pen);
         }
 #ifdef GP2X
-	if (memory.gp2x_gfx_mapped==SDL_FALSE)
+	if (memory.gp2x_gfx_mapped==0)
 #endif
 		*(gfxdata++) = dw;
      
@@ -183,21 +256,31 @@ void convert_tile(int tileno)
             pen |= ((swap[(y<<2) + 1] >> x) & 1) << 2;
             pen |= ((swap[(y<<2) + 2] >> x) & 1) << 1;
             pen |=  (swap[(y<<2)    ] >> x) & 1;
-	    if (!pen) filed=0;
+	    //if (!pen) filed=0;
             dw |= pen << ((7-x)<<2);
-            memory.pen_usage[tileno]  |= (1 << pen);
+            //memory.pen_usage[tileno]  |= (1 << pen);
+	    usage |= (1 << pen);
         }
 #ifdef GP2X
-	if (memory.gp2x_gfx_mapped==SDL_FALSE)
+	if (memory.gp2x_gfx_mapped==0)
 #endif
 		*(gfxdata++) = dw;
     }
-    /* TODO: CHECK if it is really faster...
-      if (filed==1) {
-      memory.pen_usage[tileno]=TILE_FULL;
-      } else 
-    */
-    if ((memory.pen_usage[tileno] & ~1) == 0) {
+
+    /* 0: Normal, 1: invisible, 2: transparent25, 3: Transparent50 */
+    if ((usage & ~1) == 0) {
+	    memory.pen_usage[tileno>>4]|=(TILE_INVISIBLE<<((tileno&0xF)*2));
+    } else {
+	    t=trans_pack_find(tileno);
+	    if (t!=NULL) {
+		    if (t->type==1)
+			    memory.pen_usage[tileno>>4]|=(TILE_TRANSPARENT25<<((tileno&0xF)*2));
+		    else if (t->type==2) 
+			    memory.pen_usage[tileno>>4]|=(TILE_TRANSPARENT50<<((tileno&0xF)*2));
+	    }
+    }
+/*
+    if ((usage & ~1) == 0) {
         memory.pen_usage[tileno]=TILE_INVISIBLE;
     } else {
 	t=trans_pack_find(tileno);
@@ -214,6 +297,7 @@ void convert_tile(int tileno)
 	    memory.pen_usage[tileno]=TILE_NORMAL;
 	}
     }
+*/
   
 }
 
@@ -649,6 +733,12 @@ static __inline__ void draw_tile_gp2x_norm(unsigned int tileno,int sx,int sy,int
 			 int color,int xflip,int yflip,unsigned char *bmp) {
 	Uint32 pitch=352/*buffer->pitch>>1*/;
 	//static SDL_Rect blit_rect={0,0,16,16};
+
+	if (memory.gp2x_gfx_mapped) {
+		mem_gfx=cache_get_gfx_ptr(tileno);
+		tileno=(tileno&0x7F);
+	}
+
 	if(zy==16)
 		ldda_y_skip=full_y_skip;
 	else
@@ -891,7 +981,7 @@ void draw_screen(void)
     char fullmode=0;
     int ddax=0,dday=0,rzx=15,yskip=0;
     unsigned char *vidram=memory.video;
-
+    unsigned char bank[256]={0,};
 
     //    int drawtrans=0;
 
@@ -995,7 +1085,7 @@ void draw_screen(void)
             if (memory.nb_of_tiles>0x10000 && tileatr&0x10) tileno+=0x10000;
             if (memory.nb_of_tiles>0x20000 && tileatr&0x20) tileno+=0x20000;
             if (memory.nb_of_tiles>0x40000 && tileatr&0x40) tileno+=0x40000;
-
+	    
 	    /* animation automatique */
 	    /*if (tileatr&0x80) printf("PLOP\n");*/
             if (tileatr&0x8) {
@@ -1010,7 +1100,7 @@ void draw_screen(void)
 		
 		continue;
 	    }
-      
+     
 
             if (fullmode == 2 || (fullmode == 1 && rzy == 0xff))
             {
@@ -1052,33 +1142,38 @@ void draw_screen(void)
       
             if (sx >= -16 && sx+15 < 336 && sy>=0 && sy+15 <256) {
 #ifdef GP2X
-		    if (memory.pen_usage[tileno]!=TILE_INVISIBLE)
+		    //if (memory.pen_usage[tileno]!=TILE_INVISIBLE)
+		    if (PEN_USAGE(tileno)!=TILE_INVISIBLE)
 			    draw_tile_gp2x_norm(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
 						tileatr & 0x01,tileatr & 0x02,
 						(unsigned char*)buffer->pixels);
 #else
 #ifdef I386_ASM
-		    switch (memory.pen_usage[tileno]) {
-		    case TILE_NORMAL:
-		    //printf("%d %d %x %x %x %x\n",tileno,sx,count,t1,t2,t3);
-		    draw_tile_i386_norm(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
-					tileatr & 0x01,tileatr & 0x02,
-					(unsigned char*)buffer->pixels);
-		    break;
-		case TILE_TRANSPARENT50:
-		    draw_tile_i386_50(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
-				      tileatr & 0x01,tileatr & 0x02,
-				      (unsigned char*)buffer->pixels);
-		    break;
-		    /* TODO: 25% transparency in i386 asm */
-		case TILE_TRANSPARENT25:
-		    draw_tile_25(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
-				 tileatr & 0x01,tileatr & 0x02,
-				 (unsigned char*)buffer->pixels);
-		    break;
+			//switch (memory.pen_usage[tileno]) {
+			switch (PEN_USAGE(tileno)) {
+			case TILE_NORMAL:
+				//printf("%d %d %x %x %x %x\n",tileno,sx,count,t1,t2,t3);
+				draw_tile_i386_norm(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
+						    tileatr & 0x01,tileatr & 0x02,
+						    (unsigned char*)buffer->pixels);
+				break;
+			case TILE_TRANSPARENT50:
+				draw_tile_i386_50(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
+						  tileatr & 0x01,tileatr & 0x02,
+						  (unsigned char*)buffer->pixels);
+				break;
+				/* TODO: 25% transparency in i386 asm */
+			case TILE_TRANSPARENT25:
+				draw_tile_25(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
+					     tileatr & 0x01,tileatr & 0x02,
+					     (unsigned char*)buffer->pixels);
+				break;
+			case TILE_INVISIBLE:
+				//printf("INVISIBLE %08x\n",tileno);
+				break;
 		}
 #else
-                switch (memory.pen_usage[tileno]) {
+                switch (PEN_USAGE(tileno)) {
 /*
 		case TILE_FULL:
 			draw_tile_full(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
@@ -1121,10 +1216,16 @@ void draw_screen(void)
     if (show_fps)
         SDL_textout(buffer,visible_area.x,visible_area.y,fps_str);
 
-
-    screen_update();
-
-    
+	
+	screen_update();
+/*
+	i=0;
+	for (sx=0;sx<256;sx++) {
+		if (sx&1) printf("%d",bank[sx]+bank[sx-1]);
+		if (bank[sx]) i++;
+	}
+	printf(" %d Ko \n",((i*0x80000/256)*16*8)/1024);
+*/
 }
 
 void draw_screen_scanline(int start_line, int end_line,int refresh)
@@ -1330,7 +1431,7 @@ void draw_screen_scanline(int start_line, int end_line,int refresh)
 		continue;
 */
 
-	    switch (memory.pen_usage[tileno]) {
+	    switch (PEN_USAGE(tileno)) {
 #ifdef I386_ASM
 	    case TILE_NORMAL:
 		draw_scanline_tile_i386_norm(tileno,yoffs,sx+16  ,yy,zx,tileatr>>8,
@@ -1392,9 +1493,28 @@ void draw_screen_scanline(int start_line, int end_line,int refresh)
 
 
 void init_video(void) {
+	int i;
 #ifdef GP2X
 	if (!mem_gfx) {
 		mem_gfx=memory.gfx;
+	}
+	if (memory.gp2x_gfx_mapped) {
+		/* Create our video cache */
+		gcache.size=0x1000000;
+		do {
+			gcache.data=malloc(gcache.size);
+			if (!gcache.data) gcache.size-=0x100000;
+		} while (!gcache.data && gcache.size>200000);
+		if (!gcache.data) {
+			printf("Out of memory\n");
+			exit(1);
+		}
+		gcache.max_slot=((float)gcache.size/0x4000000)*TOTAL_GFX_BANK;
+		gcache.slot_size=0x4000000/TOTAL_GFX_BANK;
+		printf("Allocating %08x for gfx cache (%d %d slot)\n",gcache.size,gcache.max_slot,gcache.slot_size);
+		gcache.usage=malloc(gcache.max_slot*sizeof(int));
+		for (i=0;i<gcache.max_slot;i++)
+			gcache.usage[i]=-1;
 	}
 #endif
 

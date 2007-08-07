@@ -319,10 +319,10 @@ SDL_bool init_game(char *rom_name) {
     sprintf(drconf,"%s%s.cf",gpath,dr->name);
     cf_open_file(drconf);
 
-    /* open transpack if need */
-    trans_pack_open(CF_STR(cf_get_item_by_name("transpack")));
+ 
 #endif
-
+   /* open transpack if need */
+    trans_pack_open(CF_STR(cf_get_item_by_name("transpack")));
 
     //open_rom(rom_name);
     if (dr_load_game(dr,rom_name)==SDL_FALSE) {

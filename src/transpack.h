@@ -3,13 +3,10 @@
 
 #include "SDL.h"
 enum {
-    TILE_UNCONVERTED=0,
-    TILE_NORMAL,
-    TILE_INVISIBLE,
-    TILE_TRANSPARENT25,
-    TILE_TRANSPARENT50,
-    TILE_FULL            /* Special cas for optimisation: tile doesn't contain
-                            any transparent pixels */
+	TILE_NORMAL,
+	TILE_INVISIBLE,
+	TILE_TRANSPARENT25,
+	TILE_TRANSPARENT50,
 };
 
 typedef struct TRANS_PACK {

@@ -701,6 +701,8 @@ void main_loop(void)
     static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
     FILE *sndbuf;
     unsigned int sample_len=conf.sample_rate/60.0;
+    static unsigned int gp2x_timer;
+    static unsigned int gp2x_timer_prev;
 #endif
 
     Uint32 cpu_68k_timeslice = (m68k_overclk==0?200000:200000+(m68k_overclk*200000/100.0));
@@ -719,21 +721,10 @@ void main_loop(void)
 #ifdef GP2X
     gp2x_sound_volume_set(snd_volume,snd_volume);
 #endif
-#ifdef ENABLE_940T
-    
-    shared_ctl->z80_run=0;
-    //gp2x_add_job940(JOB940_RUN_Z80_BIS);
-    //gp2x_add_job940(JOB940_RUN_Z80);
-    //sndbuf=fopen("./sample.raw","wb");
-#endif
+
     reset_frame_skip();
     my_timer();
-    //printf("Cpuspeed: %d\n",cpu_68k_timeslice);
-/*
-    printf("%s\n",&memory.cpu[0x100]);
-    printf("NGH = %04x\n",READ_WORD(&memory.cpu[0x108]));
-    printf("SSN = %04x\n",READ_WORD(&memory.cpu[0x114]));
-*/
+
     //SDL_PauseAudio(0);
     while (!neo_emu_done) {
 	if (conf.test_switch == 1)
@@ -1006,20 +997,25 @@ void main_loop(void)
 	} /*
 	    else
 	    my_timer();*/
-#else
-	/* Just to be sure we are running */
-	//shared_ctl->z80_run=1;
-
+#endif
+#ifdef ENABLE_940T
 	if (conf.sound) {
-		//while(CHECK_BUSY(JOB940_RUN_Z80)) {
-			//printf("%d %d\n",shared_ctl->z80_run,shared_ctl->updateym);
-		//};
-		//printf("%f\n",private_data->inc);
 		wait_busy_940(JOB940_RUN_Z80);
+#if 0
+		if (gp2x_timer) {
+			gp2x_timer_prev=gp2x_timer;
+			gp2x_timer=gp2x_memregl[0x0A00>>2];
+			shared_ctl->sample_todo=(unsigned int)(((gp2x_timer-gp2x_timer_prev)*conf.sample_rate)/7372800.0);
+		} else {
+			gp2x_timer=gp2x_memregl[0x0A00>>2];
+			shared_ctl->sample_todo=sample_len;
+		}	
+#endif
 		gp2x_add_job940(JOB940_RUN_Z80);
 	}
 
 #endif
+
 	if (!conf.debug) {
 	    if (conf.raster) {
 		for (i = 0; i < 261; i++) {

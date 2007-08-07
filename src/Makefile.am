@@ -66,7 +66,8 @@ gngeo_SOURCES = fileio.c         pd4990a.c        gngeo_icon.h      crypt.h     
 		driver.h         driver.c         list.c            list.h	    \
 		gui_interf.c     gui_interf.h     videogl.c	    videogl.h       \
 		cyclone_interf.c gp2x.h		  gp2x.c	    drz80_interf.c  \
-		menu.c		 menu.h		  ioapi.c
+		menu.c		 menu.h		  ioapi.c           zip.c           \
+		zip.h
 
 EXTRA_DIST = c32.mac screen_i386.asm video_i386.asm video_i386.inc getopt.h video_arm.s memcpy.S
 

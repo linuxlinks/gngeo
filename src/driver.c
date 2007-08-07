@@ -37,6 +37,8 @@
 #include "neocrypt.h"
 #include "fileio.h"
 #include "emu.h"
+#include "transpack.h"
+#include "zip.h"
 
 #ifdef GP2X
 #include <sys/mman.h>
@@ -482,6 +484,81 @@ SDL_bool dr_load_section(unzFile *gz, SECTION s, Uint8 *current_buf) {
     }
     return SDL_TRUE;
 }
+
+SDL_bool dr_dump_gzx(DRIVER *dr,unzFile *gz, SECTION s,char *file) {
+	int i=0;
+	char fname[32];
+	char *out=strdup(file);
+	char *out_ext;
+	zipFile *zip;
+
+	//printf("Alloc %x for GFX: %p\n",s,memory.gfx);
+	memory.gfx_size = s.size;
+	memory.gfx = malloc(s.size); ;
+	memory.pen_usage = malloc((s.size >> 11) * sizeof(Uint32));
+	CHECK_ALLOC(memory.pen_usage);
+	memset(memory.pen_usage, 0, (s.size >> 11) * sizeof(Uint32));
+	memory.nb_of_tiles = s.size >> 7;
+	
+	if (!dr_load_section(gz,s,memory.gfx)) return SDL_FALSE;
+	
+	if (dr->rom_type == MGD2) {
+		create_progress_bar("Convert MGD2");
+		convert_mgd2_tiles(memory.gfx, memory.gfx_size);
+		convert_mgd2_tiles(memory.gfx, memory.gfx_size);
+		terminate_progress_bar();
+	}
+	if (dr->rom_type == MVS_CMC42) {
+		create_progress_bar("Decrypt GFX ");
+		kof99_neogeo_gfx_decrypt(conf.extra_xor);
+		terminate_progress_bar();
+	}
+	if (dr->rom_type == MVS_CMC50) {
+		create_progress_bar("Decrypt GFX ");
+		kof2000_neogeo_gfx_decrypt(conf.extra_xor);
+		terminate_progress_bar();
+	}
+
+	for (i = 0; i < memory.nb_of_tiles; i++) {
+		convert_tile(i);
+        }
+	i=0;
+	create_progress_bar("Zipping GFX ");
+//printf("Creating %s\n",file);
+	zip=zipOpen(file,APPEND_STATUS_CREATE);
+	do {
+		sprintf(fname,"%s.%04d",dr->name,i);
+
+		if (zipOpenNewFileInZip (zip,fname,NULL,NULL,0,NULL,0,
+					 NULL,Z_DEFLATED,Z_DEFAULT_COMPRESSION)!=0) {
+			printf("Errrrrr\n");
+		}
+
+		//printf("Zipping %s\n",fname);
+		zipWriteInFileInZip(zip,memory.gfx,16384);
+
+		update_progress_bar(i,4096);
+
+		zipCloseFileInZip(zip);
+
+		memory.gfx+=16384;
+		memory.gfx_size-=16384;
+		i++;
+	} while (memory.gfx_size>0);
+
+	/* Pen usage */
+	sprintf(fname,"%s.pen",dr->name);
+	zipOpenNewFileInZip (zip,fname,NULL,NULL,0,NULL,0,
+			     NULL,Z_DEFLATED,Z_DEFAULT_COMPRESSION);
+	zipWriteInFileInZip(zip,memory.pen_usage,(s.size >> 11) * sizeof(Uint32));
+	zipCloseFileInZip(zip);
+
+	zipClose(zip,"Gzx file created by gngeo");
+	terminate_progress_bar();
+
+	return SDL_TRUE;
+}
+
 //#ifdef GP2X
 /* dump gfx for system with little memory (16MB free needed) */
 /* Big Warn!! This funtion assume that gfx are always load in ALTERNATE mode */
@@ -608,7 +685,8 @@ SDL_bool dr_dump_gfx_light(DRIVER *dr,unzFile *gz, SECTION s,char *file) {
 
 	    l=l->next;
     }
-    fwrite(usage,memory.nb_of_tiles*sizeof(Uint32),1,dump);
+    // DONT FORGET TO UNCOMMENT IT PEPONE!!!!
+    //fwrite(usage,memory.nb_of_tiles*sizeof(Uint32),1,dump);
     fclose(dump);
 
     free(data);
@@ -652,7 +730,7 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 	return SDL_FALSE;
     }
 #ifdef GP2X
-    memory.gp2x_gfx_mapped=SDL_FALSE;
+    memory.gp2x_gfx_mapped=0;
 #endif
 
     if (dr->special_bios) {
@@ -740,10 +818,13 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 		//printf("Alloc %x for GFX: %p\n",s,memory.gfx);
 		memory.gfx_size = s;
 		current_buf = memory.gfx;
-		memory.pen_usage = malloc((s >> 7) * sizeof(int));
+		//memory.pen_usage = malloc((s >> 7) * sizeof(int));
+		memory.pen_usage = malloc((s >> 11) * sizeof(Uint32));
 		CHECK_ALLOC(memory.pen_usage);
-		memset(memory.pen_usage, 0, (s >> 7) * sizeof(int));
+		//memset(memory.pen_usage, 0, (s >> 7) * sizeof(int));
+		memset(memory.pen_usage, 0, (s >> 11) * sizeof(Uint32));
 		memory.nb_of_tiles = s >> 7;
+		//printf("Aloocate %d for pen usage (%d)\n",(s >> 11),s >> 7);
 	    break;
 	    /* TODO: Crypted rom */
 	default:
@@ -761,10 +842,16 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 	    //int gfxdump;
 	    char dumpname[256];
 	    Uint32 *pusage;
-	    sprintf(dumpname,"%s/%s.gfx",CF_STR(cf_get_item_by_name("rompath")),dr->name);
-	    gp2x_gfx_dump=open(dumpname,O_RDONLY);
-	    if (gp2x_gfx_dump==-1) {
-		    if ((dr->rom_type == MGD2) || (dr->rom_type == MVS_CMC42) || (dr->rom_type == MVS_CMC50)) {
+	    sprintf(dumpname,"%s/%s.gzx",CF_STR(cf_get_item_by_name("rompath")),dr->name);
+	    gp2x_gfx_dump_gz = unzOpen(dumpname);
+	    if (gp2x_gfx_dump_gz!=NULL) {
+		    
+		    memory.gp2x_gfx_mapped=GZX_MAPPED;
+	    } else {
+		    sprintf(dumpname,"%s/%s.gfx",CF_STR(cf_get_item_by_name("rompath")),dr->name);
+		    gp2x_gfx_dump=open(dumpname,O_RDONLY);
+		    if (gp2x_gfx_dump==-1) {
+			    if ((dr->rom_type == MGD2) || (dr->rom_type == MVS_CMC42) || (dr->rom_type == MVS_CMC50)) {
 			    gn_popup_error("Failed!",
 					   "%s is encrypted "
 					   "It can't be dump on the GP2X. "
@@ -801,20 +888,27 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 		    }
 		    //exit(1);
 		    gp2x_gfx_dump=open(dumpname,O_RDONLY);
-	    }
-	    if (gp2x_gfx_dump!=-1) {
-		    memory.gfx=mmap(0,memory.gfx_size,PROT_READ, MAP_PRIVATE|MAP_NONBLOCK, gp2x_gfx_dump,0x0);
-		    pusage=mmap(0,memory.nb_of_tiles*sizeof(int),PROT_READ, MAP_PRIVATE|MAP_NONBLOCK,
-				gp2x_gfx_dump,memory.gfx_size);
-		    memcpy(memory.pen_usage,pusage,memory.nb_of_tiles*sizeof(int));
-		    
-		    //printf("Mem GFX=%08X\n",memory.gfx);
-		    memory.gp2x_gfx_mapped=SDL_TRUE;
-	    } else {
-		    gn_popup_error("Loading GFX:","Couldn't open gfx dump. "
-				   "Check your roms dir and check for %s.gfx.",dr->name);
-		    unzClose(gz);
-		    exit(1);
+		    }
+		    if (gp2x_gfx_dump!=-1) {
+			    memory.gfx=mmap(0,memory.gfx_size,PROT_READ, MAP_PRIVATE|MAP_NONBLOCK, gp2x_gfx_dump,0x0);
+			    pusage=mmap(0,memory.nb_of_tiles*sizeof(int),PROT_READ, MAP_PRIVATE|MAP_NONBLOCK,
+					gp2x_gfx_dump,memory.gfx_size);
+			    for (i=0;i<memory.nb_of_tiles;i++) {
+				    if (pusage[i]==2) { /* Old format -> TILE_INVISIBLE=2 */
+					    memory.pen_usage[i>>4]|=(TILE_INVISIBLE<<((i&0xF)*2));
+				    }
+			    }
+			    
+			    //memcpy(memory.pen_usage,pusage,memory.nb_of_tiles*sizeof(int));
+			    
+			    //printf("Mem GFX=%08X\n",memory.gfx);
+			    memory.gp2x_gfx_mapped=GFX_MAPPED;
+		    } else {
+			    gn_popup_error("Loading GFX:","Couldn't open gfx dump. "
+					   "Check your roms dir and check for %s.gfx.",dr->name);
+			    unzClose(gz);
+			    exit(1);
+		    }
 	    }
     }
 #endif
@@ -833,7 +927,7 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 	memory.bksw_offset[i]=dr->banksw_off[i];
 
 #ifdef GP2X
-    if (memory.gp2x_gfx_mapped==SDL_FALSE) {
+    if (memory.gp2x_gfx_mapped==0) {
 #endif
 	    if (conf.rom_type == MGD2) {
 		    create_progress_bar("Convert MGD2");
@@ -863,7 +957,7 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 
 
 #ifdef GP2X
-    if (memory.gp2x_gfx_mapped==SDL_FALSE) {
+    if (memory.gp2x_gfx_mapped==0) {
 #endif
 	    //if (CF_BOOL(cf_get_item_by_name("convtile"))) {
 	    create_progress_bar("Convert tile");

@@ -98,6 +98,7 @@ void Main940(void)
 			//shared_ctl->test=gp2x_memregl[0x0A00>>2];
 			shared_ctl->updateym=1;
 			//shared_ctl->test=nb_frame;
+#if 1
 			if (private_data->nb_frame>=60) {
 				int a=shared_data->sample_rate-private_data->tot_sample;
 				//shared_ctl->test=shared_data->sample_rate-tot_sample;
@@ -116,10 +117,42 @@ void Main940(void)
 				cpu_z80_run(300); 
 			} 
 */
-			shared_ctl->updateym=0;
 			private_data->nb_frame++;
+#else
+			YM2610Update_stream(shared_ctl->sample_todo);
+#endif
+			shared_ctl->updateym=0;
+
+
 			//shared_ctl->test=shared_ctl->nb_frame;
 
+			break;
+		case JOB940_RUN_Z80_2: {
+			int z80_cycle=(shared_ctl->sample_todo*4400000)/
+				(float)shared_data->sample_rate;
+			shared_ctl->test+=(shared_ctl->sample_todo*256*60)/
+				(float)shared_data->sample_rate;
+
+
+			if (shared_ctl->test>256) {
+				shared_ctl->z80_run=1;
+				for (l=0;l<shared_ctl->test;l++) {
+					if (shared_ctl->nmi_pending) {
+						shared_ctl->nmi_pending=0;
+						cpu_z80_nmi();
+						cpu_z80_run(300);
+					}
+					cpu_z80_run(z80_cycle/shared_ctl->test);
+					my_timer();
+				}
+				shared_ctl->z80_run=0;
+				shared_ctl->test=0;
+			}
+			shared_ctl->updateym=1;
+
+			YM2610Update_stream(shared_ctl->sample_todo);
+			shared_ctl->updateym=0;
+		}
 			break;
 		case JOB940_RUN_Z80_NMI:
 			if (shared_ctl->nmi_pending) {

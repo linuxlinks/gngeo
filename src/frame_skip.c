@@ -130,7 +130,7 @@ int frame_skip(int init)
     }
 
     target += F;
-    if (f2skip > 0) {
+    if (f2skip > 0 ) {
 	f2skip--;
 	skpFrm++;
 	return 1;

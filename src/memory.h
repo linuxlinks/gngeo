@@ -88,7 +88,8 @@
 #endif
 
 #define CHECK_ALLOC(a) {if (!a) {printf("Out of Memory\n");exit(1);}}
-
+#define GFX_MAPPED 1
+#define GZX_MAPPED 2
 
 typedef struct neo_mem {
     Uint8 *cpu;
@@ -128,7 +129,7 @@ typedef struct neo_mem {
     Uint8 kof2003_bksw[0x2000];
 	Uint8 memcard[0x800];
 #ifdef GP2X
-	SDL_bool gp2x_gfx_mapped;
+	Uint8 gp2x_gfx_mapped;
 #endif
 } neo_mem;
 

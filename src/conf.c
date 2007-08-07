@@ -90,7 +90,9 @@ void cf_cache_conf(void) {
     conf.debug=CF_BOOL(cf_get_item_by_name("debug"));
     conf.raster=CF_BOOL(cf_get_item_by_name("raster"));
     conf.pal=CF_BOOL(cf_get_item_by_name("pal"));
+#ifdef GP2X
     conf.accurate940=CF_BOOL(cf_get_item_by_name("940sync"));
+#endif
     country=CF_STR(cf_get_item_by_name("country"));
     system=CF_STR(cf_get_item_by_name("system"));
     if (!strcmp(system,"unibios")) {
@@ -338,23 +340,20 @@ static int dump_sprite(CONF_ITEM *self) {
 	unzFile *gz;
 	dr_load_driver_dir(CF_STR(cf_get_item_by_name("romrcdir")));
 	if ((dr=get_driver_for_zip(filename))!=NULL) {
-		/* DO the dump now */
-		char *out_ext=strcasestr(out,".zip");
-		if (out_ext) {
-			out_ext[0]=0;
-			strncat(out,".gfx",4);
-		}
-		printf(out);
+
+		sprintf(out,"%s.gzx",dr->name);
+		printf("%s\n",out);
 		gz = unzOpen(filename);
 		/* TODO: a real dump now, not just the light one */
-		if (dr_dump_gfx_light(dr,gz,dr->section[SEC_GFX],out)!=SDL_TRUE) {
+		//if (dr_dump_gfx_light(dr,gz,dr->section[SEC_GFX],out)!=SDL_TRUE) {
+		if (dr_dump_gzx(dr,gz,dr->section[SEC_GFX],out)!=SDL_TRUE) {
 			printf("Sorry, gngeo couldn't dump this roms :(");
 			unzClose(gz);
 			return 1;
 		}
 		unzClose(gz);
 	} else {
-		printf("Couldn't open %s\n",filename);
+		printf("Pfff Couldn't open %s\n",filename);
 		return 1;
 	}
 	return 0;

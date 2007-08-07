@@ -11,6 +11,7 @@ enum _940_job_t {
 	JOB940_RUN_Z80,
 	JOB940_RUN_Z80_NMI,
 	JOB940_RUN_Z80_300,
+	JOB940_RUN_Z80_2,
 };
 
 //#define MAX_940JOBS	2
@@ -50,6 +51,7 @@ typedef struct
 	int updateym;
 	unsigned int buf_pos;
 	unsigned int sample_len;
+	unsigned int sample_todo;
 	unsigned short play_buffer[SAMPLE_BUFLEN];
 } _940_ctl_t;
 
