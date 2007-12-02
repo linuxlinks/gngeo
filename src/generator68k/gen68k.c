@@ -7,7 +7,7 @@
 
 #include "def68k-iibs.h"
 
-#include "tab68k.c"
+//#include "tab68k.c"
 
 /* forward references */
 

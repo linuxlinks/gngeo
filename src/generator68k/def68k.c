@@ -8,7 +8,7 @@
 
 #include "generator.h"
 
-#include "tab68k.c"
+//#include "tab68k.c"
 
 #define BUFLEN 1024
 #define FNAME_CPUDEF "def68k.def"

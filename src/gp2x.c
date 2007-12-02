@@ -222,13 +222,13 @@ void set_RAM_Timings(int tRC, int tRAS, int tWR, int tMRD, int tRFC, int tRP, in
 }
 
 /* TODO */
-int spend_cycles(int cycles) {
+/*int spend_cycles(int cycles) {
 	int i,j=0;
 	for(i=cycles/4;i>0;i--) {
 		j=i+1;
 	}
 	return j;
-}
+	}*/
 
 
 void print_shared_struct(void) {
@@ -495,8 +495,13 @@ void gp2x_set_cpu_speed(void) {
 
 void gp2x_quit(void) {
 	//hackpgtable(1);
+	int i;
 	char *frontend=strdup(CF_STR(cf_get_item_by_name("frontend")));
 	char *fullpath=CF_STR(cf_get_item_by_name("frontend"));
+
+	for(i=0;i<gcache.total_bank;i++) {
+		printf("BANK %06d %d\n",i,mem_bank_usage[i]);
+	}
 
 #ifdef ENABLE_940T	
 	sleep(1);

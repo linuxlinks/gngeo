@@ -44,18 +44,8 @@ extern int neogeo_fix_bank_type;
 /* global declaration for video_arm.S */
 Uint8 *mem_gfx=0; /*=memory.gfx;*/
 Uint8 *mem_video=memory.video;
-//#define TOTAL_GFX_BANK 256
-#define TOTAL_GFX_BANK 4096
-
-typedef struct gfx_cache {
-	Uint8 *data;  /* The cache */
-	Uint32 size;  /* Tha allocated size of the cache */      
-	Uint8 *ptr[TOTAL_GFX_BANK]; /* ptr[i] Contain a pointer to cached data for bank i */
-	int max_slot; /* Maximal numer of bank that can be cached (depend on cache size) */
-	int slot_size;
-	int *usage;   /* contain index to the banks in used order */
-	unz_file_pos z_pos[TOTAL_GFX_BANK];
-}GFX_CACHE;
+//#define TOTAL_GFX_BANK 4096
+Uint32 *mem_bank_usage;
 
 GFX_CACHE gcache;
 
@@ -156,20 +146,41 @@ Uint8 *cache_get_gfx_ptr(Uint32 tileno) {
 	static int init=1;
 	char filename[32];
 	// tileno<<7;
-	int bank=((tileno&0xFFF80)>>7);
+	int tile_sh=~((gcache.slot_size>>7)-1);
+//int bank=((tileno&0xFFF80)>>7);
+	//int bank=((tileno&tile_sh)>>7);
+	int bank=((tileno&tile_sh)/(gcache.slot_size>>7));
 	int a;
-
+	//printf("%08X\n",tile_sh);
 	if (init && memory.gp2x_gfx_mapped==GZX_MAPPED) {
 		int i;
 		init=0;
+		mem_bank_usage=malloc(gcache.total_bank*sizeof(Uint32));
+		memset(mem_bank_usage,0,gcache.total_bank*sizeof(Uint32));
+
 		unzGoToFirstFile(gp2x_gfx_dump_gz);
 		/* TODO: check if the order is good */
-		for(i=0;i<TOTAL_GFX_BANK;i++) {
+		for(i=0;i<gcache.total_bank;i++) {
 			printf("%d\n",i);
 			unzGetFilePos(gp2x_gfx_dump_gz,&gcache.z_pos[i]);
 			if (unzGoToNextFile(gp2x_gfx_dump_gz)!=UNZ_OK) break;
 		}
+#if 0
+		for(i=0;i<gcache.max_slot/2;i++) {
+			int b=rand()%gcache.total_bank;
+			unzGoToFilePos(gp2x_gfx_dump_gz,&gcache.z_pos[b]);
+			printf("Get File %d %d!!\n",bank,gcache.z_pos[b].num_of_file);
+			unzOpenCurrentFile(gp2x_gfx_dump_gz);
+			unzReadCurrentFile(gp2x_gfx_dump_gz,gcache.data+i*gcache.slot_size,gcache.slot_size);
+			unzCloseCurrentFile(gp2x_gfx_dump_gz);
+			gcache.ptr[b]=gcache.data+i*gcache.slot_size;
+			gcache.usage[i]=b;
+		}
+		pos=i;
+#endif
 	}
+
+	mem_bank_usage[bank]++;
 
 	if (gcache.ptr[bank]) {
 		/* The bank is present in the cache */
@@ -181,20 +192,15 @@ Uint8 *cache_get_gfx_ptr(Uint32 tileno) {
 	a=pos;pos++;
 	if (pos>=gcache.max_slot) pos=0;
 
-	if (memory.gp2x_gfx_mapped==GFX_MAPPED) {
-		lseek(gp2x_gfx_dump,(tileno&0xFFF80)<<7,SEEK_SET);
-		read(gp2x_gfx_dump,gcache.data+a*gcache.slot_size,gcache.slot_size);
-		gcache.ptr[bank]=gcache.data+a*gcache.slot_size;
-	} else {
-		//sprintf(filename,"%s.%04d",conf.game,bank);
-		//printf("Need info for %s\n",filename);
-		unzGoToFilePos(gp2x_gfx_dump_gz,&gcache.z_pos[bank]);
-		//printf("Get File %d %d!!\n",bank,gcache.z_pos[bank].num_of_file);
-		unzOpenCurrentFile(gp2x_gfx_dump_gz);
-		unzReadCurrentFile(gp2x_gfx_dump_gz,gcache.data+a*gcache.slot_size,gcache.slot_size);
-		unzCloseCurrentFile(gp2x_gfx_dump_gz);
-		gcache.ptr[bank]=gcache.data+a*gcache.slot_size;
-	}		
+	//sprintf(filename,"%s.%06d",conf.game,bank);
+	//printf("Need info for %s\n",filename);
+	
+	unzGoToFilePos(gp2x_gfx_dump_gz,&gcache.z_pos[bank]);
+	//printf("Get File %d %d!!\n",bank,gcache.z_pos[bank].num_of_file);
+	unzOpenCurrentFile(gp2x_gfx_dump_gz);
+	unzReadCurrentFile(gp2x_gfx_dump_gz,gcache.data+a*gcache.slot_size,gcache.slot_size);
+	unzCloseCurrentFile(gp2x_gfx_dump_gz);
+	gcache.ptr[bank]=gcache.data+a*gcache.slot_size;
 
 	if (gcache.usage[a]!=-1) {
 		gcache.ptr[gcache.usage[a]]=0;
@@ -734,9 +740,10 @@ static __inline__ void draw_tile_gp2x_norm(unsigned int tileno,int sx,int sy,int
 	Uint32 pitch=352/*buffer->pitch>>1*/;
 	//static SDL_Rect blit_rect={0,0,16,16};
 
-	if (memory.gp2x_gfx_mapped) {
+	if (memory.gp2x_gfx_mapped==GZX_MAPPED) {
 		mem_gfx=cache_get_gfx_ptr(tileno);
-		tileno=(tileno&0x7F);
+		tileno=(tileno&((gcache.slot_size>>7)-1));
+		//printf("%08X\n",((gcache.slot_size>>7)-1));
 	}
 
 	if(zy==16)
@@ -1498,8 +1505,14 @@ void init_video(void) {
 	if (!mem_gfx) {
 		mem_gfx=memory.gfx;
 	}
-	if (memory.gp2x_gfx_mapped) {
+	if (memory.gp2x_gfx_mapped==GZX_MAPPED) {
 		/* Create our video cache */
+
+		gcache.total_bank=memory.gfx_size/gcache.slot_size;
+		gcache.ptr=malloc(gcache.total_bank*sizeof(Uint8*));
+		gcache.z_pos=malloc(gcache.total_bank*sizeof(unz_file_pos ));
+		memset(gcache.ptr,0,gcache.total_bank*sizeof(Uint8*));
+		
 		gcache.size=0x1000000;
 		do {
 			gcache.data=malloc(gcache.size);
@@ -1509,8 +1522,9 @@ void init_video(void) {
 			printf("Out of memory\n");
 			exit(1);
 		}
-		gcache.max_slot=((float)gcache.size/0x4000000)*TOTAL_GFX_BANK;
-		gcache.slot_size=0x4000000/TOTAL_GFX_BANK;
+		//gcache.max_slot=((float)gcache.size/0x4000000)*TOTAL_GFX_BANK;
+		gcache.max_slot=((float)gcache.size/memory.gfx_size)*gcache.total_bank;
+		//gcache.slot_size=0x4000000/TOTAL_GFX_BANK;
 		printf("Allocating %08x for gfx cache (%d %d slot)\n",gcache.size,gcache.max_slot,gcache.slot_size);
 		gcache.usage=malloc(gcache.max_slot*sizeof(int));
 		for (i=0;i<gcache.max_slot;i++)

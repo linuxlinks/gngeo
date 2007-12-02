@@ -57,6 +57,42 @@ extern int neogeo_fix_bank_type;
 
 static LIST *driver_list=NULL;
 
+
+/* Get the file szFileName in the zip.
+   If szFileName begins by 0x, search by crc
+*/
+static int unzLocateFile2(unzFile file,const char *szFileName)
+{
+	unz_file_pos filepos;
+	unz_file_info fileinfo;
+	/* remember where we are */
+	unzGetFilePos(file,&filepos);
+	int err;
+	char filename[256];
+	Uint32 crc;
+
+	err = unzGoToFirstFile(file);
+	while (err == UNZ_OK) {
+		err = unzGetCurrentFileInfo(file,&fileinfo,
+					    filename,255,
+					    NULL,0,NULL,0);
+		if (err == UNZ_OK) {
+			//printf("Serching %s\n",szFileName);
+			if (strncasecmp(szFileName,"0x",2)==0) {
+				crc=strtoul(szFileName,NULL,0);
+				if (crc==fileinfo.crc) return UNZ_OK;
+			} else {
+				if (strcasecmp(filename,szFileName)==0) {
+					return UNZ_OK;
+				}
+			}
+			err = unzGoToNextFile(file);
+		}
+	}
+	unzGoToFilePos(file,&filepos);
+	return err;
+}
+
 static SDL_bool goto_next_driver(FILE * f)
 {
     char buf[512];
@@ -286,28 +322,48 @@ static SDL_bool file_is_zip(char *name) {
     return SDL_FALSE;
 }
 
+typedef struct zip_info_item {
+	char *fname;
+	Uint32 crc;
+}zip_info_item;
+
 static void free_ziplist_item(void *data) {
-    free(data);
+	zip_info_item *a=(zip_info_item*)data;
+	free(a->fname);
+	free(a);
 }
 
 /* check if the driver dr correspond to the zip file pointed by gz 
    (zip_list contain the zip file content)
 */
-static SDL_bool check_driver_for_zip(DRIVER *dr,unzFile *gz,LIST *zip_list) {
+static SDL_bool check_driver_for_zip(DRIVER *dr,unzFile *gz,LIST *zip_list, int check_gfx) {
     int i;
     LIST *l,*zl;
+    zip_info_item *zinfo;
 
     for (i=0;i<SEC_MAX;i++) {
-	//printf("Check section %d\n",i);
+	    //printf("Check section %d\n",i);
+#ifdef GP2X
+	    if (check_gfx==0 && i==SEC_GFX) {
+		    printf("Dont check GFX\n");
+		    continue;
+	    }
+#endif
 	for(l=dr->section[i].item;l;l=l->next) {
 	    SECTION_ITEM *item=l->data;
 	    if (strcmp(item->filename,"-")!=0) {
 		for(zl=zip_list;zl;zl=zl->next) {
+			zinfo=(zip_info_item*)zl->data;
 		    //printf("Check filename %s %s\n",(char*)zl->data,item->filename);
-		    if (strcasecmp(item->filename,(char*)zl->data)==0) {
-			//printf("filename %s=%s\n",(char*)zl->data,item->filename);
-			break;
-		    }
+			
+			if (strncasecmp(item->filename,"0x",2)==0) {
+				Uint32 crc=strtoul(item->filename,NULL,0);
+				//printf("%s %08x %s %08x\n",zinfo->fname,zinfo->crc,item->filename,crc);
+				if (crc==zinfo->crc) break;
+			} else if (strcasecmp(item->filename,zinfo->fname)==0) {
+				//printf("filename %s=%s\n",(char*)zl->data,item->filename);
+				break;
+			}
 		}
 		//printf("Zl %s = %p\n",item->filename,zl);
 		if (zl==NULL)
@@ -335,7 +391,6 @@ char *get_zip_name(char *name) {
 }
 
 /* return the correct driver for the zip file zip*/
-
 DRIVER *get_driver_for_zip(char *zip) {
     unzFile *gz;
     int i;
@@ -343,6 +398,8 @@ DRIVER *get_driver_for_zip(char *zip) {
     char *t;
     LIST *zip_list=NULL,*l,*zl;
     int res;
+    struct zip_info_item *zitem;
+    unz_file_info zinfo;
 
     /* first, we check if it a zip */
     gz = unzOpen(zip);
@@ -354,33 +411,52 @@ DRIVER *get_driver_for_zip(char *zip) {
     i=0;
     unzGoToFirstFile(gz);
     do {
-	unzGetCurrentFileInfo(gz,NULL,zfilename,256,NULL,0,NULL,0);
-	//printf("List zip %s\n",zfilename);
-	t=strrchr(zfilename,'.');
-	if (! ( (strncasecmp(zfilename,"n",1)==0 && strlen(zfilename)<=12 )|| 
-		(t && (strcasecmp(t,".rom")==0 || strcasecmp(t,".bin")==0) ) )
-	    )
+	    unzGetCurrentFileInfo(gz,&zinfo,zfilename,256,NULL,0,NULL,0);
+	    //printf("List zip %s\n",zfilename);
+	    t=strrchr(zfilename,'.');
+	    if (! ( (strncasecmp(zfilename,"n",1)==0 && strlen(zfilename)<=12 )|| 
+		    (t && (strcasecmp(t,".rom")==0 || strcasecmp(t,".bin")==0) ) )
+		    )
+		    i++;
+	    if (i>20) {
+		    //printf("More than 20 file are not rom....\n");
+		    /* more than 10 files are not rom.... must not be a valid romset 
+		       20 files should be enough */
+		    list_erase_all(zip_list,free_ziplist_item);
+		    return NULL;
+	    }
 	    
-	    i++;
-	if (i>10) {
-	    //printf("More than 10 file are not rom....\n");
-	    /* more than 10 files are not rom.... must not be a valid romset 
-	       10 files should be enough */
-	    list_erase_all(zip_list,free_ziplist_item);
-	    return NULL;
-	}
-	zip_list=list_prepend(zip_list,strdup(zfilename));
+	    zitem=malloc(sizeof(zip_info_item));
+	    zitem->fname=strdup(zfilename);
+	    zitem->crc=zinfo.crc;
+	    zip_list=list_prepend(zip_list,zitem);
     } while (unzGoToNextFile(gz)!=UNZ_END_OF_LIST_OF_FILE);
     
     /* now we check every driver to see if it match the zip content */
     for (l=driver_list;l;l=l->next) {
 	DRIVER *dr=l->data;
-	if (check_driver_for_zip(dr,gz,zip_list)==SDL_TRUE) {
+	if (check_driver_for_zip(dr,gz,zip_list,1)==SDL_TRUE) {
 	    unzClose(gz);
 	    list_erase_all(zip_list,free_ziplist_item);
 	    return dr;
 	}
     }
+#ifdef GP2X
+    /* Ok we didn't find anything matching our rom...
+       But, those fucking dummies gfx files may have fooled us...
+       do it again without checking the GFX section
+     */
+
+    for (l=driver_list;l;l=l->next) {
+	DRIVER *dr=l->data;
+	if (check_driver_for_zip(dr,gz,zip_list,0)==SDL_TRUE) {
+	    unzClose(gz);
+	    list_erase_all(zip_list,free_ziplist_item);
+	    return dr;
+	}
+    }
+
+#endif
 		
     list_erase_all(zip_list,free_ziplist_item);
     unzClose(gz);
@@ -467,7 +543,7 @@ SDL_bool dr_load_section(unzFile *gz, SECTION s, Uint8 *current_buf) {
     
 	if (strcmp(item->filename,"-")!=0) {
 	    /* nouveau fichier, on l'ouvre */
-	    if (unzLocateFile(gz, item->filename, 2) == UNZ_END_OF_LIST_OF_FILE) {
+	    if (unzLocateFile2(gz, item->filename) == UNZ_END_OF_LIST_OF_FILE) {
 		unzClose(gz);
 		return SDL_FALSE;
 	    }
@@ -484,6 +560,13 @@ SDL_bool dr_load_section(unzFile *gz, SECTION s, Uint8 *current_buf) {
     }
     return SDL_TRUE;
 }
+
+
+//#define BLOCK_SIZE 32768
+//#define BLOCK_SIZE 16384  // default
+//#define BLOCK_SIZE 8192
+#define BLOCK_SIZE 4096   //Not too bad
+//#define BLOCK_SIZE 2048
 
 SDL_bool dr_dump_gzx(DRIVER *dr,unzFile *gz, SECTION s,char *file) {
 	int i=0;
@@ -527,7 +610,7 @@ SDL_bool dr_dump_gzx(DRIVER *dr,unzFile *gz, SECTION s,char *file) {
 //printf("Creating %s\n",file);
 	zip=zipOpen(file,APPEND_STATUS_CREATE);
 	do {
-		sprintf(fname,"%s.%04d",dr->name,i);
+		sprintf(fname,"%s.%06d",dr->name,i);
 
 		if (zipOpenNewFileInZip (zip,fname,NULL,NULL,0,NULL,0,
 					 NULL,Z_DEFLATED,Z_DEFAULT_COMPRESSION)!=0) {
@@ -535,14 +618,14 @@ SDL_bool dr_dump_gzx(DRIVER *dr,unzFile *gz, SECTION s,char *file) {
 		}
 
 		//printf("Zipping %s\n",fname);
-		zipWriteInFileInZip(zip,memory.gfx,16384);
+		zipWriteInFileInZip(zip,memory.gfx,BLOCK_SIZE);
 
 		update_progress_bar(i,4096);
 
 		zipCloseFileInZip(zip);
 
-		memory.gfx+=16384;
-		memory.gfx_size-=16384;
+		memory.gfx+=BLOCK_SIZE;
+		memory.gfx_size-=BLOCK_SIZE;
 		i++;
 	} while (memory.gfx_size>0);
 
@@ -621,7 +704,7 @@ SDL_bool dr_dump_gfx_light(DRIVER *dr,unzFile *gz, SECTION s,char *file) {
 
 	    create_progress_bar(item_a->filename);
 	    /* Open the first part */
-	    if (unzLocateFile(gz, item_a->filename, 2) == UNZ_END_OF_LIST_OF_FILE) {
+	    if (unzLocateFile2(gz, item_a->filename) == UNZ_END_OF_LIST_OF_FILE) {
 		unzClose(gz);
 		return SDL_FALSE;
 	    }
@@ -640,7 +723,7 @@ SDL_bool dr_dump_gfx_light(DRIVER *dr,unzFile *gz, SECTION s,char *file) {
 	    /* Open the second part */
 	    if (strcmp(item_b->filename,"-")!=0) {
 		    /* nouveau fichier, on l'ouvre */
-		    if (unzLocateFile(gz, item_b->filename, 2) == UNZ_END_OF_LIST_OF_FILE) {
+		    if (unzLocateFile2(gz, item_b->filename) == UNZ_END_OF_LIST_OF_FILE) {
 			    unzClose(gz);
 			    return SDL_FALSE;
 		    }
@@ -845,8 +928,19 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 	    sprintf(dumpname,"%s/%s.gzx",CF_STR(cf_get_item_by_name("rompath")),dr->name);
 	    gp2x_gfx_dump_gz = unzOpen(dumpname);
 	    if (gp2x_gfx_dump_gz!=NULL) {
-		    
+		    char file[32];
+		    unz_file_info file_info;
 		    memory.gp2x_gfx_mapped=GZX_MAPPED;
+		    sprintf(file,"%s.000000",dr->name);
+		    if (unzLocateFile2(gp2x_gfx_dump_gz,file)!=Z_OK) {
+			    sprintf(file,"%s.0000",dr->name);
+			    unzLocateFile2(gp2x_gfx_dump_gz,file);
+		    };
+		    unzGetCurrentFileInfo(gp2x_gfx_dump_gz,&file_info,NULL,0,
+					  NULL,0,
+					  NULL,0);
+		    printf("Cache Block size = %d\n",file_info.uncompressed_size);
+		    gcache.slot_size=file_info.uncompressed_size;
 	    } else {
 		    sprintf(dumpname,"%s/%s.gfx",CF_STR(cf_get_item_by_name("rompath")),dr->name);
 		    gp2x_gfx_dump=open(dumpname,O_RDONLY);

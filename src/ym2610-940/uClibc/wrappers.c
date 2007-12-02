@@ -10,3 +10,6 @@ double log(double x)
 {
 	return __ieee754_log(x);
 }
+
+void raise(void) {
+}

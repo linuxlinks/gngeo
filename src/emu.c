@@ -695,7 +695,8 @@ void main_loop(void)
     int z80_overclk=CF_VAL(cf_get_item_by_name("z80clock"));
     int nb_frames=0;
 #ifdef GP2X
-    int snd_volume=gp2x_sound_volume_get();
+    //int snd_volume=gp2x_sound_volume_get();
+    int snd_volume=60;
     char volbuf[21];
     static SDL_Rect buf_rect    =	{24, 16, 304, 224};
     static SDL_Rect screen_rect =	{ 0,  0, 304, 224};

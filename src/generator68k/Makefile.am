@@ -24,6 +24,8 @@ INCLUDES = -I../ -I.
 #	./def68k
 #def68k-proto.h:	def68k def68k.def
 #	./def68k
+
+
 def68k-proto.h def68k-funcs.h def68k-iibs.h : def68k def68k.def
 	if [ ! -f def68k.def ] ; then cp $(srcdir)/def68k.def . ;fi
 	./def68k
@@ -69,11 +71,11 @@ MOSTLYCLEANFILES = ${BUILT_SOURCES} ${head_SOURCES}
 def68k.o gen68k.o: %.o : %.c
 	$(CC_FOR_BUILD) -c $< -o $@ -I .. -I ../.. -I . `sdl-config --cflags`
 
-def68k : def68k.o
-	$(CC_FOR_BUILD) def68k.o -o $@ 
+def68k : def68k.o tab68k.o
+	$(CC_FOR_BUILD) def68k.o tab68k.o -o $@ 
 
-gen68k : gen68k.o
-	$(CC_FOR_BUILD) gen68k.o -o $@
+gen68k : gen68k.o tab68k.o 
+	$(CC_FOR_BUILD) gen68k.o tab68k.o -o $@
 
 #compile.o : compile.c 
 #	$(COMPILE) -c $< -o $@

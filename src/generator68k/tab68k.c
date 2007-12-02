@@ -1,4 +1,6 @@
 /* Generator is (c) James Ponder, 1997-2001 http://www.squish.net/generator/ */
+#ifndef _TAB68K_H_
+#define _TAB68K_H_
 
 #include "generator.h"
 
@@ -92,3 +94,5 @@ t_mnemonic_table mnemonic_table[] = {
   { i_LINE15,   "LINE15" },
   { i_ILLG,     "" },
 };
+
+#endif

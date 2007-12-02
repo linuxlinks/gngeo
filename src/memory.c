@@ -333,12 +333,17 @@ LONG_FETCH(mem68k_fetch_ram);
 Uint8 mem68k_fetch_cpu_byte(Uint32 addr)
 {
     addr &= 0xFFFFF;
+
     return (READ_BYTE_ROM(memory.cpu + addr));
 }
 
 Uint16 mem68k_fetch_cpu_word(Uint32 addr)
 {
     addr &= 0xFFFFF;
+    if (addr==0xfe446 || addr==0xfe447) {
+	    printf("Prot reading\n");
+    }
+
     return (READ_WORD_ROM(memory.cpu + addr));
 }
 
@@ -561,12 +566,15 @@ Uint32 mem68k_fetch_memcrd_long(Uint32 addr)
 /**** INVALID STORE ****/
 void mem68k_store_invalid_byte(Uint32 addr, Uint8 data)
 {
+	if (addr!=0x300001) printf("Invalid write b %x %x \n",addr,data);
 }
 void mem68k_store_invalid_word(Uint32 addr, Uint16 data)
 {
+	printf("Invalid write w %x %x \n",addr,data);
 }
 void mem68k_store_invalid_long(Uint32 addr, Uint32 data)
 {
+	printf("Invalid write l %x %x \n",addr,data);
 }
 
 /**** RAM ****/

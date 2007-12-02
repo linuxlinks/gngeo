@@ -774,3 +774,14 @@ Gp2x_ClearBuffer:
 myuname:
 	swi #0x90007a
 	mov pc, lr
+
+.global spend_cycles @ c
+
+spend_cycles:
+    mov     r0, r0, lsr #2  @ 4 cycles/iteration
+    sub     r0, r0, #2      @ entry/exit/init
+.sc_loop:
+    subs    r0, r0, #1
+    bpl     .sc_loop
+
+    bx      lr

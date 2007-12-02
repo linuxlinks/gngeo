@@ -219,4 +219,7 @@ typedef struct {
 #  define LOG_REQUEST(x)  ui_log_request ## x
 #endif
 
+extern const char *condition_table[];
+extern t_mnemonic_table mnemonic_table[];
+
 #endif

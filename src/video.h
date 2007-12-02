@@ -33,6 +33,22 @@ SDL_Overlay *overlay;
 SDL_Rect ov_rect;
 */
 
+#ifdef GP2X
+#include "unzip.h"
+typedef struct gfx_cache {
+	Uint8 *data;  /* The cache */
+	Uint32 size;  /* Tha allocated size of the cache */      
+	Uint32 total_bank;  /* total number of rom bank */
+	Uint8 **ptr/*[TOTAL_GFX_BANK]*/; /* ptr[i] Contain a pointer to cached data for bank i */
+	int max_slot; /* Maximal numer of bank that can be cached (depend on cache size) */
+	int slot_size;
+	int *usage;   /* contain index to the banks in used order */
+	unz_file_pos *z_pos/*[TOTAL_GFX_BANK]*/;
+}GFX_CACHE;
+
+extern GFX_CACHE gcache;
+extern Uint32 *mem_bank_usage;
+#endif
 
 #define RASTER_LINES 261
 

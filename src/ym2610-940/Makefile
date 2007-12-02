@@ -1,10 +1,12 @@
 
 # you may or may not need to change this
 #devkit_path = x:/stuff/dev/devkitgp2x/
-devkit_path = /usr/opt/eldk/usr/
-lgcc_path = $(devkit_path)lib/gcc/arm-linux/4.0.0/
+#devkit_path = /usr/opt/eldk/usr/
+devkit_path = /opt/open2x/gcc-4.1.1-glibc-2.3.6/
+#lgcc_path = $(devkit_path)lib/gcc/arm-linux/4.0.0/
+lgcc_path = $(devkit_path)lib/gcc/arm-open2x-linux/4.1.1/
 #CROSS = arm-linux-
-CROSS = $(devkit_path)bin/arm-linux-
+CROSS = $(devkit_path)bin/arm-open2x-linux-
 
 # settings
 #up = 1
@@ -12,7 +14,7 @@ CROSS = $(devkit_path)bin/arm-linux-
 DEFINC = -I../.. -I. -D__GP2X__ -DARM # -DBENCHMARK
 #COPT_COMMON = -static -s -O3 -msoft-float -ftracer -fstrength-reduce -Wall -funroll-loops -fomit-frame-pointer -fstrict-aliasing -ffast-math
 #COPT_COMMON = -static -s -O2 -msoft-float -ftracer -fstrength-reduce -Wall -fomit-frame-pointer -fstrict-aliasing -ffast-math
-COPT_COMMON = -static -s -Os  -ftracer -fstrength-reduce -Wall -fomit-frame-pointer -fstrict-aliasing -ffast-math
+COPT_COMMON = -static -s -Os  -ftracer -fstrength-reduce -Wall -fomit-frame-pointer -fstrict-aliasing -ffast-math 
 #COPT_COMMON = -static -s -Os -Wall -fomit-frame-pointer -fstrict-aliasing
 COPT = $(COPT_COMMON) -mtune=arm940t
 

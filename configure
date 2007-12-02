@@ -3211,9 +3211,320 @@ CC_VERSION=`$CC -dumpversion`
 CC_MAJOR=`echo $CC_VERSION|sed 's/\..*$//'`
 #echo major $CC_MAJOR major
 
+# Check whether --enable-gp2x was given.
+if test "${enable_gp2x+set}" = set; then
+  enableval=$enable_gp2x; enable_gp2x="$enableval"
+else
+  enable_gp2x="false"
+fi
+
+echo GP2X $enable_gp2x
+if test "$enable_gp2x" = yes ; then
+	CFLAGS="$CFLAGS -DGP2X -mtune=arm920t"
+	enable_gp2x=true
+	# Extract the first word of "arm-open2x-linux-sdl-config", so it can be a program name with args.
+set dummy arm-open2x-linux-sdl-config; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_prog_SDL_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  if test -n "$SDL_CONFIG"; then
+  ac_cv_prog_SDL_CONFIG="$SDL_CONFIG" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_SDL_CONFIG="arm-open2x-linux-sdl-config"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_SDL_CONFIG" && ac_cv_prog_SDL_CONFIG="no"
+fi
+fi
+SDL_CONFIG=$ac_cv_prog_SDL_CONFIG
+if test -n "$SDL_CONFIG"; then
+  { echo "$as_me:$LINENO: result: $SDL_CONFIG" >&5
+echo "${ECHO_T}$SDL_CONFIG" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
+	if test "$SDL_CONFIG" = no ; then
+		# Extract the first word of "sdl-config", so it can be a program name with args.
+set dummy sdl-config; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_prog_SDL_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  if test -n "$SDL_CONFIG"; then
+  ac_cv_prog_SDL_CONFIG="$SDL_CONFIG" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_SDL_CONFIG="sdl-config"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_SDL_CONFIG" && ac_cv_prog_SDL_CONFIG="no"
+fi
+fi
+SDL_CONFIG=$ac_cv_prog_SDL_CONFIG
+if test -n "$SDL_CONFIG"; then
+  { echo "$as_me:$LINENO: result: $SDL_CONFIG" >&5
+echo "${ECHO_T}$SDL_CONFIG" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
+	fi
+
+	if test "$SDL_CONFIG" != no ; then
+		CFLAGS="$CFLAGS `$SDL_CONFIG  --cflags` ";
+		LIBS="$LIBS `$SDL_CONFIG --libs` -lpthread -static";
+
+
+{ echo "$as_me:$LINENO: checking for SDL_Init in -lSDL" >&5
+echo $ECHO_N "checking for SDL_Init in -lSDL... $ECHO_C" >&6; }
+if test "${ac_cv_lib_SDL_SDL_Init+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lSDL  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char SDL_Init ();
+int
+main ()
+{
+return SDL_Init ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_SDL_SDL_Init=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_SDL_SDL_Init=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_SDL_SDL_Init" >&5
+echo "${ECHO_T}$ac_cv_lib_SDL_SDL_Init" >&6; }
+if test $ac_cv_lib_SDL_SDL_Init = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBSDL 1
+_ACEOF
+
+  LIBS="-lSDL $LIBS"
+
+else
+  { { echo "$as_me:$LINENO: error: can't find gp2x SDL on your system" >&5
+echo "$as_me: error: can't find gp2x SDL on your system" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+	else
+		{ { echo "$as_me:$LINENO: error: can't find sdl-config on your system" >&5
+echo "$as_me: error: can't find sdl-config on your system" >&2;}
+   { (exit 1); exit 1; }; };
+	fi
+else
+	# Extract the first word of "sdl-config", so it can be a program name with args.
+set dummy sdl-config; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_prog_SDL_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  if test -n "$SDL_CONFIG"; then
+  ac_cv_prog_SDL_CONFIG="$SDL_CONFIG" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_SDL_CONFIG="yes"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_SDL_CONFIG" && ac_cv_prog_SDL_CONFIG="no"
+fi
+fi
+SDL_CONFIG=$ac_cv_prog_SDL_CONFIG
+if test -n "$SDL_CONFIG"; then
+  { echo "$as_me:$LINENO: result: $SDL_CONFIG" >&5
+echo "${ECHO_T}$SDL_CONFIG" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
+	if test "$SDL_CONFIG" = yes ; then
+		CFLAGS="$CFLAGS `sdl-config --cflags`";
+		LIBS="$LIBS `sdl-config --libs`";
+
+{ echo "$as_me:$LINENO: checking for SDL_Init in -lSDL" >&5
+echo $ECHO_N "checking for SDL_Init in -lSDL... $ECHO_C" >&6; }
+if test "${ac_cv_lib_SDL_SDL_Init+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lSDL  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char SDL_Init ();
+int
+main ()
+{
+return SDL_Init ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_SDL_SDL_Init=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_SDL_SDL_Init=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_SDL_SDL_Init" >&5
+echo "${ECHO_T}$ac_cv_lib_SDL_SDL_Init" >&6; }
+if test $ac_cv_lib_SDL_SDL_Init = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBSDL 1
+_ACEOF
+
+  LIBS="-lSDL $LIBS"
+
+else
+  { { echo "$as_me:$LINENO: error: can't find SDL on your system" >&5
+echo "$as_me: error: can't find SDL on your system" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+	else
+		{ { echo "$as_me:$LINENO: error: can't find sdl-config on your system" >&5
+echo "$as_me: error: can't find sdl-config on your system" >&2;}
+   { (exit 1); exit 1; }; };
+	fi
+	enable_gp2x=false
+fi
+# Check whether --enable-win32 was given.
+if test "${enable_win32+set}" = set; then
+  enableval=$enable_win32; enable_win32="$enableval"
+else
+  enable_win32="false"
+fi
+
+echo WIN32 $enable_win32
+if test "$enable_win32" = yes ; then
+	CFLAGS="$CFLAGS -DWIN32"
+	enable_win32=true
+	NASMENV="--prefix_"
+fi
+
 # Checks for libraries.
 #AC_SUBST(LIBOBJS)
-
 
 { echo "$as_me:$LINENO: checking for acos in -lm" >&5
 echo $ECHO_N "checking for acos in -lm... $ECHO_C" >&6; }
@@ -3361,66 +3672,14 @@ echo "$as_me: error: can't find zlib on your system" >&2;}
 fi
 
 
-# Check whether --enable-gp2x was given.
-if test "${enable_gp2x+set}" = set; then
-  enableval=$enable_gp2x; enable_gp2x="$enableval"
-else
-  enable_gp2x="false"
-fi
 
-echo GP2X $enable_gp2x
-if test "$enable_gp2x" = yes ; then
-	CFLAGS="$CFLAGS -DGP2X -mtune=arm920t"
-	enable_gp2x=true
-	# Extract the first word of "arm-linux-sdl-config", so it can be a program name with args.
-set dummy arm-linux-sdl-config; ac_word=$2
-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
-if test "${ac_cv_prog_SDL_CONFIG+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if test -n "$SDL_CONFIG"; then
-  ac_cv_prog_SDL_CONFIG="$SDL_CONFIG" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_SDL_CONFIG="yes"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_SDL_CONFIG" && ac_cv_prog_SDL_CONFIG="no"
-fi
-fi
-SDL_CONFIG=$ac_cv_prog_SDL_CONFIG
-if test -n "$SDL_CONFIG"; then
-  { echo "$as_me:$LINENO: result: $SDL_CONFIG" >&5
-echo "${ECHO_T}$SDL_CONFIG" >&6; }
-else
-  { echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
-fi
-
-
-	if test "$SDL_CONFIG" = yes ; then
-		CFLAGS="$CFLAGS `arm-linux-sdl-config  --cflags` ";
-		LIBS="$LIBS `arm-linux-sdl-config --libs` -lpthread -static";
-
-{ echo "$as_me:$LINENO: checking for SDL_Init in -lSDL" >&5
-echo $ECHO_N "checking for SDL_Init in -lSDL... $ECHO_C" >&6; }
-if test "${ac_cv_lib_SDL_SDL_Init+set}" = set; then
+{ echo "$as_me:$LINENO: checking for jpeg_read_header in -ljpeg" >&5
+echo $ECHO_N "checking for jpeg_read_header in -ljpeg... $ECHO_C" >&6; }
+if test "${ac_cv_lib_jpeg_jpeg_read_header+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lSDL  $LIBS"
+LIBS="-ljpeg  $LIBS"
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -3434,11 +3693,11 @@ cat >>conftest.$ac_ext <<_ACEOF
 #ifdef __cplusplus
 extern "C"
 #endif
-char SDL_Init ();
+char jpeg_read_header ();
 int
 main ()
 {
-return SDL_Init ();
+return jpeg_read_header ();
   ;
   return 0;
 }
@@ -3461,88 +3720,37 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
-  ac_cv_lib_SDL_SDL_Init=yes
+  ac_cv_lib_jpeg_jpeg_read_header=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	ac_cv_lib_SDL_SDL_Init=no
+	ac_cv_lib_jpeg_jpeg_read_header=no
 fi
 
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ echo "$as_me:$LINENO: result: $ac_cv_lib_SDL_SDL_Init" >&5
-echo "${ECHO_T}$ac_cv_lib_SDL_SDL_Init" >&6; }
-if test $ac_cv_lib_SDL_SDL_Init = yes; then
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_jpeg_jpeg_read_header" >&5
+echo "${ECHO_T}$ac_cv_lib_jpeg_jpeg_read_header" >&6; }
+if test $ac_cv_lib_jpeg_jpeg_read_header = yes; then
   cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBSDL 1
+#define HAVE_LIBJPEG 1
 _ACEOF
 
-  LIBS="-lSDL $LIBS"
+  LIBS="-ljpeg $LIBS"
 
-else
-  { { echo "$as_me:$LINENO: error: can't find gp2x SDL on your system" >&5
-echo "$as_me: error: can't find gp2x SDL on your system" >&2;}
-   { (exit 1); exit 1; }; }
-fi
-
-	else
-		{ { echo "$as_me:$LINENO: error: can't find arm-linux-sdl-config on your system" >&5
-echo "$as_me: error: can't find arm-linux-sdl-config on your system" >&2;}
-   { (exit 1); exit 1; }; };
-	fi
-else
-	# Extract the first word of "sdl-config", so it can be a program name with args.
-set dummy sdl-config; ac_word=$2
-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
-if test "${ac_cv_prog_SDL_CONFIG+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if test -n "$SDL_CONFIG"; then
-  ac_cv_prog_SDL_CONFIG="$SDL_CONFIG" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_SDL_CONFIG="yes"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_SDL_CONFIG" && ac_cv_prog_SDL_CONFIG="no"
-fi
-fi
-SDL_CONFIG=$ac_cv_prog_SDL_CONFIG
-if test -n "$SDL_CONFIG"; then
-  { echo "$as_me:$LINENO: result: $SDL_CONFIG" >&5
-echo "${ECHO_T}$SDL_CONFIG" >&6; }
-else
-  { echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
 fi
 
 
-	if test "$SDL_CONFIG" = yes ; then
-		CFLAGS="$CFLAGS `sdl-config --cflags`";
-		LIBS="$LIBS `sdl-config --libs`";
-
-{ echo "$as_me:$LINENO: checking for SDL_Init in -lSDL" >&5
-echo $ECHO_N "checking for SDL_Init in -lSDL... $ECHO_C" >&6; }
-if test "${ac_cv_lib_SDL_SDL_Init+set}" = set; then
+{ echo "$as_me:$LINENO: checking for png_read_info in -lpng" >&5
+echo $ECHO_N "checking for png_read_info in -lpng... $ECHO_C" >&6; }
+if test "${ac_cv_lib_png_png_read_info+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lSDL  $LIBS"
+LIBS="-lpng  $LIBS"
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -3556,11 +3764,11 @@ cat >>conftest.$ac_ext <<_ACEOF
 #ifdef __cplusplus
 extern "C"
 #endif
-char SDL_Init ();
+char png_read_info ();
 int
 main ()
 {
-return SDL_Init ();
+return png_read_info ();
   ;
   return 0;
 }
@@ -3583,52 +3791,27 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
-  ac_cv_lib_SDL_SDL_Init=yes
+  ac_cv_lib_png_png_read_info=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	ac_cv_lib_SDL_SDL_Init=no
+	ac_cv_lib_png_png_read_info=no
 fi
 
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ echo "$as_me:$LINENO: result: $ac_cv_lib_SDL_SDL_Init" >&5
-echo "${ECHO_T}$ac_cv_lib_SDL_SDL_Init" >&6; }
-if test $ac_cv_lib_SDL_SDL_Init = yes; then
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_png_png_read_info" >&5
+echo "${ECHO_T}$ac_cv_lib_png_png_read_info" >&6; }
+if test $ac_cv_lib_png_png_read_info = yes; then
   cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBSDL 1
+#define HAVE_LIBPNG 1
 _ACEOF
 
-  LIBS="-lSDL $LIBS"
+  LIBS="-lpng $LIBS"
 
-else
-  { { echo "$as_me:$LINENO: error: can't find SDL on your system" >&5
-echo "$as_me: error: can't find SDL on your system" >&2;}
-   { (exit 1); exit 1; }; }
-fi
-
-	else
-		{ { echo "$as_me:$LINENO: error: can't find sdl-config on your system" >&5
-echo "$as_me: error: can't find sdl-config on your system" >&2;}
-   { (exit 1); exit 1; }; };
-	fi
-	enable_gp2x=false
-fi
-# Check whether --enable-win32 was given.
-if test "${enable_win32+set}" = set; then
-  enableval=$enable_win32; enable_win32="$enableval"
-else
-  enable_win32="false"
-fi
-
-echo WIN32 $enable_win32
-if test "$enable_win32" = yes ; then
-	CFLAGS="$CFLAGS -DWIN32"
-	enable_win32=true
-	NASMENV="--prefix_"
 fi
 
 
