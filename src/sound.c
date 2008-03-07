@@ -110,10 +110,10 @@ int init_sdl_audio(void)
     desired->channels = 2;
     desired->callback = update_sdl_stream;
     desired->userdata = NULL;
-    SDL_OpenAudio(desired, NULL);
-    //SDL_OpenAudio(desired, obtain);
-    //printf("Obtained sample rate: %d\n",obtain->freq);
-    //conf.sample_rate=obtain->freq;
+    //SDL_OpenAudio(desired, NULL);
+    SDL_OpenAudio(desired, obtain);
+    printf("Obtained sample rate: %d\n",obtain->freq);
+    conf.sample_rate=obtain->freq;
     return 1;
 }
 
