@@ -388,15 +388,21 @@ SDL_bool save_state(char *game,int slot) {
 static Uint8 st_current_pal,st_current_fix;
 
 static void neogeo_pre_save_state(void) {
+
     st_current_pal=(current_pal==memory.pal1?0:1);
     st_current_fix=(current_fix==memory.sfix_board?0:1);
+    //printf("%d %d\n",st_current_pal,st_current_fix);
+    
 }
 
 static void neogeo_post_load_state(void) {
+	int i;
+	//printf("%d %d\n",st_current_pal,st_current_fix);
     current_pal=(st_current_pal==0?memory.pal1:memory.pal2);
     current_pc_pal=(Uint32 *)(st_current_pal==0?memory.pal_pc1:memory.pal_pc2);
     current_fix=(st_current_fix==0?memory.sfix_board:memory.sfix_game);
     update_all_pal();
+ 
 }
 
 void clear_state_reg(void) {

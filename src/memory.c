@@ -620,12 +620,13 @@ void mem68k_store_sram_word(Uint32 addr, Uint16 data)
 LONG_STORE(mem68k_store_sram);
 
 /**** PALETTE ****/
-static __inline__ Uint16 convert_pal(Uint16 npal)
+/*static __inline__ */Uint16 convert_pal(Uint16 npal)
 {
     int r = 0, g = 0, b = 0;
     r = ((npal >> 7) & 0x1e) | ((npal >> 14) & 0x01);
     g = ((npal >> 3) & 0x1e) | ((npal >> 13) & 0x01);
     b = ((npal << 1) & 0x1e) | ((npal >> 12) & 0x01);
+
     return (r << 11) + (g << 6) + b;
 }
 
@@ -634,8 +635,10 @@ void update_all_pal(void) {
     Uint32 *pc_pal1=(Uint32*)memory.pal_pc1;
     Uint32 *pc_pal2=(Uint32*)memory.pal_pc2;
     for (i=0;i<0x1000;i++) {
-	pc_pal1[i] = convert_pal(READ_WORD_ROM(&memory.pal1[i<<1]));
-	pc_pal2[i] = convert_pal(READ_WORD_ROM(&memory.pal2[i<<1]));
+	    //pc_pal1[i] = convert_pal(READ_WORD_ROM(&memory.pal1[i<<1]));
+	    //pc_pal2[i] = convert_pal(READ_WORD_ROM(&memory.pal2[i<<1]));
+	    pc_pal1[i] = convert_pal(READ_WORD(&memory.pal1[i<<1]));
+	    pc_pal2[i] = convert_pal(READ_WORD(&memory.pal2[i<<1]));
     }
 }
 
