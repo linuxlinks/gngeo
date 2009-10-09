@@ -1,0 +1,32 @@
+#include "mame_layer.h"
+#include <string.h>
+ #include <stdio.h>
+
+/*
+  fixed
+  main
+  mainbios
+  sprites
+  ym
+*/
+
+UINT8 *memory_region( GAME_ROMS *r, char *region ) {
+	if (strcmp(region,"fixed")==0) return r->game_sfix.p;
+	if (strcmp(region,"main")==0) return r->cpu_m68k.p;
+	if (strcmp(region,"mainbios")==0) return r->bios_m68k.p;
+	if (strcmp(region,"sprites")==0) return r->tiles.p;
+	if (strcmp(region,"ym")==0) return r->adpcma.p;
+	printf("memory_region %s not found",region);
+	
+	return NULL;
+}
+UINT32 memory_region_length( GAME_ROMS *r, char *region ) {
+	if (strcmp(region,"fixed")==0) return r->game_sfix.size;
+	if (strcmp(region,"main")==0) return r->cpu_m68k.size;
+	if (strcmp(region,"mainbios")==0) return r->bios_m68k.size;
+	if (strcmp(region,"sprites")==0) return r->tiles.size;
+	if (strcmp(region,"ym")==0) return r->adpcma.size;
+	printf("memory_region_length %s not found",region);
+	
+	return 0;
+}

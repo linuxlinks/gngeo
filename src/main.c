@@ -249,6 +249,7 @@ int main(int argc, char *argv[])
     /* First try to suppress the romrc in favor of romrc.d */
     //dr_load_driver(CF_STR(cf_get_item_by_name("romrc")));
 
+#ifdef OLD_DRIVER
     dr_load_driver_dir(CF_STR(cf_get_item_by_name("romrcdir")));
 #if !defined (GP2X) && !defined(WIN32)
     {
@@ -264,7 +265,7 @@ int main(int argc, char *argv[])
 	    dr_load_driver_dir(rc_dir);
     }
 #endif
-
+#endif /* OLD_DRIVER */
     /* print effect/blitter list if asked by user */
     if (!strcmp(CF_STR(cf_get_item_by_name("effect")),"help")) {
 	print_effect_list();
@@ -307,6 +308,7 @@ int main(int argc, char *argv[])
 
  
 /* per game config */
+#ifdef OLD_DRIVER
 #if defined(GP2X) || defined(WIN32)
     gpath="conf/";
 #else
@@ -330,7 +332,7 @@ int main(int argc, char *argv[])
     rom_name=cf_parse_cmd_line(argc,argv); /* Second pass */
 
     if (conf.debug) conf.sound=0;
-
+#endif
 
 #ifdef GP2X
     gp2x_init_mixer();

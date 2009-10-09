@@ -137,6 +137,11 @@ void cpu_68k_dpg_step(void);
 
 /* LOG generation */
 #define GNGEO_LOG(...)
+#define DEBUG_LOG(...)
 //#define GNGEO_LOG printf
+
+#define TRUE 1
+#define FALSE 1
+
 
 #endif

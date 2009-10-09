@@ -282,6 +282,7 @@ SDL_bool init_game(char *rom_name) {
     char *system;
 
     open_bios();
+#ifdef OLD_DRIVER
 
     dr=dr_get_by_name(rom_name);
     if (!dr) {
@@ -293,6 +294,7 @@ SDL_bool init_game(char *rom_name) {
 #endif
 	return SDL_FALSE;
     }
+#endif
 
     if (conf.game!=NULL) {
 	save_nvram(conf.game);
