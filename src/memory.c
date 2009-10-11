@@ -147,8 +147,8 @@ void neogeo_sound_irq(int irq)
 
 static __inline__ Uint16 read_neo_control(void)
 {
-    int irq_bit;
-    int scan, bm_pos;
+	int irq_bit;
+    unsigned int scan, bm_pos;
     //static int cycles;
 
     if (!conf.raster) {
@@ -169,21 +169,21 @@ static __inline__ Uint16 read_neo_control(void)
 	scan = cpu_68k_getcycle() / 766.28;	/* current scanline */
 #endif
 
-	irq_bit = ((scan < 64 || scan > 256)?1:0);
-	//irq_bit = ((scan > 248 && scan < 262)?1:0);
-	//printf("%d\n",scan);
-	return ((scan <<7) & 0xff80)	/* scanline */
-		|(irq_bit << 15)	/* vblank or irq2 */
-	    |(conf.pal<<3)
-	    |(neogeo_frame_counter & 0x0007);	/* frame counter */
+//	scan+=0x100;
+//	if (scan >=0x200) scan=scan-0x108;
+	scan+=0xF8;
+
+	return (scan<<7)|(conf.pal<<3)
+		|(neogeo_frame_counter & 0x0007);	/* frame counter */
+
     } else {
 	    scan = current_line /*+ 22*/;	/* current scanline */
-	    irq_bit = irq2taken || (scan < 16 || scan > 248);	/* VBLANK or HBLANK */
+	    //scan+=0x110;
+	    //if (scan >=0x200) scan=scan-0x108;
+	    scan+=0xF8;
 
-	return ((scan <<7) & 0xff80)	/* scanline */
-		|(irq_bit << 15)	/* vblank or irq2 */
-	    |(conf.pal<<3)
-	    |(neogeo_frame_counter & 0x0007);	/* frame counter */
+	    return (scan<<7)|(conf.pal<<3)
+		    |(neogeo_frame_counter & 0x0007);	/* frame counter */
     }
 }
 
@@ -567,6 +567,10 @@ Uint32 mem68k_fetch_memcrd_long(Uint32 addr)
 void mem68k_store_invalid_byte(Uint32 addr, Uint8 data)
 {
 	if (addr!=0x300001) printf("Invalid write b %x %x \n",addr,data);
+	else {
+		memory.watchdog=0;
+		//printf("restet_watchdog\n");
+	}
 }
 void mem68k_store_invalid_word(Uint32 addr, Uint16 data)
 {
@@ -600,8 +604,10 @@ void mem68k_store_sram_byte(Uint32 addr, Uint8 data)
 {
     if (sram_lock)
 	return;
+/*
     if (addr == 0xd00000 + sram_protection_hack && ((data & 0xff) == 0x01))
 	return;
+*/
     memory.sram[addr - 0xd00000] = data;
 }
 
@@ -609,9 +615,11 @@ void mem68k_store_sram_word(Uint32 addr, Uint16 data)
 {
     if (sram_lock)
 	return;
+    /*
     if (addr == 0xd00000 + sram_protection_hack
 	&& ((data & 0xffff) == 0x01))
 	return;
+    */
     addr -= 0xd00000;
     memory.sram[addr] = data >> 8;
     memory.sram[addr + 1] = data & 0xff;

@@ -220,8 +220,9 @@ static void fix_value_init(void) {
     }
 }
 
-#define fix_add(x, y) (0x1000 * (((READ_WORD(&memory.video[fix_addr[x][y-1]]) >> fix_shift[x] * 2) & 3) ^ 3))
+#define fix_add_old(x, y) (0x1000 * (((READ_WORD(&memory.video[fix_addr[x][y-1]]) >> fix_shift[x] * 2) & 3) ^ 3))
 
+#define fix_add(x, y) (0x1000 * (((memory.video[0x7500 + ((y-1)&31) + 32 * (x/6)] >> (5-(x%6))*2) & 3) ^ 3))
 
 void convert_tile(int tileno)
 {
@@ -919,6 +920,7 @@ static __inline__ void draw_fix_char(unsigned char *buf,int start,int end)
 		    k += 2;
 	    }
     }
+
     if (start!=0 && end!=0) {
 	ystart=start>>3;
 	yend=(end>>3)+1;

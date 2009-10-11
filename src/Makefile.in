@@ -190,7 +190,7 @@ gngeo_SOURCES = fileio.c         pd4990a.c        gngeo_icon.h      crypt.h     
 		cyclone_interf.c gp2x.h		  gp2x.c	    drz80_interf.c  \
 		menu.c		 menu.h		  ioapi.c           zip.c           \
 		zip.h		 roms.h		  roms.c	    mame_layer.h    \
-		mame_layer.c
+		mame_layer.c	 neoboot.c
 
 
 EXTRA_DIST = c32.mac screen_i386.asm video_i386.asm video_i386.inc getopt.h video_arm.s memcpy.S
@@ -217,7 +217,8 @@ am_gngeo_OBJECTS = fileio.$(OBJEXT) pd4990a.$(OBJEXT) video.$(OBJEXT) \
 	driver.$(OBJEXT) list.$(OBJEXT) gui_interf.$(OBJEXT) \
 	videogl.$(OBJEXT) cyclone_interf.$(OBJEXT) gp2x.$(OBJEXT) \
 	drz80_interf.$(OBJEXT) menu.$(OBJEXT) ioapi.$(OBJEXT) \
-	zip.$(OBJEXT) roms.$(OBJEXT) mame_layer.$(OBJEXT)
+	zip.$(OBJEXT) roms.$(OBJEXT) mame_layer.$(OBJEXT) \
+	neoboot.$(OBJEXT)
 gngeo_OBJECTS = $(am_gngeo_OBJECTS)
 @HAVE_NASM_FALSE@@USE_CYCLONE_FALSE@@USE_DRZ80_FALSE@@USE_GENERATOR68K_FALSE@@USE_GP2X_FALSE@@USE_GUI_FALSE@@USE_MAMEZ80_FALSE@@USE_RAZE_FALSE@@USE_STARSCREAM_TRUE@gngeo_DEPENDENCIES = \
 @HAVE_NASM_FALSE@@USE_CYCLONE_FALSE@@USE_DRZ80_FALSE@@USE_GENERATOR68K_FALSE@@USE_GP2X_FALSE@@USE_GUI_FALSE@@USE_MAMEZ80_FALSE@@USE_RAZE_FALSE@@USE_STARSCREAM_TRUE@	effect/libeffect.a \
@@ -3467,14 +3468,15 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/main.Po ./$(DEPDIR)/mame_layer.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mamez80_interf.Po ./$(DEPDIR)/memory.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/menu.Po ./$(DEPDIR)/messages.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/neocrypt.Po ./$(DEPDIR)/pbar.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/pd4990a.Po ./$(DEPDIR)/profiler.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/raze_interf.Po ./$(DEPDIR)/roms.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/screen.Po ./$(DEPDIR)/sound.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/star_interf.Po ./$(DEPDIR)/state.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/timer.Po ./$(DEPDIR)/transpack.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/unzip.Po ./$(DEPDIR)/video.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/videogl.Po ./$(DEPDIR)/zip.Po
+@AMDEP_TRUE@	./$(DEPDIR)/neoboot.Po ./$(DEPDIR)/neocrypt.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/pbar.Po ./$(DEPDIR)/pd4990a.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/profiler.Po ./$(DEPDIR)/raze_interf.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/roms.Po ./$(DEPDIR)/screen.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/sound.Po ./$(DEPDIR)/star_interf.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/state.Po ./$(DEPDIR)/timer.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/transpack.Po ./$(DEPDIR)/unzip.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/video.Po ./$(DEPDIR)/videogl.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/zip.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
@@ -3553,6 +3555,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/memory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/menu.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/messages.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/neoboot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/neocrypt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pbar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pd4990a.Po@am__quote@

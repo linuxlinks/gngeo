@@ -131,6 +131,7 @@ typedef struct neo_mem {
 #ifdef GP2X
 	Uint8 gp2x_gfx_mapped;
 #endif
+	Uint32 watchdog;
 } neo_mem;
 
 neo_mem memory;

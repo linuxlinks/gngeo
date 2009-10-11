@@ -66,21 +66,23 @@ extern Uint32 irq2pos_value;
 
 void setup_misc_patch(char *name)
 {
+/*
     sram_protection_hack = -1;
-    if (!strcmp(name,"fatfury3") ||
+    if (!strcmp(name,"fatfury3") || //wd KO ????
 	!strcmp(name,"samsho3") ||
 	!strcmp(name,"samsho3a") ||
-	!strcmp(name,"samsho4") ||
-	!strcmp(name,"aof3") ||
-	!strcmp(name,"rbff1") ||
-	!strcmp(name,"rbffspec") ||
-	!strcmp(name,"kof95") ||
-	!strcmp(name,"kof96") ||
-	!strcmp(name,"kof96h") ||
-	!strcmp(name,"kof97") ||
-	!strcmp(name,"kof97a") ||
-	!strcmp(name,"kof97pls") ||
-	!strcmp(name,"kof98") ||
+	!strcmp(name,"samsho4") ||    //wd KO ???
+
+	!strcmp(name,"aof3") ||       //wd ok
+	!strcmp(name,"rbff1") ||      //wd ok
+	!strcmp(name,"rbffspec") ||   //wd ok
+	!strcmp(name,"kof95") || //wd ok
+	!strcmp(name,"kof96") || //wd ok
+	!strcmp(name,"kof96h") || //wd ok
+	!strcmp(name,"kof97") || //wd ok
+	!strcmp(name,"kof97a") || //wd ok
+	!strcmp(name,"kof97pls") || //wd ok
+	!strcmp(name,"kof98") || //wd ok
 	!strcmp(name,"kof98k") ||
 	!strcmp(name,"kof98n") ||
 	!strcmp(name,"kof99") ||
@@ -100,14 +102,14 @@ void setup_misc_patch(char *name)
 	!strcmp(name,"mslug3") ||
 	!strcmp(name,"garou") ||
 	!strcmp(name,"garouo") ||
-	!strcmp(name,"garoup"))
+	!strcmp(name,"garouaaabl"))
     	sram_protection_hack = 0x100;
 
 
 
     if (!strcmp(name, "pulstar"))
 	sram_protection_hack = 0x35a;
-
+*/
 
     if (!strcmp(name, "ssideki")) {
 	WRITE_WORD_ROM(&memory.cpu[0x2240], 0x4e71);
@@ -293,7 +295,6 @@ static inline void update_screen(void) {
 	irq2start = (irq2pos_value + 3) / 0x180;	/* ridhero gives 0x17d */
     else
 	irq2start = 1000;
-    current_line = 0;
 
     if (!skip_this_frame) {
 	if (last_line < 21) 
@@ -707,7 +708,7 @@ void main_loop(void)
 #endif
 
     Uint32 cpu_68k_timeslice = (m68k_overclk==0?200000:200000+(m68k_overclk*200000/100.0));
-    Uint32 cpu_68k_timeslice_scanline = cpu_68k_timeslice/262.0;
+    Uint32 cpu_68k_timeslice_scanline = cpu_68k_timeslice/264.0;
     Uint32 cpu_z80_timeslice = (z80_overclk==0?73333:73333+(z80_overclk*73333/100.0));
     Uint32 tm_cycle=0;
 
@@ -1019,7 +1020,8 @@ void main_loop(void)
 
 	if (!conf.debug) {
 	    if (conf.raster) {
-		for (i = 0; i < 261; i++) {
+		    current_line=0;
+		for (i = 0; i < 264; i++) {
 		    tm_cycle=cpu_68k_run(cpu_68k_timeslice_scanline-tm_cycle);
 		    if (update_scanline())
 			cpu_68k_interrupt(2);
@@ -1028,6 +1030,9 @@ void main_loop(void)
 		state_handling(pending_save_state,pending_load_state);
 		
 		update_screen();
+		memory.watchdog++;
+		if (memory.watchdog>7)
+			cpu_68k_reset();
 		cpu_68k_interrupt(1);
 	    } else {
 		PROFILER_START(PROF_68K);
@@ -1038,6 +1043,11 @@ void main_loop(void)
 		/* state handling (we save/load before interrupt) */
 		state_handling(pending_save_state,pending_load_state);
 		
+		memory.watchdog++;
+
+		if (memory.watchdog>7) /* Watchdog reset after ~0.13 == ~7.8 frames */
+			cpu_68k_reset();
+
 		if (a) {
 		    cpu_68k_interrupt(a);
 		}
