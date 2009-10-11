@@ -145,6 +145,7 @@
 #define running_machine GAME_ROMS
 
 #define malloc_or_die(b) malloc(b)
+#define alloc_array_or_die(type,size) (malloc(sizeof(type)*size))
 UINT32 memory_region_length( GAME_ROMS *r, char *region );
 UINT8 *memory_region( GAME_ROMS *r, char *region );
 

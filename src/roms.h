@@ -62,6 +62,7 @@ typedef struct GAME_ROMS {
 	ROM_REGION adpcma;
 	ROM_REGION adpcmb;
 	ROM_REGION spr_usage;
+	ROM_REGION cpu_z80c;
 }GAME_ROMS;
 
 

@@ -810,7 +810,7 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 	int rc;
 	printf("Loading %s/%s.zip\n",rpath,name);
 	rc=dr_load_roms(&rom,rpath,name);
-	
+/*	
 	memory.cpu = rom.cpu_m68k.p;
 	memory.cpu_size = rom.cpu_m68k.size;
 	
@@ -838,7 +838,7 @@ SDL_bool dr_load_game(DRIVER *dr,char *name) {
 	CHECK_ALLOC(memory.pen_usage);
 	memset(memory.pen_usage, 0, (memory.gfx_size >> 11) * sizeof(Uint32));
 	memory.nb_of_tiles = memory.gfx_size >> 7;
-
+*/
 
 	conf.game=rom.info.name;
 	/* TODO */ neogeo_fix_bank_type =0;
