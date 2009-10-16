@@ -159,29 +159,32 @@ void cf_create_action_item(const char *name,const char *help,char short_opt,int 
     CONF_ITEM *t=create_conf_item(name,help,short_opt,action);
     t->type=CFT_ACTION;
 }
-void cf_create_action_arg_item(const char *name,const char *help,char short_opt,int (*action)(struct CONF_ITEM *self))
+void cf_create_action_arg_item(const char *name,const char *help,const char *hlp_arg,char short_opt,int (*action)(struct CONF_ITEM *self))
 {
     CONF_ITEM *t=create_conf_item(name,help,short_opt,action);
     t->type=CFT_ACTION_ARG;
+    t->help_arg=(char *)hlp_arg;
 }
 
-void cf_create_string_item(const char *name,const char *help,char short_opt,const char *def)
+void cf_create_string_item(const char *name,const char *help,const char *hlp_arg,char short_opt,const char *def)
 {
     CONF_ITEM *t=create_conf_item(name,help,short_opt,NULL);
     t->type=CFT_STRING;
     strcpy(t->data.dt_str.str,def);
     t->data.dt_str.default_str=strdup(def);
+    t->help_arg=(char *)hlp_arg;
 }
 
-void cf_create_int_item(const char *name,const char *help,char short_opt,int def)
+void cf_create_int_item(const char *name,const char *help,const char *hlp_arg,char short_opt,int def)
 {
     CONF_ITEM *t=create_conf_item(name,help,short_opt,NULL);
     t->type=CFT_INT;
     t->data.dt_int.val=def;
     t->data.dt_int.default_val=def;
+    t->help_arg=(char *)hlp_arg;
 }
 
-void cf_create_array_item(const char *name,const char *help,char short_opt,int size,int *def)
+void cf_create_array_item(const char *name,const char *help,const char *hlp_arg,char short_opt,int size,int *def)
 {
     CONF_ITEM *t=create_conf_item(name,help,short_opt,NULL);
     t->type=CFT_ARRAY;
@@ -189,6 +192,7 @@ void cf_create_array_item(const char *name,const char *help,char short_opt,int s
     t->data.dt_array.array=(int*)calloc(1,size*sizeof(int));
     memcpy(t->data.dt_array.array,def,size*sizeof(int));
     t->data.dt_array.default_array=def;
+    t->help_arg=(char *)hlp_arg;
 }
 
 CONF_ITEM* cf_get_item_by_name(const char *name){
@@ -224,10 +228,7 @@ void cf_print_help(void) {
     CONF_ITEM *cf;
     printf("Usage: gngeo [OPTION]... ROMSET\n"
 	   "Emulate the NeoGeo rom designed by ROMSET\n\n");
-/*
-    printf("  -h, --help                 Print this help and exit\n"
-	   "  -l, --listgame             List all the available game\n");
-*/
+
     for (i=0;i<128;i++) {
 	for(j=0;j< cf_hash[i].nb_item;j++) {
 	    cf=cf_hash[i].conf[j];
@@ -237,27 +238,15 @@ void cf_print_help(void) {
 		printf("      --");
 	    switch (cf->type) {
 	    case CFT_ARRAY:
-	    {
-		char buf[22];
-		snprintf(buf,21,"%s=ARRAY",cf->name);
-		printf("%-20s %s\n",buf,cf->help);
-	    }
-	    break;
 	    case CFT_STRING:
 	    case CFT_ACTION_ARG:
-	    {
-		char buf[22];
-		snprintf(buf,21,"%s=STRING",cf->name);
-		printf("%-20s %s\n",buf,cf->help);
-	    }
-	    break;
 	    case CFT_INT:
 	    {
 		char buf[22];
-		snprintf(buf,21,"%s=N",cf->name);
+		snprintf(buf,21,"%s=%s",cf->name,cf->help_arg);
 		printf("%-20s %s\n",buf,cf->help);
 	    }
-		break;
+	    break;
 	    case CFT_BOOLEAN:
 	    case CFT_ACTION:
 		printf("%-20s %s\n",cf->name,cf->help);
@@ -275,6 +264,8 @@ static  int print_help(CONF_ITEM *self) {
 }
 
 static int show_all_game(CONF_ITEM *self) {
+	printf("Not implemented yet\n");
+/*
     dr_load_driver_dir(CF_STR(cf_get_item_by_name("romrcdir")));
 #if ! defined (GP2X) && ! defined (WIN32)
     {
@@ -293,8 +284,10 @@ static int show_all_game(CONF_ITEM *self) {
 
     //dr_load_driver(CF_STR(cf_get_item_by_name("romrc")));
     dr_list_all();//list_game();
+*/
     return 0;
 }
+
 
 static int show_version(CONF_ITEM *self) {
     printf("Gngeo %s\n",VERSION);
@@ -302,7 +295,7 @@ static int show_version(CONF_ITEM *self) {
 
     return 0;
 }
-
+#if 0
 static int scan_dir(CONF_ITEM *self) {
 #ifdef HAVE_SCANDIR
     int nbf,i;
@@ -358,6 +351,7 @@ static int dump_sprite(CONF_ITEM *self) {
 	}
 	return 0;
 }
+#endif
 
 void cf_init(void)
 {
@@ -366,8 +360,8 @@ void cf_init(void)
     cf_create_action_item("help","Print this help and exit",'h',print_help);
     cf_create_action_item("listgame","Show all the game available in the romrc",'l',show_all_game);
     cf_create_action_item("version","Show version and exit",'v',show_version);
-    cf_create_action_arg_item("dumpsprite","Dump all the sprite data in a .gfx file",0,dump_sprite);
-    cf_create_action_arg_item("scandir","Scan the given directory, and show available rom",0,scan_dir);
+    //cf_create_action_arg_item("dumpsprite","Dump all the sprite data in a .gfx file",0,dump_sprite);
+    //cf_create_action_arg_item("scandir","Scan the given directory, and show available rom",0,scan_dir);
     cf_create_bool_item("forcepc","Force the PC to a correct value at startup",0,SDL_FALSE);
     cf_create_bool_item("fullscreen","Start gngeo in fullscreen",'f',SDL_FALSE);
     cf_create_bool_item("interpolation","Merge the last frame and the current",'I',SDL_FALSE);
@@ -383,7 +377,7 @@ void cf_init(void)
 #ifdef GP2X
     cf_create_bool_item("ramhack","Enable CraigX's RAM timing hack",0,SDL_FALSE);
     cf_create_bool_item("tvout","Enable Tvout (NTSC)",0,SDL_FALSE);
-    cf_create_array_item("tv_offset","Shift TV screen by x,y pixel",0,2,default_tvoffset);
+    cf_create_array_item("tv_offset","Shift TV screen by x,y pixel","x,y",0,2,default_tvoffset);
     cf_create_bool_item("vsync","Synchronise the display with VBLANK",0,SDL_FALSE);
     cf_create_bool_item("940sync","Accurate synchronise between the both core",0,SDL_TRUE);
 #endif
@@ -397,47 +391,48 @@ void cf_init(void)
 #endif
 */
 
-    cf_create_string_item("country","Set the contry to japan, asia, usa or europe",0,"europe");
-    cf_create_string_item("system","Set the system to home or arcade",0,"arcade");
-    cf_create_string_item("rompath","Use STRING as rom path",'i',DATA_DIRECTORY);
-    cf_create_string_item("biospath","Use STRING as bios path",'B',DATA_DIRECTORY);
-    cf_create_string_item("romrc","Use STRING as romrc file",'d',DATA_DIRECTORY"/romrc");
-    cf_create_string_item("romrcdir","Use STRING as romrc.d directory",0,DATA_DIRECTORY"/romrc.d");
-    cf_create_string_item("libglpath","Use STRING as libGL",0,"/usr/lib/libGL.so");
-    cf_create_string_item("effect","Use the specified effect (help for a list)",'e',"none");
-    cf_create_string_item("blitter","Use the specified blitter (help for a list)",'b',"soft");
-    cf_create_string_item("transpack","Use the specified transparency pack",'t',"none");
+    cf_create_string_item("country","Set the contry to japan, asia, usa or europe","...",0,"europe");
+    cf_create_string_item("system","Set the system to home, arcade or unibios","...",0,"arcade");
+    cf_create_string_item("rompath","Tell gngeo where your roms are","PATH",'i',DATA_DIRECTORY);
+    cf_create_string_item("biospath","Tell gngeo where your neogeo bios is","PATH",'B',DATA_DIRECTORY);
+    cf_create_string_item("gngeo.dat","Tell gngeo where his ressource file is","PATH",'d',DATA_DIRECTORY"/gngeo.dat");
+    //cf_create_string_item("romrcdir","Use STRING as romrc.d directory",0,DATA_DIRECTORY"/romrc.d");
+    cf_create_string_item("libglpath","Path to your libGL.so","PATH",0,"/usr/lib/libGL.so");
+    cf_create_string_item("effect","Use the specified effect (help for a list)","Effetc",'e',"none");
+    cf_create_string_item("blitter","Use the specified blitter (help for a list)","Blitter",'b',"soft");
+    cf_create_string_item("transpack","Use the specified transparency pack","Transpack",'t',"none");
 #ifdef GP2X
-    cf_create_string_item("frontend","Execute STRING when exit. Usefull to return to Selector or Rage2x",0,"./gngeo2x.gpe");
+    cf_create_string_item("frontend","Execute CMD when exit. Usefull to return to Selector or Rage2x","CMD",0,"./gngeo2x.gpe");
 #endif
    
-    cf_create_array_item("p1key","Player1 Keyboard configuration",0,14,default_key1);
-    cf_create_array_item("p2key","Player2 Keyboard configuration",0,14,default_key2);
-    cf_create_array_item("p1joy","Player1 Joystick configuration",0,14,default_joy1);
-    cf_create_array_item("p2joy","Player2 Joystick configuration",0,14,default_joy2);
+    cf_create_array_item("p1key","Player1 Keyboard configuration","...",0,14,default_key1);
+    cf_create_array_item("p2key","Player2 Keyboard configuration","...",0,14,default_key2);
+    cf_create_array_item("p1joy","Player1 Joystick configuration","...",0,14,default_joy1);
+    cf_create_array_item("p2joy","Player2 Joystick configuration","...",0,14,default_joy2);
 
-    cf_create_array_item("p1hotkey0","Player1 Hotkey 0 configuration",0,4,default_p1hotkey0);
-    cf_create_array_item("p1hotkey1","Player1 Hotkey 1 configuration",0,4,default_p1hotkey1);
-    cf_create_array_item("p1hotkey2","Player1 Hotkey 2 configuration",0,4,default_p1hotkey2);
-    cf_create_array_item("p1hotkey3","Player1 Hotkey 3 configuration",0,4,default_p1hotkey3);
-    cf_create_array_item("p2hotkey0","Player2 Hotkey 0 configuration",0,4,default_p2hotkey0);
-    cf_create_array_item("p2hotkey1","Player2 Hotkey 1 configuration",0,4,default_p2hotkey1);
-    cf_create_array_item("p2hotkey2","Player2 Hotkey 2 configuration",0,4,default_p2hotkey2);
-    cf_create_array_item("p2hotkey3","Player2 Hotkey 3 configuration",0,4,default_p2hotkey3);
+    cf_create_array_item("p1hotkey0","Player1 Hotkey 0 configuration","...",0,4,default_p1hotkey0);
+    cf_create_array_item("p1hotkey1","Player1 Hotkey 1 configuration","...",0,4,default_p1hotkey1);
+    cf_create_array_item("p1hotkey2","Player1 Hotkey 2 configuration","...",0,4,default_p1hotkey2);
+    cf_create_array_item("p1hotkey3","Player1 Hotkey 3 configuration","...",0,4,default_p1hotkey3);
+    cf_create_array_item("p2hotkey0","Player2 Hotkey 0 configuration","...",0,4,default_p2hotkey0);
+    cf_create_array_item("p2hotkey1","Player2 Hotkey 1 configuration","...",0,4,default_p2hotkey1);
+    cf_create_array_item("p2hotkey2","Player2 Hotkey 2 configuration","...",0,4,default_p2hotkey2);
+    cf_create_array_item("p2hotkey3","Player2 Hotkey 3 configuration","...",0,4,default_p2hotkey3);
 
-    cf_create_int_item("scale","Scale the resolution by N",0,1);
-    cf_create_int_item("samplerate","Set the sample rate to N",0,22050);
-    cf_create_int_item("68kclock","Overclock the 68k by N% (-N% for underclk)",0,0);
-    cf_create_int_item("z80clock","Overclock the Z80 by N% (-N% for underclk)",0,0);
+    cf_create_int_item("scale","Scale the resolution by X","X",0,1);
+    cf_create_int_item("samplerate","Set the sample rate to RATE","RATE",0,22050);
+    cf_create_int_item("68kclock","Overclock the 68k by x% (-x% for underclk)","x",0,0);
+    cf_create_int_item("z80clock","Overclock the Z80 by x% (-x% for underclk)","x",0,0);
 
-    cf_create_int_item("p1joydev","Device index for p1joy (0 -> /dev/js0, etc.)",0,0);
-    cf_create_int_item("p2joydev","Device index for p2joy",0,1);
+    cf_create_int_item("p1joydev","Device index for p1joy (0 -> /dev/js0, etc.)","Device",0,0);
+    cf_create_int_item("p2joydev","Device index for p2joy","Device",0,1);
 #ifdef GP2X
-    cf_create_int_item("cpu_speed","Overclock the GP2X cpu to N Mhz",0,0);
+    cf_create_int_item("cpu_speed","Overclock the GP2X cpu to x Mhz","x",0,0);
 #endif
 
 }
 
+/* TODO: lame, do it better */
 SDL_bool discard_line(char *buf)
 {
     if (buf[0] == '#')
@@ -483,7 +478,7 @@ SDL_bool cf_save_file(char *filename,int flags) {
 		int len = strlen("gngeorc") + strlen("/PROGDIR/data/") + 1;
 		conf_file = (char *) alloca(len*sizeof(char));
 		sprintf(conf_file, "/PROGDIR/data/gngeorc");
-#else
+#else /* POSIX */
 		int len = strlen("gngeorc") + strlen(getenv("HOME")) + strlen("/.gngeo/") + 1;
 		conf_file = (char *) alloca(len*sizeof(char));
 		sprintf(conf_file, "%s/.gngeo/gngeorc", getenv("HOME"));
@@ -624,7 +619,7 @@ SDL_bool cf_open_file(char *filename)
 	strncpy(val,buf+strlen(name)+1,254);
 	//printf("%s|%s|\n",name,val);
 	cf=cf_get_item_by_name(name);
-	if (cf) {
+	if (cf && !(cf->flags&CF_SETBYCMD)) {
 	    /*printf("Option %s\n",cf->name);*/
 	    switch(cf->type) {
 	    case CFT_INT:
@@ -656,7 +651,7 @@ SDL_bool cf_open_file(char *filename)
 
 
 static struct option *longopt;
-static struct option *fake_longopt;
+//static struct option *fake_longopt;
 
 static void add_long_opt_item(char *name,int has_arg,int *flag,int val) {
     static int opt_size=0;
@@ -665,7 +660,7 @@ static void add_long_opt_item(char *name,int has_arg,int *flag,int val) {
     if (opt>=opt_size) {
 	opt_size+=10;
 	longopt=realloc(longopt,(opt_size+1)*sizeof(struct option));
-	fake_longopt=realloc(fake_longopt,(opt_size+1)*sizeof(struct option));
+	//fake_longopt=realloc(fake_longopt,(opt_size+1)*sizeof(struct option));
     }
     
     longopt[opt].name=name;
@@ -673,10 +668,12 @@ static void add_long_opt_item(char *name,int has_arg,int *flag,int val) {
     longopt[opt].flag=flag;
     longopt[opt].val=val;
 
+/*
     fake_longopt[opt].name=name;
     fake_longopt[opt].has_arg=has_arg;
     fake_longopt[opt].flag=NULL;
     fake_longopt[opt].val=0;
+*/
     opt++;
 }
 
@@ -723,90 +720,56 @@ void cf_init_cmd_line(void) {
 	}/* for j*/
     }/* for i*/
     
-/*
-    add_long_opt_item("help",0,NULL,'h');
-    add_long_opt_item("listgame",0,NULL,'l');
-    strcat(shortopt,"hl");
-*/
-
     /* end the longopt array*/
     add_long_opt_item(0,0,0,0);
-    //printf("shortopt:%s\n",shortopt);
-}
 
-/*
-int cf_get_non_opt_index(int argc, char *argv[]) {
-    int c,a;
-    option_index=optind=0;
-    while((c=getopt_long(argc,argv,shortopt,fake_longopt, &option_index))!=EOF) {
-    }
-    a=optind;
-
-    option_index=optind=0;
-    return a;
 }
-*/
 
 char* cf_parse_cmd_line(int argc, char *argv[]) {
-
-    
-    //int opt_size=10,opt=-1;
-    int i,j,c;
-    CONF_ITEM *cf;
+	int i,j,c;
+	CONF_ITEM *cf;
  
 
-    option_index=optind=0;
+	option_index=optind=0;
 
-    while((c=getopt_long(argc,argv,shortopt,longopt, &option_index))!=EOF) {
-	if (c!=0) {
-	    cf=cf_get_item_by_val(c);
-	    if (cf) {
-		switch(cf->type) {
-		case CFT_INT:
-		    CF_VAL(cf)=atoi(optarg);
-		    break;
-		case CFT_BOOLEAN:
-		    CF_BOOL(cf)=1;
-		    break;
-		case CFT_STRING:
-		    strcpy(CF_STR(cf),optarg);
-		    //printf("conf %s %s\n",CF_STR(cf),optarg);
-		    break;
-		case CFT_ARRAY:
-		    read_array(CF_ARRAY(cf),optarg,CF_ARRAY_SIZE(cf));
-		    break;
-		case CFT_ACTION_ARG:
-		    strcpy(CF_STR(cf),optarg);
-		    if (cf->action) {
-			exit(cf->action(cf));
-		    }
-		    break;
-		case CFT_ACTION:
-		    if (cf->action) {
-			exit(cf->action(cf));
-		    }
-		    break;
+	while((c=getopt_long(argc,argv,shortopt,longopt, &option_index))!=EOF) {
+		if (c!=0) {
+			cf=cf_get_item_by_val(c);
+			if (cf) {
+				switch(cf->type) {
+					cf->flags|=CF_SETBYCMD;
+				case CFT_INT:
+					CF_VAL(cf)=atoi(optarg);
+					break;
+				case CFT_BOOLEAN:
+					CF_BOOL(cf)=1;
+					break;
+				case CFT_STRING:
+					strcpy(CF_STR(cf),optarg);
+					//printf("conf %s %s\n",CF_STR(cf),optarg);
+					break;
+				case CFT_ARRAY:
+					read_array(CF_ARRAY(cf),optarg,CF_ARRAY_SIZE(cf));
+					break;
+				case CFT_ACTION_ARG:
+					strcpy(CF_STR(cf),optarg);
+					if (cf->action) {
+						exit(cf->action(cf));
+					}
+					break;
+				case CFT_ACTION:
+					if (cf->action) {
+						exit(cf->action(cf));
+					}
+					break;
+				}
+			}
 		}
-	    }
 	}
-/*
-	switch (c) {
-	case 'h': 
-	    cf_print_help();
-	    exit(0);
-	    break;
-	case 'l':
-	    dr_load_driver(CF_STR(cf_get_item_by_name("romrc")));
-	    dr_list_all();//list_game();
-	    exit(0);
-	    break;
-	}
-*/
-    }
     
-    if (optind >= argc)
-	return NULL;
-    cf_cache_conf();
-    return strdup(argv[optind]);
+	if (optind >= argc)
+		return NULL;
+	cf_cache_conf();
+	return strdup(argv[optind]);
 }
 

@@ -303,7 +303,8 @@ static inline void update_screen(void) {
 	    draw_screen();
 	    //draw_screen_scanline(last_line-21, 262, 1);
 	} else {
-	    draw_screen_scanline(last_line-21, 262, 1);
+		draw_screen_scanline(last_line-21, 262, 1);
+		//draw_screen_scanline(last_line, 262, 1);
 	}
     }
 
@@ -336,7 +337,10 @@ static inline int update_scanline(void) {
 
     if (irq2taken) {
 	if (!skip_this_frame) {
-	    draw_screen_scanline(last_line-21, current_line-20, 0);
+		if (last_line< 21) last_line=21;
+		if (current_line<20)current_line=20;
+		draw_screen_scanline(last_line-21, current_line-20, 0);
+		//draw_screen_scanline(last_line, current_line, 0);
 	}
 	last_line = current_line;
     }

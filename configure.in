@@ -140,6 +140,7 @@ AC_ARG_ENABLE(i386asm,     [  --disable-i386asm       disable the use of i386 op
 
 if test "$enablei386asm" = yes ; then
 	AC_CHECK_PROG(NASM, nasm, yes,no)
+	CFLAGS="$CFLAGS -m32"
 else
 	NASM=no
 fi
@@ -236,6 +237,22 @@ dnl Check for processor.
 		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -Wno-unused -funroll-loops \
                     -ffast-math -malign-functions=2 -malign-jumps=2 -fexpensive-optimizations \
                     -malign-loops=2 -fschedule-insns2 -malign-double -fomit-frame-pointer -g \
+		    -fno-strict-aliasing -pipe -mcpu=$target_cpu -DCPU=$target_cpu"
+           fi
+           ;;
+     x86_64)
+	   AC_MSG_RESULT(Turning on x86_64 processor optimisations)
+           AC_DEFINE(PROCESSOR_ADM64, 1, [Define if you have an x86_64 processor])
+           ALIGNLONGS=0
+	   if test $CC_MAJOR -ge 3 ; then
+		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -Wno-unused -funroll-loops \
+                    -ffast-math  -fexpensive-optimizations \
+                     -malign-double -fomit-frame-pointer -g \
+		    -fno-strict-aliasing -pipe -DCPU=$target_cpu"
+	   else
+		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -Wno-unused -funroll-loops \
+                    -ffast-math -fexpensive-optimizations \
+                    -fomit-frame-pointer -g \
 		    -fno-strict-aliasing -pipe -mcpu=$target_cpu -DCPU=$target_cpu"
            fi
            ;;

@@ -10,33 +10,39 @@ typedef enum CF_TYPE{
     CFT_ACTION_ARG,
 }CF_TYPE;
 
+#define CF_MODIFIED  0x1
+#define CF_SETBYCMD  0x2
+#define CF_CACHED    0x4
+
 typedef struct CONF_ITEM {
-    char *name;
-    int short_opt;
-    char *help;
-    int (*action)(struct CONF_ITEM *self); /* if defined, the option is 
-					      available only on the command line */
+	char *name;
+	int short_opt;
+	char *help;
+	char *help_arg; /* used for print usage */
+	int (*action)(struct CONF_ITEM *self); /* if defined, the option is 
+						  available only on the command line */
+	int flags;
 	SDL_bool modified;
-    CF_TYPE type;
-    union {
-	struct {
-	    int val;
-	    int default_val;
-	}dt_int;
-	struct {
-	    int bool;
-	    int default_bool;
-	}dt_bool;
-	struct {
-	    char str[255];
-	    char *default_str;
-	}dt_str;
-	struct {
-	    int size;
-	    int *array;
-	    int *default_array;
-	}dt_array;
-    }data;
+	CF_TYPE type;
+	union {
+		struct {
+			int val;
+			int default_val;
+		}dt_int;
+		struct {
+			int bool;
+			int default_bool;
+		}dt_bool;
+		struct {
+			char str[255];
+			char *default_str;
+		}dt_str;
+		struct {
+			int size;
+			int *array;
+			int *default_array;
+		}dt_array;
+	}data;
 }CONF_ITEM;
 
 #define CF_BOOL(t) t->data.dt_bool.bool
@@ -49,10 +55,10 @@ typedef struct CONF_ITEM {
 CONF_ITEM* cf_get_item_by_name(const char *name);
 void cf_create_bool_item(const char *name,const char *help,char short_opt,SDL_bool def);
 void cf_create_action_item(const char *name,const char *help,char short_opt,int (*action)(struct CONF_ITEM *self));
-void cf_create_action_arg_item(const char *name,const char *help,char short_opt,int (*action)(struct CONF_ITEM *self));
-void cf_create_string_item(const char *name,const char *help,char short_opt,const char *def);
-void cf_create_int_item(const char *name,const char *help,char short_opt,int def);
-void cf_create_array_item(const char *name,const char *help,char short_opt,int size,int *def);
+void cf_create_action_arg_item(const char *name,const char *help,const char *hlp_arg,char short_opt,int (*action)(struct CONF_ITEM *self));
+void cf_create_string_item(const char *name,const char *help,const char *hlp_arg,char short_opt,const char *def);
+void cf_create_int_item(const char *name,const char *help,const char *hlp_arg,char short_opt,int def);
+void cf_create_array_item(const char *name,const char *help,const char *hlp_arg,char short_opt,int size,int *def);
 void cf_init(void);
 SDL_bool cf_save_file(char *filename,int flags);
 SDL_bool cf_open_file(char *filename);

@@ -8,6 +8,7 @@
 #include "unzip.h"
 #include "video.h"
 #include "transpack.h"
+#include "conf.h"
 
 
 /* Prototype */
@@ -1008,6 +1009,7 @@ void zread_uint32(unzFile *gz,Uint32 *c) {
 int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 	unzFile *gz,*gzp=NULL,*rdefz;
 	char drvfname[32];
+	char *gngeo_dat=CF_STR(cf_get_item_by_name("gngeo.dat"));
 	ROM_DEF *drv;
 	unz_file_info rdefz_info;
 	int i;
@@ -1020,9 +1022,9 @@ int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 		return FALSE;
 	}
 	/* Open the rom driver def */
-	rdefz=unzOpen("/home/mathieu/build/gngeo_ng/db/romset.zip");
+	rdefz=unzOpen(gngeo_dat);
 	if (rdefz==NULL) {
-		fprintf(stderr, "Can't open the romset database\n");
+		fprintf(stderr, "Can't open the %s\n",gngeo_dat);
 		return FALSE;
 	}
 	sprintf(drvfname,"rom/%s.drv",name);

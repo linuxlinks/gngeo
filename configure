@@ -4702,6 +4702,7 @@ $as_echo "no" >&6; }
 fi
 
 
+	CFLAGS="$CFLAGS -m32"
 else
 	NASM=no
 fi
@@ -6912,6 +6913,27 @@ _ACEOF
 		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -Wno-unused -funroll-loops \
                     -ffast-math -malign-functions=2 -malign-jumps=2 -fexpensive-optimizations \
                     -malign-loops=2 -fschedule-insns2 -malign-double -fomit-frame-pointer -g \
+		    -fno-strict-aliasing -pipe -mcpu=$target_cpu -DCPU=$target_cpu"
+           fi
+           ;;
+     x86_64)
+	   { $as_echo "$as_me:$LINENO: result: Turning on x86_64 processor optimisations" >&5
+$as_echo "Turning on x86_64 processor optimisations" >&6; }
+
+cat >>confdefs.h <<\_ACEOF
+#define PROCESSOR_ADM64 1
+_ACEOF
+
+           ALIGNLONGS=0
+	   if test $CC_MAJOR -ge 3 ; then
+		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -Wno-unused -funroll-loops \
+                    -ffast-math  -fexpensive-optimizations \
+                     -malign-double -fomit-frame-pointer -g \
+		    -fno-strict-aliasing -pipe -DCPU=$target_cpu"
+	   else
+		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -Wno-unused -funroll-loops \
+                    -ffast-math -fexpensive-optimizations \
+                    -fomit-frame-pointer -g \
 		    -fno-strict-aliasing -pipe -mcpu=$target_cpu -DCPU=$target_cpu"
            fi
            ;;

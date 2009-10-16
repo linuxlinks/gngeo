@@ -222,7 +222,6 @@ int main(int argc, char *argv[])
     char *rom_name;
     int nopt;
     char *drconf,*gpath;
-    DRIVER *dr;
     Uint8 gui_res,gngeo_quit=0;
     char *country;
     char *system;
@@ -232,40 +231,12 @@ int main(int argc, char *argv[])
     SetProgramDir(file_lock);
 #endif
 
-    /* faut bien le mettre quelque part */
-
     cf_init(); /* must be the first thing to do */
-//#ifdef GP2X
-//    cf_open_file("conf/gngeorc");
-//#else
-    cf_open_file(NULL);
-//#endif
     cf_init_cmd_line();
+    cf_open_file(NULL); /* Open Default configuration file */
 
+    rom_name=cf_parse_cmd_line(argc,argv);
 
-    //nopt=cf_get_non_opt_index(argc,argv);
-    rom_name=cf_parse_cmd_line(argc,argv); /* First pass */
-
-    /* First try to suppress the romrc in favor of romrc.d */
-    //dr_load_driver(CF_STR(cf_get_item_by_name("romrc")));
-
-#ifdef OLD_DRIVER
-    dr_load_driver_dir(CF_STR(cf_get_item_by_name("romrcdir")));
-#if !defined (GP2X) && !defined(WIN32)
-    {
-#if defined (__AMIGA__)
-	    int len = strlen("romrc.d") + strlen("/PROGDIR/data/") + 1;
-	    char *rc_dir = (char *) alloca(len*sizeof(char));
-	    sprintf(rc_dir, "/PROGDIR/data/romrc.d");
-#else
-	    int len = strlen("romrc.d") + strlen(getenv("HOME")) + strlen("/.gngeo/") +	1;
-	    char *rc_dir = (char *) alloca(len*sizeof(char));
-	    sprintf(rc_dir, "%s/.gngeo/romrc.d", getenv("HOME"));
-#endif
-	    dr_load_driver_dir(rc_dir);
-    }
-#endif
-#endif /* OLD_DRIVER */
     /* print effect/blitter list if asked by user */
     if (!strcmp(CF_STR(cf_get_item_by_name("effect")),"help")) {
 	print_effect_list();
@@ -275,13 +246,24 @@ int main(int argc, char *argv[])
 	print_blitter_list();
 	exit(0);
     }
-
+    /* Print help and exit if no game specified */
     if (!rom_name) {
 	    cf_print_help();
 	    exit(0);
     }
    
+/* per game config */
+#if defined(GP2X) || defined(WIN32)
+    gpath="conf/";
+#else
+    gpath=get_gngeo_dir();
+#endif
+    
+    drconf=alloca(strlen(gpath)+strlen(rom_name)+strlen(".cf")+1);
+    sprintf(drconf,"%s%s.cf",gpath,rom_name);
+    cf_open_file(drconf);
 
+/* GP2X stuff */
 #ifdef GP2X
     gp2x_init();
 
@@ -304,46 +286,14 @@ int main(int argc, char *argv[])
     //SDL_Delay(200);
     //benchmark ((void*)screen->pixels);
     gn_init_skin();
+    gp2x_init_mixer();
+    SDL_FillRect(screen,NULL,0);
+
 #endif
 
- 
-/* per game config */
-#ifdef OLD_DRIVER
-#if defined(GP2X) || defined(WIN32)
-    gpath="conf/";
-#else
-    gpath=get_gngeo_dir();
-#endif
-    dr=dr_get_by_name(rom_name);
-    if(!dr) {
-#ifdef GP2X
-	    gn_popup_error("Bad roms!",
-			   "Unknow or unsupported romset. "
- 			   "Check it and your romrc");
-#else
-	    printf("Unknow or unsupported romset.\n");
-#endif
-	    exit(1);
-    }
-    drconf=alloca(strlen(gpath)+strlen(dr->name)+strlen(".cf")+1);
-    sprintf(drconf,"%s%s.cf",gpath,dr->name);
-    cf_open_file(drconf);
- 
-    rom_name=cf_parse_cmd_line(argc,argv); /* Second pass */
 
     if (conf.debug) conf.sound=0;
-#endif
 
-#ifdef GP2X
-    gp2x_init_mixer();
-
-    SDL_FillRect(screen,NULL,0);
-#else
-    if (!rom_name) {
-	cf_print_help();
-	exit(0);
-    }
-#endif
 
        
     if (init_game(rom_name)!=SDL_TRUE) {
