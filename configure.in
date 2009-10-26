@@ -37,7 +37,7 @@ AC_ARG_ENABLE(gp2x,    [  --enable-gp2x           Enable GP2X build],
 			[enable_gp2x="$enableval"],[enable_gp2x="false"])
 echo GP2X $enable_gp2x
 if test "$enable_gp2x" = yes ; then
-	CFLAGS="$CFLAGS -DGP2X -mtune=arm920t"
+
 	enable_gp2x=true
 	AC_CHECK_PROG(SDL_CONFIG, arm-open2x-linux-sdl-config,arm-open2x-linux-sdl-config,no)
 	if test "$SDL_CONFIG" = no ; then
@@ -51,6 +51,8 @@ if test "$enable_gp2x" = yes ; then
 	else 
 		AC_MSG_ERROR(can't find sdl-config on your system);
 	fi
+	CFLAGS="$CFLAGS -DGP2X -mtune=arm920t"
+	#AS=arm-open2x-linux-gcc
 else
 	AC_CHECK_PROG(SDL_CONFIG, sdl-config, yes,no)
 	if test "$SDL_CONFIG" = yes ; then

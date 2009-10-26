@@ -73,7 +73,7 @@ struct {
     int *p1_key;
     int *p2_key;
 
-    SDL_Joystick *joy[2];
+    SDL_Joystick **joy;
     int *p1_joy;
     int *p2_joy;
 

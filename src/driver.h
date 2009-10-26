@@ -95,7 +95,7 @@ SDL_bool dr_load_driver_dir(char *dirname);
 void dr_list_all(void);
 void dr_list_available(void);
 DRIVER *dr_get_by_name(char *name);
-SDL_bool dr_load_game(DRIVER *dr,char *zip);
+
 LIST *driver_get_all(void);
 DRIVER *get_driver_for_zip(char *zip);
 char *get_zip_name(char *name);

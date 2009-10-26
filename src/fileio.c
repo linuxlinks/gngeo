@@ -276,79 +276,58 @@ void free_game_memory(void) {
 }
 
 SDL_bool init_game(char *rom_name) {
-    DRIVER *dr;
-    char *drconf,*gpath;
-    char *country;
-    char *system;
+	char *drconf,*gpath;
+	char *country;
+	char *system;
 
-    open_bios();
-#ifdef OLD_DRIVER
+	open_bios();
 
-    dr=dr_get_by_name(rom_name);
-    if (!dr) {
-#if defined(GP2X)
-	    gn_popup_error(" Error! :","No valid romset found for %s",
-			   file_basename(rom_name));
-#else
-	printf("No valid romset found for %s\n",rom_name);
-#endif
-	return SDL_FALSE;
-    }
-#endif
-
-    if (conf.game!=NULL) {
-	save_nvram(conf.game);
-	save_memcard(conf.game);
-	if (conf.sound) {
-	    close_sdl_audio();
+	if (conf.game!=NULL) {
+		save_nvram(conf.game);
+		save_memcard(conf.game);
+		if (conf.sound) {
+			close_sdl_audio();
 #ifndef ENABLE_940T
-	    YM2610_sh_stop();
+			YM2610_sh_stop();
 #endif
-	    //streams_sh_stop();
+			//streams_sh_stop();
+		}
+		free_game_memory();
 	}
-	free_game_memory();
-    }
 
-#ifdef USE_GUI
-    /* per game config */
-#if defined(GP2X) || defined(WIN32)
-    gpath="conf/";
-#else
-    gpath=get_gngeo_dir();
-#endif
+	/* open transpack if need */
+	trans_pack_open(CF_STR(cf_get_item_by_name("transpack")));
 
-    drconf=alloca(strlen(gpath)+strlen(dr->name)+strlen(".cf")+1);
-    sprintf(drconf,"%s%s.cf",gpath,dr->name);
-    cf_open_file(drconf);
-
- 
-#endif
-   /* open transpack if need */
-    trans_pack_open(CF_STR(cf_get_item_by_name("transpack")));
-
-    //open_rom(rom_name);
-    if (dr_load_game(dr,rom_name)==SDL_FALSE) {
+	//open_rom(rom_name);
+	if (dr_load_game(rom_name)==SDL_FALSE) {
 #if defined(GP2X)
-	gn_popup_error(" Error! :","Couldn't load %s",
-		       file_basename(rom_name));
+		gn_popup_error(" Error! :","Couldn't load %s",
+			       file_basename(rom_name));
 #else
-	printf("Can't load %s\n",rom_name);
+		printf("Can't load %s\n",rom_name);
 #endif
-	return SDL_FALSE;
-    }
+		return SDL_FALSE;
+	}
 
 
-    open_nvram(conf.game);
-    open_memcard(conf.game);
+	open_nvram(conf.game);
+	open_memcard(conf.game);
 #ifndef GP2X
-    /* We have allready init it b4 (for progressbar) */
-    init_sdl();
-    sdl_set_title(conf.game);
+	/* We have allready init it b4 (for progressbar) */
+	//init_sdl();
+	sdl_set_title(conf.game);
 #endif
-    init_neo(conf.game);
-    //if (conf.sound) 
-    //init_sdl_audio();
-    return SDL_TRUE;
+	init_neo(conf.game);
+
+	fix_usage = memory.fix_board_usage;
+	current_pal = memory.pal1;
+	current_fix = memory.sfix_board;
+	current_pc_pal = (Uint32 *) memory.pal_pc1;
+
+
+	//if (conf.sound) 
+	//init_sdl_audio();
+	return SDL_TRUE;
 }
 
 void free_bios_memory(void) {
@@ -474,10 +453,6 @@ void open_bios(void)
     /* convert bios fix char */
     convert_all_char(memory.sfix_board, 0x20000, memory.fix_board_usage);
 
-    fix_usage = memory.fix_board_usage;
-    current_pal = memory.pal1;
-    current_fix = memory.sfix_board;
-    current_pc_pal = (Uint32 *) memory.pal_pc1;
 
     free(romfile);
 }

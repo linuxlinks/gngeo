@@ -90,6 +90,7 @@ struct STARSCREAM_DATAREGION pretend_writebyte[] = {
     {0x3a0000, 0x3a0fff, mem68k_store_setting_byte, 0},
     {0x200000, 0x2fffff, NULL, 0},
     {0x800000, 0x800fff, mem68k_store_memcrd_byte, 0},
+    {0x300000, 0x310000, mem68k_store_invalid_byte,0},
     {-1, -1, 0, 0}
 };
 

@@ -1169,7 +1169,7 @@ int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 	/* Init rom and bios */
 	init_roms(r);
 	convert_all_tile(r);
-	dr_load_bios(r);
+	//dr_load_bios(r);
 
 	return TRUE;
 error1:
@@ -1180,6 +1180,59 @@ error1:
 	free(drv);
 	return FALSE;
 }
+
+SDL_bool dr_load_game(char *name) {
+	GAME_ROMS rom;
+	char *rpath=CF_STR(cf_get_item_by_name("rompath"));
+	int rc;
+	printf("Loading %s/%s.zip\n",rpath,name);
+	rc=dr_load_roms(&rom,rpath,name);
+/*	
+	memory.cpu = rom.cpu_m68k.p;
+	memory.cpu_size = rom.cpu_m68k.size;
+	
+	memory.sfix_game = rom.game_sfix.p;
+	memory.sfix_size = rom.game_sfix.size;	
+	memory.fix_game_usage= malloc(rom.game_sfix.size >> 5);	
+
+	
+	memory.sm1 = rom.cpu_z80.p;
+	memory.sm1_size = rom.cpu_z80.size;
+
+	memory.sound1 = rom.adpcma.p;
+	memory.sound1_size = rom.adpcma.size;
+
+	if (rom.adpcmb.size==0) {
+		memory.sound2 = rom.adpcma.p;
+		memory.sound2_size = rom.adpcma.size;
+	} else {
+		memory.sound2 = rom.adpcmb.p;
+		memory.sound2_size = rom.adpcmb.size;
+	}
+	memory.gfx = rom.tiles.p;
+	memory.gfx_size = rom.tiles.size;
+	memory.pen_usage = malloc((memory.gfx_size >> 11) * sizeof(Uint32));
+	CHECK_ALLOC(memory.pen_usage);
+	memset(memory.pen_usage, 0, (memory.gfx_size >> 11) * sizeof(Uint32));
+	memory.nb_of_tiles = memory.gfx_size >> 7;
+*/
+
+	conf.game=rom.info.name;
+	/* TODO */ neogeo_fix_bank_type =0;
+	/* TODO */ set_bankswitchers( BANKSW_NORMAL);
+
+	memcpy(memory.game_vector,memory.cpu,0x80);
+
+	convert_all_char(memory.sfix_game, memory.sfix_size,
+			 memory.fix_game_usage);
+
+	init_video();
+
+	return SDL_TRUE;
+
+}
+
+
 static int dump_region(FILE *gno,ROM_REGION *rom,Uint8 id,Uint8 type,Uint32 block_size) {
 	if (rom->p==NULL) return FALSE;
 	fwrite(&rom->size,sizeof(Uint32),1,gno);

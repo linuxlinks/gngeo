@@ -114,6 +114,42 @@ void cf_cache_conf(void) {
         conf.country=CTY_EUROPE;
     }
 }
+static void read_array(int *tab, char *val, int size) {
+    int i = 0;
+    char *v;
+
+    v = strtok(val, ",");
+
+    while (v != NULL && i < size) {
+	tab[i] = atoi(v);
+	v = strtok(NULL, ",");
+	i++;
+    }
+}
+
+static char **read_str_array(char *val,int *size) {
+	char *v;
+	int nb_elem=1;
+	int i=0;
+	char **tab;
+	while (val[i]!=0) {
+		if (val[i]==',') nb_elem++;
+		i++;
+	}
+	printf("%s :NB elem %d\n",val,nb_elem);
+	tab=malloc(nb_elem*sizeof(char*));
+	if (!tab) return NULL;
+
+	v = strtok(val, ",");
+	printf("V1=%s\n",v);
+	for(i=0;i<nb_elem;i++) {
+		tab[i]=strdup(v);
+		v = strtok(NULL, ",");
+		printf("V%d=%s\n",i,v);
+	}
+	*size=nb_elem;
+	return tab;
+}
 
 static CONF_ITEM * create_conf_item(const char *name,const char *help,char short_opt,int (*action)(struct CONF_ITEM *self))
 {
@@ -193,6 +229,19 @@ void cf_create_array_item(const char *name,const char *help,const char *hlp_arg,
     memcpy(t->data.dt_array.array,def,size*sizeof(int));
     t->data.dt_array.default_array=def;
     t->help_arg=(char *)hlp_arg;
+}
+
+void cf_create_str_array_item(const char *name,const char *help,const char *hlp_arg,char short_opt,char *def)
+{
+	CONF_ITEM *t=create_conf_item(name,help,short_opt,NULL);
+	t->type=CFT_STR_ARRAY;
+	t->data.dt_str_array.size=0; /* Calculated on the fly */
+	if (def!=NULL) 
+		t->data.dt_str_array.array=read_str_array(def,&t->data.dt_str_array.size);
+	else
+		t->data.dt_str_array.array=NULL;
+	t->data.dt_str_array.default_array=strdup(def);
+	t->help_arg=(char *)hlp_arg;
 }
 
 CONF_ITEM* cf_get_item_by_name(const char *name){
@@ -404,6 +453,8 @@ void cf_init(void)
 #ifdef GP2X
     cf_create_string_item("frontend","Execute CMD when exit. Usefull to return to Selector or Rage2x","CMD",0,"./gngeo2x.gpe");
 #endif
+    cf_create_string_item("p1control","Player1 control configutation","...",0,"A=K123,B=K12,C=J1B2");
+    cf_create_string_item("p2control","Player2 control configutation","...",0,"A=K323,B=K52,C=J2B1");
    
     cf_create_array_item("p1key","Player1 Keyboard configuration","...",0,14,default_key1);
     cf_create_array_item("p2key","Player2 Keyboard configuration","...",0,14,default_key2);
@@ -418,6 +469,8 @@ void cf_init(void)
     cf_create_array_item("p2hotkey1","Player2 Hotkey 1 configuration","...",0,4,default_p2hotkey1);
     cf_create_array_item("p2hotkey2","Player2 Hotkey 2 configuration","...",0,4,default_p2hotkey2);
     cf_create_array_item("p2hotkey3","Player2 Hotkey 3 configuration","...",0,4,default_p2hotkey3);
+
+
 
     cf_create_int_item("scale","Scale the resolution by X","X",0,1);
     cf_create_int_item("samplerate","Set the sample rate to RATE","RATE",0,22050);
@@ -445,18 +498,6 @@ SDL_bool discard_line(char *buf)
     return SDL_FALSE;
 }
 
-static void read_array(int *tab, char *val, int size) {
-    int i = 0;
-    char *v;
-
-    v = strtok(val, ",");
-
-    while (v != NULL && i < size) {
-	tab[i] = atoi(v);
-	v = strtok(NULL, ",");
-	i++;
-    }
-}
 
 SDL_bool cf_save_file(char *filename,int flags) {
 	char *conf_file=filename;
@@ -614,10 +655,13 @@ SDL_bool cf_open_file(char *filename)
 	my_fgets(buf, 510, f);
 	if (discard_line(buf))
 	    continue;
-	//sscanf(buf, "%s %s", name, val);
-	sscanf(buf, "%s ", name);
-	strncpy(val,buf+strlen(name)+1,254);
-	//printf("%s|%s|\n",name,val);
+	/* TODO: Verify this on Win32 */
+	sscanf(buf, "%s %s", name, val);
+
+	//sscanf(buf, "%s ", name);
+	//strncpy(val,buf+strlen(name)+1,254);
+
+	printf("%s|%s|\n",name,val);
 	cf=cf_get_item_by_name(name);
 	if (cf && !(cf->flags&CF_SETBYCMD)) {
 	    /*printf("Option %s\n",cf->name);*/
@@ -629,8 +673,8 @@ SDL_bool cf_open_file(char *filename)
 		CF_BOOL(cf)=(strcasecmp(val,"true")==0?SDL_TRUE:SDL_FALSE);
 		break;
 	    case CFT_STRING:
-		strncpy(CF_STR(cf),val,254);
-		break;
+		    strncpy(CF_STR(cf),val,254);
+		    break;
 	    case CFT_ARRAY:
 		read_array(CF_ARRAY(cf),val,CF_ARRAY_SIZE(cf));
 		break;
@@ -638,6 +682,9 @@ SDL_bool cf_open_file(char *filename)
 	    case CFT_ACTION_ARG:
 		/* action are not available in the conf file */
 		break;
+	    case CFT_STR_ARRAY:
+		    CF_STR_ARRAY(cf)=read_str_array(val,&CF_STR_ARRAY_SIZE(cf));
+		    break;
 	    }
 	} else {
 	    /*printf("Unknow option %s\n",name);*/

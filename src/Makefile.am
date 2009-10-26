@@ -38,6 +38,7 @@ asm_lib = screen_i386.o video_i386.o
 else
 if USE_GP2X
 asm_lib = video_arm.o memcpy.o
+asm_src = video_arm.s memcpy.S
 else
 asm_lib = 
 endif
@@ -68,13 +69,15 @@ gngeo_SOURCES = fileio.c         pd4990a.c        gngeo_icon.h      crypt.h     
 		cyclone_interf.c gp2x.h		  gp2x.c	    drz80_interf.c  \
 		menu.c		 menu.h		  ioapi.c           zip.c           \
 		zip.h		 roms.h		  roms.c	    mame_layer.h    \
-		mame_layer.c	 neoboot.c
+		mame_layer.c	 neoboot.c	  event.h	    event.c         \
+		$(asm_src)
 
 EXTRA_DIST = c32.mac screen_i386.asm video_i386.asm video_i386.inc getopt.h video_arm.s memcpy.S
 
 if USE_GP2X
 #gngeo_LDADD = blitter/libblitter.a ym2610/libym2610.a $(m68k_lib) $(z80_lib) $(asm_lib) $(gui_lib) #$(LIBOBJS)
-gngeo_LDADD = blitter/libblitter.a $(m68k_lib) $(asm_lib) $(gui_lib) #$(LIBOBJS)
+gngeo_LDADD = blitter/libblitter.a $(m68k_lib)  #$(LIBOBJS)
+
 else
 gngeo_LDADD = effect/libeffect.a blitter/libblitter.a ym2610/libym2610.a $(m68k_lib) $(z80_lib) $(asm_lib) $(gui_lib) #$(LIBOBJS)
 endif

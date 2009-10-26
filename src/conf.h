@@ -8,6 +8,7 @@ typedef enum CF_TYPE{
     CFT_ARRAY,
     CFT_ACTION,
     CFT_ACTION_ARG,
+    CFT_STR_ARRAY,
 }CF_TYPE;
 
 #define CF_MODIFIED  0x1
@@ -42,6 +43,11 @@ typedef struct CONF_ITEM {
 			int *array;
 			int *default_array;
 		}dt_array;
+		struct {
+			int size;
+			char **array;
+			char *default_array;
+		}dt_str_array;
 	}data;
 }CONF_ITEM;
 
@@ -50,7 +56,8 @@ typedef struct CONF_ITEM {
 #define CF_STR(t) t->data.dt_str.str
 #define CF_ARRAY(t) t->data.dt_array.array
 #define CF_ARRAY_SIZE(t) t->data.dt_array.size
-
+#define CF_STR_ARRAY(t) t->data.dt_str_array.array
+#define CF_STR_ARRAY_SIZE(t) t->data.dt_str_array.size
 
 CONF_ITEM* cf_get_item_by_name(const char *name);
 void cf_create_bool_item(const char *name,const char *help,char short_opt,SDL_bool def);
@@ -59,6 +66,7 @@ void cf_create_action_arg_item(const char *name,const char *help,const char *hlp
 void cf_create_string_item(const char *name,const char *help,const char *hlp_arg,char short_opt,const char *def);
 void cf_create_int_item(const char *name,const char *help,const char *hlp_arg,char short_opt,int def);
 void cf_create_array_item(const char *name,const char *help,const char *hlp_arg,char short_opt,int size,int *def);
+void cf_create_str_array_item(const char *name,const char *help,const char *hlp_arg,char short_opt,char *def);
 void cf_init(void);
 SDL_bool cf_save_file(char *filename,int flags);
 SDL_bool cf_open_file(char *filename);

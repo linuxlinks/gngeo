@@ -138,6 +138,10 @@ static void swap_memory(Uint8 * mem, Uint32 length)
 static unsigned int   MyCheckPc(unsigned int pc) {
 	int i;
 	pc-=MyCyclone.membase; // Get the real program counter
+
+	pc&=0xFFFFFF;
+	MyCyclone.membase=-1;
+
 /*	printf("## Check pc %08x\n",pc);
 	for(i=0;i<8;i++) printf("  d%d=%08x a%d=%08x\n",i,MyCyclone.d[i],i,MyCyclone.a[i]); */
 
@@ -173,6 +177,11 @@ static unsigned int   MyCheckPc(unsigned int pc) {
 
 	//if (pc>=0xff0000) MyCyclone.membase=(int)RamMem-0xff0000; // Jump to Ram
 #endif
+ 	if (MyCyclone.membase==-1) {
+ 		printf("ERROROROOR %08x\n",pc);
+ 		exit(1);
+ 	}
+
 	return MyCyclone.membase+pc; // New program counter
 }
 
@@ -593,7 +602,7 @@ static void MyWrite8 (unsigned int a,unsigned char  d) {
 	MEMHANDLER_WRITE(0x200000, 0x2fffff, mem68k_store_bk_normal_byte);
 	MEMHANDLER_WRITE(0x800000, 0x800fff, mem68k_store_memcrd_byte);
 */
-	if(a==0x300001) return; // Watchdog
+	if(a==0x300001) memory.watchdog=0; // Watchdog
 
 	//printf("Unhandled write8  @ %08x = %02x\n",a,d);
 }

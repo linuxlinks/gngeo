@@ -273,15 +273,9 @@ static inline int neo_interrupt(void)
 
     if (!skip_this_frame) {
 	PROFILER_START(PROF_VIDEO);
-#ifdef DEBUG_VIDEO
-	draw_screen_scanline(0, 256, 1);
-#else
-#ifdef FULL_GL
-	fgl_drawscreen();
-#else
+
 	draw_screen();
-#endif
-#endif
+
 	PROFILER_STOP(PROF_VIDEO);
     }
     return 1;
@@ -736,10 +730,14 @@ void main_loop(void)
 	if (conf.test_switch == 1)
 	    conf.test_switch = 0;
 
+	neo_emu_done=handle_event();
 
+#if 0
 	while (SDL_PollEvent(&event)) {
 	    switch (event.type) {
 	    case SDL_JOYAXISMOTION:
+		    if (event.jaxis.value >5000 || event.jaxis.value<-5000)
+			    printf("AXE %d %d dir %d\n",event.jaxis.which,event.jaxis.axis,event.jaxis.value);
 		joy_axe[event.jaxis.which][event.jaxis.axis] = event.jaxis.value;
 		if (show_keysym) {
 		    sprintf(ksym_code, "%d", event.jaxis.axis);
@@ -748,6 +746,7 @@ void main_loop(void)
 		break;
 
 	    case SDL_JOYHATMOTION:
+		    printf("HAT %d dir %d\n",event.jhat.which,event.jhat.value);
 		    switch (event.jhat.value) {
 		    case SDL_HAT_CENTERED:
 			    joy_axe[event.jhat.which][(event.jhat.hat * 2) + joy_numaxes[event.jhat.which]] = 0;
@@ -983,6 +982,8 @@ void main_loop(void)
 	update_p2_key();
 	update_start();
 	update_coin();
+
+#endif
 
 	if (slow_motion)
 	    SDL_Delay(100);

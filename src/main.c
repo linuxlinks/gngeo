@@ -42,6 +42,7 @@
 #include "transpack.h"
 #include "gngeo_icon.h"
 #include "driver.h"
+#include "event.h"
 
 #ifdef USE_GUI
 #include "gui_interf.h"
@@ -78,6 +79,29 @@ void calculate_hotkey_bitmasks()
 
 }
 
+void init_joystick_new(void) {
+	int i;
+	conf.p1_joy=CF_ARRAY(cf_get_item_by_name("p1joy"));
+	conf.p2_joy=CF_ARRAY(cf_get_item_by_name("p2joy"));
+	conf.nb_joy = SDL_NumJoysticks();
+
+	if (conf.joy!=NULL) free(conf.joy);
+	conf.joy=malloc(sizeof(SDL_Joystick*)*conf.nb_joy);
+
+	SDL_JoystickEventState(SDL_ENABLE);
+
+	/* Open all the avaiable joystick */
+	for (i=0;i<conf.nb_joy;i++) {
+		conf.joy[i]=SDL_JoystickOpen(i);
+		printf("joy \"%s\", axe:%d, button:%d\n",
+		       SDL_JoystickName(i),
+		       SDL_JoystickNumAxes(conf.joy[i])+ (SDL_JoystickNumHats(conf.joy[i]) * 2),
+		       SDL_JoystickNumButtons(conf.joy[i]));
+	}
+
+}
+
+/* TODO: Rewrite all this mess!!  */
 void init_joystick(void) 
 {
     //    int invert_joy=CF_BOOL(cf_get_item_by_name("invertjoy"));
@@ -108,7 +132,9 @@ void init_joystick(void)
       CF_BOOL(cf_get_item_by_name("invertjoy"))=SDL_FALSE;
       }
     */
- 
+    if (conf.joy!=NULL) free(conf.joy);
+    conf.joy=malloc(sizeof(SDL_Joystick*)*conf.nb_joy);
+
     for (i=0;i<conf.nb_joy;i++) {
 	if (lastinit!=joyindex[i]) {
 	    lastinit=joyindex[i];
@@ -116,10 +142,10 @@ void init_joystick(void)
 	    conf.joy[i] = SDL_JoystickOpen(joyindex[i]);
 	    if (conf.joy[i] && joyindex[i]<conf.nb_joy) {
 		    joy_numaxes[i] = SDL_JoystickNumAxes(conf.joy[i]);
-		    printf("joy %s, axe:%d, button:%d\n",
+		    printf("joy %s, axe:%d, hat:%d, button:%d\n",
 			   SDL_JoystickName(i),
 			   // HAT SUPPORT SDL_JoystickNumAxes(conf.joy[i]),
-			   joy_numaxes[i] + (SDL_JoystickNumHats(conf.joy[i]) * 2),
+			   joy_numaxes[i] , (SDL_JoystickNumHats(conf.joy[i]) * 2),
 			   SDL_JoystickNumButtons(conf.joy[i]));
 		    joy_button[i] =	(Uint8 *) malloc(SDL_JoystickNumButtons(conf.joy[i]));
 		    // joy_axe[i] = (Uint32 *) malloc(SDL_JoystickNumAxes(conf.joy[i]) * sizeof(Sint32));
@@ -171,12 +197,6 @@ void init_sdl(void /*char *rom_name*/)
     atexit(SDL_Quit);
 #endif
 
-#ifdef DEBUG_VIDEO
-    screen = SDL_SetVideoMode(512 + 32, 512 + 32, 16, sdl_flag);
-    buffer = SDL_CreateRGBSurface(surface_type, 512 + 32, 512 + 32, 16, 0xF800,
-				  0x7E0, 0x1F, 0);
-#else
-
     if (screen_init() == SDL_FALSE) {
 	printf("Screen initialization failed.\n");
 	exit(-1);
@@ -185,8 +205,6 @@ void init_sdl(void /*char *rom_name*/)
     buffer = SDL_CreateRGBSurface(surface_type, 352, 256, 16, 0xF800, 0x7E0,
 				  0x1F, 0);
     SDL_FillRect(buffer,NULL,SDL_MapRGB(buffer->format,0xE5,0xE5,0xE5));
-
-#endif
 
     fontbuf = SDL_CreateRGBSurfaceFrom(font_image.pixel_data, font_image.width, font_image.height
 				       , 24, font_image.width * 3, 0xFF0000, 0xFF00, 0xFF, 0);
@@ -197,18 +215,11 @@ void init_sdl(void /*char *rom_name*/)
 				    gngeo_icon.width * gngeo_icon.bytes_per_pixel,
 				    0xFF, 0xFF00, 0xFF0000, 0);
     
-/*
-#ifdef GP2X
-    sprbuf=SDL_CreateRGBSurface(surface_type, 16, 16, 16, 0xF800, 0x7E0,
-				0x1F, 0);
-    SDL_SetColorKey(sprbuf,SDL_SRCCOLORKEY,0xF81F);
-#endif
-*/
-
     SDL_WM_SetIcon(icon,NULL);
 
     calculate_hotkey_bitmasks();    
-    init_joystick();
+    //init_joystick();
+    init_event();
     /* init key mapping */
     conf.p1_key=CF_ARRAY(cf_get_item_by_name("p1key"));
     conf.p2_key=CF_ARRAY(cf_get_item_by_name("p2key"));
@@ -263,11 +274,15 @@ int main(int argc, char *argv[])
     sprintf(drconf,"%s%s.cf",gpath,rom_name);
     cf_open_file(drconf);
 
+
+
+    init_sdl();
+
 /* GP2X stuff */
 #ifdef GP2X
     gp2x_init();
 
-    init_sdl();
+
 
     sdl_set_title(NULL);
     SDL_textout(screen, 1, 231, "Patching MMU ... ");SDL_Flip(screen);
