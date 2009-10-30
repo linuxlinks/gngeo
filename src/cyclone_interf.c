@@ -825,6 +825,7 @@ int cyclone_debug(unsigned short o) {
 void cpu_68k_init(void) {
 	int overclk=CF_VAL(cf_get_item_by_name("68kclock"));
 	//printf("INIT \n");
+	CycloneInit();
 	memset(&MyCyclone, 0,sizeof(MyCyclone));
 	/*
 	swap_memory(memory.cpu, memory.cpu_size);
@@ -862,7 +863,7 @@ void cpu_68k_init(void) {
 }
 
 void cpu_68k_reset(void) {
-	//CycloneInit();
+
 	//printf("Reset \n");
 	MyCyclone.srh=0x27; // Set supervisor mode
 	//CycloneSetSr(&MyCyclone,0x27);

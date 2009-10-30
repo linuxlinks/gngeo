@@ -39,7 +39,7 @@
 #include "screen.h"
 #include "conf.h"
 #include "pbar.h"
-#include "driver.h"
+//#include "driver.h"
 #include "sound.h"
 //#include "streams.h"
 #include "transpack.h"

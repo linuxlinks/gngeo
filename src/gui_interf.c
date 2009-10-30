@@ -17,7 +17,7 @@
 #include "memory.h"
 #include "frame_skip.h"
 #include "emu.h"
-#include "driver.h"
+//#include "driver.h"
 #include "conf.h"
 #include "fileio.h"
 #include "sound.h"

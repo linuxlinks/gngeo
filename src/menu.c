@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
-#ifdef GP2X
+
 
 #include <stdarg.h>
 #include <stdlib.h>
@@ -34,13 +34,14 @@
 #include "messages.h"
 #include "screen.h"
 #include "video.h"
-#include "gp2x.h"
+//#include "gp2x.h"
+#include "event.h"
 #include "state.h"
 #include "emu.h"
 #include "frame_skip.h"
 #include "video.h"
 #include "conf.h"
-#include "driver.h"
+//#include "driver.h"
 
 static SDL_Surface *back;
 static SDL_Surface *sfont;
@@ -259,7 +260,8 @@ void gn_popup_error(char *name,char *fmt,...) {
 	char buf[512];
 	va_list pvar;
 	va_start(pvar,fmt);
-	SDL_Event event;
+	//SDL_Event event;
+	
 
 	draw_back();
 	//SDL_textout(buffer,46,36,name);
@@ -275,8 +277,8 @@ void gn_popup_error(char *name,char *fmt,...) {
 
 	screen_update();
 
-
-
+	while(wait_event()==0);
+/*
 	while(1) {
 		SDL_WaitEvent(&event);
 		switch (event.type) {
@@ -285,12 +287,14 @@ void gn_popup_error(char *name,char *fmt,...) {
 				break;
 		}
 	}
+*/
 }
 int gn_popup_question(char *name,char *fmt,...) {
 	char buf[512];
 	va_list pvar;
 	va_start(pvar,fmt);
-	SDL_Event event;
+	//SDL_Event event;
+	int rc;
 
 	draw_back();
 
@@ -304,8 +308,15 @@ int gn_popup_question(char *name,char *fmt,...) {
 	draw_string(buffer,sfont,ALIGN_RIGHT,ALIGN_DOWN,"B: Yes  X: No");
 	screen_update();
 
-
-
+	while(1) {
+		switch(wait_event()) {
+		case GN_A: return 0;
+		case GN_B: return 1;
+		default:
+			break;
+		}
+	}
+/*
 	while(1) {
 		SDL_WaitEvent(&event);
 		switch (event.type) {
@@ -322,6 +333,7 @@ int gn_popup_question(char *name,char *fmt,...) {
 			break;
 		}
 	}
+*/
 }
 
 //#define NB_ITEM_2 4
@@ -390,7 +402,7 @@ static int load_state_action(GN_MENU_ITEM *self,void *param) {
 	SDL_Rect dstrect={24+75,16+66,304/2,224/2};
 	SDL_Rect dstrect_binding={24+73,16+64,304/2+4,224/2+4};
 	//SDL_Rect dst_r={24,16,304,224};
-	SDL_Event event;
+	//SDL_Event event;
 	SDL_Surface *slot_img;
 	char slot_str[32];
 
@@ -419,7 +431,28 @@ static int load_state_action(GN_MENU_ITEM *self,void *param) {
 		if (slot<nb_slot-1) draw_string(buffer,mfont,ALIGN_RIGHT,ALIGN_CENTER,">> ");
 		
 		screen_update();
-
+		switch(wait_event()) {
+		case GN_LEFT:
+			if (slot>0) slot--;
+			slot_img=load_state_img(conf.game,slot);
+			break;
+		case GN_RIGHT:
+			if (slot<nb_slot-1) slot++;
+			slot_img=load_state_img(conf.game,slot);
+			break;
+		case GN_A:
+			return 0;
+			break;
+		case GN_B:
+		case GN_C:
+			load_state(conf.game,slot);
+			printf("Load state!!\n");
+			return 1;
+			break;
+		default:
+			break;
+		}
+/*
 		SDL_WaitEvent(&event);
 		//while(SDL_PollEvent(&event));
 		switch (event.type) {
@@ -449,6 +482,7 @@ static int load_state_action(GN_MENU_ITEM *self,void *param) {
 		default:
 			break;
 		}
+*/
 	}
 	return 0;
 }
@@ -457,7 +491,7 @@ static int save_state_action(GN_MENU_ITEM *self,void *param) {
 	SDL_Rect dstrect={24+75,16+66,304/2,224/2};
 	SDL_Rect dstrect_binding={24+73,16+64,304/2+4,224/2+4};
 	//SDL_Rect dst_r={24,16,304,224};
-	SDL_Event event;
+	//SDL_Event event;
 	SDL_Surface *slot_img;
 	char slot_str[32];
 	Uint32 nb_slot=how_many_slot(conf.game);
@@ -486,6 +520,28 @@ static int save_state_action(GN_MENU_ITEM *self,void *param) {
 
 		screen_update();
 
+		switch(wait_event()) {
+		case GN_LEFT:
+			if (slot>0) slot--;
+			if (slot!=nb_slot) slot_img=load_state_img(conf.game,slot);
+			break;
+		case GN_RIGHT:
+			if (slot<nb_slot) slot++;
+			if (slot!=nb_slot) slot_img=load_state_img(conf.game,slot);
+			break;
+		case GN_A:
+			return 0;
+			break;
+		case GN_B:
+		case GN_C:
+			save_state(conf.game,slot);
+			printf("Save state!!\n");
+			return 1;
+			break;
+		default:
+			break;
+		}
+/*
 		SDL_WaitEvent(&event);
 		//while(SDL_PollEvent(&event));
 		switch (event.type) {
@@ -515,6 +571,7 @@ static int save_state_action(GN_MENU_ITEM *self,void *param) {
 		default:
 			break;
 		}
+*/
 	}
 	return 0;
 }
@@ -531,11 +588,49 @@ static int exit_action(GN_MENU_ITEM *self,void *param) {
 }
 
 int menu_event_handling(struct GN_MENU *self) {
-	static SDL_Event event;
+	//static SDL_Event event;
 	GN_MENU_ITEM *mi;
 	int a;
 	LIST *l;
+	switch(wait_event()) {
+	case GN_UP:
+		if(self->current>0) 
+			self->current--;
+		else
+			self->current=self->nb_elem-1;
+		break;
+	case GN_DOWN:
+		if(self->current<self->nb_elem-1) 
+			self->current++;
+		else
+			self->current=0;
+		break;
 
+	case GN_LEFT:
+		self->current-=10;
+		if (self->current<0) self->current=0;
+		break;
+	case GN_RIGHT:
+		self->current+=10;
+		if (self->current>=self->nb_elem) self->current=self->nb_elem-1;
+		break;
+	case GN_A:
+		return 0;
+		break;
+	case GN_B:
+	case GN_C:
+		l=list_get_item_by_index(self->item, self->current);
+		if (l) {
+			mi=(GN_MENU_ITEM *)l->data;
+			if (mi->action) 
+				if ((a=mi->action(mi,NULL))) return a;
+		}
+		break;
+	default:
+		break;
+		
+	}
+/*
 	SDL_WaitEvent(&event);
 	//SDL_PollEvent(&event);
 	//while(SDL_PollEvent(&event));
@@ -586,6 +681,7 @@ int menu_event_handling(struct GN_MENU *self) {
 	default:
 		break;
 	}
+*/
 	return -1;
 }
 int icasesort(const struct dirent **a, const struct dirent **b) {
@@ -617,6 +713,7 @@ void init_rom_browser_menu(void) {
 			sprintf(filename, "%s/%s", CF_STR(cf_get_item_by_name("rompath")), namelist[i]->d_name);
 			lstat(filename, &filestat);
 			if (!S_ISDIR(filestat.st_mode)) {
+#if 0
 				DRIVER *dr;
 				if ((dr=get_driver_for_zip(filename))!=NULL) {
 					printf("%8s:%s:%s\n",dr->name,dr->longname,namelist[i]->d_name);
@@ -636,6 +733,7 @@ void init_rom_browser_menu(void) {
 					rbrowser_menu->nb_elem++;
 
 				}
+#endif
 			}
 		}
 	}
@@ -725,4 +823,3 @@ Uint32 run_menu(void) {
 	return 0;
 }
 
-#endif

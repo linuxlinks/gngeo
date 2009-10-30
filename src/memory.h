@@ -28,7 +28,7 @@
 #include "video.h"
 #include "ym2610/2610intf.h"
 #include "state.h"
-#include "driver.h"
+#include "roms.h"
 
 #ifdef GP2X
 #include "gp2x.h"
@@ -92,41 +92,42 @@
 #define GZX_MAPPED 2
 
 typedef struct neo_mem {
-    Uint8 *cpu;
-    Uint32 cpu_size;
-    Uint8 *ram;
-    Uint8 *bios;
-    Uint32 bios_size;
-    Uint8 *ng_lo;
-    Uint8 *sm1;
-    Uint32 sm1_size;
-    Uint8 *sfix_board;
-    Uint8 *sfix_game;
-    Uint32 sfix_size;
-    Uint8 *sound1;
-    Uint32 sound1_size;
-    Uint8 *sound2;
-    Uint32 sound2_size;
-    Uint8 *gfx;
-    Uint32 gfx_size;
-    Uint32 nb_of_tiles;
-    //tile **tile_in_cache;
-    Uint8 video[0x20000];
-    Uint8 *pal1, *pal2;
-    Uint8 *pal_pc1, *pal_pc2;
-    Uint8 sram[0x10000];
-    Uint32 *pen_usage;
-    Uint8 fix_board_usage[4096];
-    Uint8 *fix_game_usage;
-    Uint8 z80_ram[0x800];
-    Uint8 game_vector[0x80];
-    /* internal representation of key */
-    Uint8 intern_p1, intern_p2, intern_coin, intern_start;
-    /* crypted rom bankswitch system */
-    Uint32 bksw_handler;
-    Uint8 bksw_unscramble[6];
-    Uint8 bksw_offset[64];
-    Uint8 kof2003_bksw[0x2000];
+	GAME_ROMS rom;
+	//Uint8 *cpu;
+	//Uint32 cpu_size;
+	Uint8 *ram;
+	//Uint8 *bios;
+	//Uint32 bios_size;
+	Uint8 *ng_lo;                           /* TODO */
+	//Uint8 *sm1;
+	//Uint32 sm1_size;
+	//Uint8 *sfix_board;
+	//Uint8 *sfix_game;
+	//Uint32 sfix_size;
+	//Uint8 *sound1;
+	//Uint32 sound1_size;
+	//Uint8 *sound2;
+	//Uint32 sound2_size;
+	//Uint8 *gfx;
+	//Uint32 gfx_size;
+	Uint32 nb_of_tiles;
+	//tile **tile_in_cache;
+	Uint8 video[0x20000];
+	Uint8 *pal1, *pal2;
+	Uint8 *pal_pc1, *pal_pc2;
+	Uint8 sram[0x10000];
+	Uint32 *pen_usage;                      /* TODO */
+	Uint8 fix_board_usage[4096];
+	Uint8 *fix_game_usage;
+	Uint8 z80_ram[0x800];
+	Uint8 game_vector[0x80];
+	/* internal representation of key */
+	Uint8 intern_p1, intern_p2, intern_coin, intern_start;
+	/* crypted rom bankswitch system */
+	Uint32 bksw_handler;
+	Uint8 bksw_unscramble[6];
+	Uint8 bksw_offset[64];
+	Uint8 kof2003_bksw[0x2000];
 	Uint8 memcard[0x800];
 #ifdef GP2X
 	Uint8 gp2x_gfx_mapped;

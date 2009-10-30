@@ -3879,7 +3879,7 @@ fi
 	else
 		as_fn_error "can't find sdl-config on your system" "$LINENO" 5;
 	fi
-	CFLAGS="$CFLAGS -DGP2X -mtune=arm920t"
+	CFLAGS="$CFLAGS -DENABLE_940T -DGP2X -mtune=arm920t"
 	#AS=arm-open2x-linux-gcc
 else
 	# Extract the first word of "sdl-config", so it can be a program name with args.

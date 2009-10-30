@@ -9,6 +9,10 @@
 #include "video.h"
 #include "transpack.h"
 #include "conf.h"
+#ifdef GP2X
+#include "gp2x.h"
+#include "ym2610-940/940shared.h"
+#endif
 
 
 /* Prototype */
@@ -733,10 +737,43 @@ struct roms_init_func {
 };
 
 
-static int allocate_region(ROM_REGION *r,Uint32 size) {
+static int allocate_region(ROM_REGION *r,Uint32 size,int region) {
 	DEBUG_LOG("Allocating 0x%08x byte\n",size);
 	if (size!=0) {
+#ifdef GP2X
+		switch(region) {
+		case REGION_AUDIO_CPU_CARTRIDGE:
+			r->p=gp2x_ram_malloc(size,1);
+#               ifdef ENABLE_940T
+			shared_data->sm1=(Uint8*)((r->p-gp2x_ram2)+0x1000000);
+			printf("Z80 code: %08x\n",(Uint32)shared_data->sm1);
+#               endif
+			break;
+		case REGION_AUDIO_DATA_1:
+			r->p=gp2x_ram_malloc(size,0);
+#               ifdef ENABLE_940T
+			shared_data->pcmbufa=(Uint8*)(r->p-gp2x_ram);
+			printf("SOUND1 code: %08x\n",(Uint32)shared_data->pcmbufa);
+			shared_data->pcmbufa_size=size;
+#               endif
+			break;
+		case REGION_AUDIO_DATA_2:
+			r->p=gp2x_ram_malloc(size,0);
+#               ifdef ENABLE_940T
+			shared_data->pcmbufb=(Uint8*)(r->p-gp2x_ram);
+			printf("SOUND2 code: %08x\n",(Uint32)shared_data->pcmbufa);
+			shared_data->pcmbufb_size=size;
+#               endif
+			break;
+		default:
+			r->p=malloc(size);
+			break;
+
+
+		}
+#else
 		r->p=malloc(size);
+#endif
 		if (r->p==0) return 1;
 		memset(r->p,0,size);
 	} else
@@ -744,6 +781,7 @@ static int allocate_region(ROM_REGION *r,Uint32 size) {
 	r->size=size;
 	return 0;
 }
+
 static void free_region(ROM_REGION *r) {
 	if (r->p) free(r->p);
 	r->size=0;
@@ -950,7 +988,7 @@ static int convert_roms_tile(Uint8 *g,int tileno) {
 
 static void convert_all_tile(GAME_ROMS *r) {
 	Uint32 i;
-	allocate_region(&r->spr_usage,(r->tiles.size>>11)* sizeof(Uint32));
+	allocate_region(&r->spr_usage,(r->tiles.size>>11)* sizeof(Uint32),-1);
 	memset(r->spr_usage.p,0,r->spr_usage.size);
 	for (i = 0; i < r->tiles.size>>7; i++) {
 		((Uint32*)r->spr_usage.p)[i>>4]|=convert_roms_tile(r->tiles.p,i);
@@ -981,7 +1019,7 @@ int dr_load_bios(GAME_ROMS *r) {
 
 	if (!r->info.flags&HAS_CUSTOM_CPU_BIOS) {
 		DEBUG_LOG("No custom bios, loading the default one\n");
-		allocate_region(&r->bios_m68k,0x20000);
+		allocate_region(&r->bios_m68k,0x20000,-1);
 		f=fopen("/home/mathieu/.gngeo/bios/uni-bios.rom","rb");
 		fread(r->bios_m68k.p,0x20000,1,f);
 		fclose(f);
@@ -1071,20 +1109,20 @@ int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 	r->info.longname=strdup(drv->longname);
 	r->info.year=drv->year;
 	r->info.flags=0;
-	allocate_region(&r->cpu_m68k,drv->romsize[REGION_MAIN_CPU_CARTRIDGE]);
+	allocate_region(&r->cpu_m68k,drv->romsize[REGION_MAIN_CPU_CARTRIDGE],REGION_MAIN_CPU_CARTRIDGE);
 	if (drv->romsize[REGION_AUDIO_CPU_CARTRIDGE]==0 &&
 	    drv->romsize[REGION_AUDIO_CPU_ENCRYPTED]!=0) {
 		//allocate_region(&r->cpu_z80,drv->romsize[REGION_AUDIO_CPU_ENCRYPTED]);
 		//allocate_region(&r->cpu_z80c,drv->romsize[REGION_AUDIO_CPU_ENCRYPTED]);
-		allocate_region(&r->cpu_z80c,0x80000);
-		allocate_region(&r->cpu_z80,0x90000);
+		allocate_region(&r->cpu_z80c,0x80000,REGION_AUDIO_CPU_ENCRYPTED);
+		allocate_region(&r->cpu_z80,0x90000,REGION_AUDIO_CPU_CARTRIDGE);
 	} else {
-		allocate_region(&r->cpu_z80,drv->romsize[REGION_AUDIO_CPU_CARTRIDGE]);
+		allocate_region(&r->cpu_z80,drv->romsize[REGION_AUDIO_CPU_CARTRIDGE],REGION_AUDIO_CPU_CARTRIDGE);
 	}
-	allocate_region(&r->tiles,drv->romsize[REGION_SPRITES]);
-	allocate_region(&r->game_sfix,drv->romsize[REGION_FIXED_LAYER_CARTRIDGE]);
-	allocate_region(&r->adpcma,drv->romsize[REGION_AUDIO_DATA_1]);
-	allocate_region(&r->adpcmb,drv->romsize[REGION_AUDIO_DATA_2]);
+	allocate_region(&r->tiles,drv->romsize[REGION_SPRITES],REGION_SPRITES);
+	allocate_region(&r->game_sfix,drv->romsize[REGION_FIXED_LAYER_CARTRIDGE],REGION_FIXED_LAYER_CARTRIDGE);
+	allocate_region(&r->adpcma,drv->romsize[REGION_AUDIO_DATA_1],REGION_AUDIO_DATA_1);
+	allocate_region(&r->adpcmb,drv->romsize[REGION_AUDIO_DATA_2],REGION_AUDIO_DATA_2);
 
 	/* Allocate bios if necessary */
 	DEBUG_LOG("BIOS SIZE %08x %08x %08x\n",
@@ -1093,15 +1131,15 @@ int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 		  drv->romsize[REGION_FIXED_LAYER_BIOS]);
 	if (drv->romsize[REGION_MAIN_CPU_BIOS]!=0) {
 		r->info.flags|=HAS_CUSTOM_CPU_BIOS;
-		allocate_region(&r->bios_m68k,drv->romsize[REGION_MAIN_CPU_BIOS]);
+		allocate_region(&r->bios_m68k,drv->romsize[REGION_MAIN_CPU_BIOS],REGION_MAIN_CPU_BIOS);
 	}
 	if (drv->romsize[REGION_AUDIO_CPU_BIOS]!=0) {
 		r->info.flags|=HAS_CUSTOM_AUDIO_BIOS;
-		allocate_region(&r->bios_audio,drv->romsize[REGION_AUDIO_CPU_BIOS]);
+		allocate_region(&r->bios_audio,drv->romsize[REGION_AUDIO_CPU_BIOS],REGION_AUDIO_CPU_BIOS);
 	}
 	if (drv->romsize[REGION_FIXED_LAYER_BIOS]!=0) {
 		r->info.flags|=HAS_CUSTOM_SFIX_BIOS;
-		allocate_region(&r->bios_sfix,drv->romsize[REGION_FIXED_LAYER_BIOS]);
+		allocate_region(&r->bios_sfix,drv->romsize[REGION_FIXED_LAYER_BIOS],REGION_FIXED_LAYER_BIOS);
 	}
 
 	/* Now, load the roms */
@@ -1154,6 +1192,11 @@ int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 	if (r->adpcmb.size==0) {
 		memory.sound2 = r->adpcma.p;
 		memory.sound2_size = r->adpcma.size;
+#ifdef ENABLE_940T
+	shared_data->pcmbufb=(Uint8*)(memory.sound2-gp2x_ram);
+	printf("SOUND2 code: %08x\n",(Uint32)shared_data->pcmbufb);
+	shared_data->pcmbufb_size=memory.sound2_size;
+#endif
 	} else {
 		memory.sound2 = r->adpcmb.p;
 		memory.sound2_size = r->adpcmb.size;
@@ -1180,7 +1223,32 @@ error1:
 	free(drv);
 	return FALSE;
 }
-
+/* TODO: */
+void set_bankswitchers(int bt) {
+    switch(bt) {
+    case 0:
+	mem68k_fetch_bksw_byte=mem68k_fetch_bk_normal_byte;
+	mem68k_fetch_bksw_word=mem68k_fetch_bk_normal_word;
+	mem68k_fetch_bksw_long=mem68k_fetch_bk_normal_long;
+	mem68k_store_bksw_byte=mem68k_store_bk_normal_byte;
+	mem68k_store_bksw_word=mem68k_store_bk_normal_word;
+	mem68k_store_bksw_long=mem68k_store_bk_normal_long;
+	break;
+/*
+    case BANKSW_KOF2003:
+	mem68k_fetch_bksw_byte=mem68k_fetch_bk_kof2003_byte;
+	mem68k_fetch_bksw_word=mem68k_fetch_bk_kof2003_word;
+	mem68k_fetch_bksw_long=mem68k_fetch_bk_kof2003_long;
+	mem68k_store_bksw_byte=mem68k_store_bk_kof2003_byte;
+	mem68k_store_bksw_word=mem68k_store_bk_kof2003_word;
+	mem68k_store_bksw_long=mem68k_store_bk_kof2003_long;
+	break;
+    case BANKSW_SCRAMBLE:
+    case BANKSW_MAX:
+	break;
+*/
+    }
+}
 SDL_bool dr_load_game(char *name) {
 	GAME_ROMS rom;
 	char *rpath=CF_STR(cf_get_item_by_name("rompath"));
@@ -1218,8 +1286,8 @@ SDL_bool dr_load_game(char *name) {
 */
 
 	conf.game=rom.info.name;
-	/* TODO */ neogeo_fix_bank_type =0;
-	/* TODO */ set_bankswitchers( BANKSW_NORMAL);
+	/* TODO */ //neogeo_fix_bank_type =0;
+	/* TODO */ set_bankswitchers( 0);
 
 	memcpy(memory.game_vector,memory.cpu,0x80);
 

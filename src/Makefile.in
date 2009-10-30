@@ -154,6 +154,9 @@ target_vendor = @target_vendor@
 @USE_CYCLONE_TRUE@@USE_GENERATOR68K_FALSE@@USE_STARSCREAM_FALSE@m68k_lib = cyclone/libcyclone.a
 @USE_STARSCREAM_TRUE@m68k_lib = star/libstar.a
 @USE_GENERATOR68K_TRUE@@USE_STARSCREAM_FALSE@m68k_lib = generator68k/libgenerator68k.a
+@USE_CYCLONE_TRUE@@USE_GENERATOR68K_FALSE@@USE_STARSCREAM_FALSE@m68ki_src = cyclone_interf.c
+@USE_STARSCREAM_TRUE@m68ki_src = star_interf.c
+@USE_GENERATOR68K_TRUE@@USE_STARSCREAM_FALSE@m68ki_src = generator68k_interf.c
 @USE_DRZ80_TRUE@@USE_MAMEZ80_FALSE@@USE_RAZE_FALSE@z80_subdir = drz80
 
 @USE_RAZE_TRUE@z80_subdir = raze
@@ -161,14 +164,18 @@ target_vendor = @target_vendor@
 @USE_DRZ80_TRUE@@USE_MAMEZ80_FALSE@@USE_RAZE_FALSE@z80_lib = drz80/libdrz80.a
 @USE_RAZE_TRUE@z80_lib = raze/libraze.a
 @USE_MAMEZ80_TRUE@@USE_RAZE_FALSE@z80_lib = mamez80/libmamez80.a
+@USE_DRZ80_TRUE@@USE_MAMEZ80_FALSE@@USE_RAZE_FALSE@z80i_src = drz80_interf.c
+@USE_RAZE_TRUE@z80i_src = raze_interf.c
+@USE_MAMEZ80_TRUE@@USE_RAZE_FALSE@z80i_src = mamez80_interf.c
 
 @USE_GUI_TRUE@gui_lib = gui/libgui.a
 @USE_GUI_TRUE@gui_subdir = gui
+@USE_GUI_TRUE@gui_src = gui_interf.c gui_interf.h
 @HAVE_NASM_FALSE@@USE_GP2X_FALSE@asm_lib = 
 @HAVE_NASM_FALSE@@USE_GP2X_TRUE@asm_lib = video_arm.o memcpy.o
 
 @HAVE_NASM_TRUE@asm_lib = screen_i386.o video_i386.o
-@HAVE_NASM_FALSE@@USE_GP2X_TRUE@asm_src = video_arm.s memcpy.S
+@HAVE_NASM_FALSE@@USE_GP2X_TRUE@pdep_src = video_arm.s memcpy.S gp2x.h gp2x.c
 
 INCLUDES = -DDATA_DIRECTORY='"${pkgdatadir}"'
 
@@ -177,26 +184,24 @@ SUBDIRS = effect blitter ym2610 $(m68k_subdir) $(z80_subdir) $(gui_subdir)
 bin_PROGRAMS = gngeo
 gngeo_SOURCES = fileio.c         pd4990a.c        gngeo_icon.h      crypt.h         \
 		sound.h          video.c          fileio.h          profiler.c      \
-		main.c           pd4990a.h        star_interf.c     video.h         \
-		memory.c         profiler.h       mamez80_interf.c  ioapi.h         \
-		blitter.h        font.h           memory.h          raze_interf.c   \
+		main.c           pd4990a.h             video.h         \
+		memory.c         profiler.h         ioapi.h         \
+		blitter.h        font.h           memory.h             \
 		timer.c          effect.h         frame_skip.c      messages.c      \
 		screen.c         timer.h          emu.c             frame_skip.h    \
 		messages.h       screen.h         unzip.c           emu.h           \
-		neocrypt.c       sound.c          unzip.h           generator68k_interf.c \
+		neocrypt.c       sound.c          unzip.h            \
 		debug.c          debug.h          neocrypt.h	    state.c         \
 		state.h          video_template.h conf.c            conf.h          \
 		transpack.h      transpack.c      pbar.h            pbar.c          \
-		driver.h         driver.c         list.c            list.h	    \
-		gui_interf.c     gui_interf.h     videogl.c	    videogl.h       \
-		cyclone_interf.c gp2x.h		  gp2x.c	    drz80_interf.c  \
+		list.c            list.h	    \
 		menu.c		 menu.h		  ioapi.c           zip.c           \
 		zip.h		 roms.h		  roms.c	    mame_layer.h    \
 		mame_layer.c	 neoboot.c	  event.h	    event.c         \
-		$(asm_src)
+		$(pdep_src) $(gui_src) $(m68ki_src) $(z80i_src)
 
 
-EXTRA_DIST = c32.mac screen_i386.asm video_i386.asm video_i386.inc getopt.h video_arm.s memcpy.S
+EXTRA_DIST = c32.mac screen_i386.asm video_i386.asm video_i386.inc getopt.h
 
 #gngeo_LDADD = blitter/libblitter.a ym2610/libym2610.a $(m68k_lib) $(z80_lib) $(asm_lib) $(gui_lib) #$(LIBOBJS)
 @USE_GP2X_TRUE@gngeo_LDADD = blitter/libblitter.a $(m68k_lib)  #$(LIBOBJS)
@@ -211,33 +216,40 @@ bin_PROGRAMS = gngeo$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 
 am__gngeo_SOURCES_DIST = fileio.c pd4990a.c gngeo_icon.h crypt.h sound.h \
-	video.c fileio.h profiler.c main.c pd4990a.h star_interf.c \
-	video.h memory.c profiler.h mamez80_interf.c ioapi.h blitter.h \
-	font.h memory.h raze_interf.c timer.c effect.h frame_skip.c \
-	messages.c screen.c timer.h emu.c frame_skip.h messages.h \
-	screen.h unzip.c emu.h neocrypt.c sound.c unzip.h \
-	generator68k_interf.c debug.c debug.h neocrypt.h state.c \
-	state.h video_template.h conf.c conf.h transpack.h transpack.c \
-	pbar.h pbar.c driver.h driver.c list.c list.h gui_interf.c \
-	gui_interf.h videogl.c videogl.h cyclone_interf.c gp2x.h gp2x.c \
-	drz80_interf.c menu.c menu.h ioapi.c zip.c zip.h roms.h roms.c \
+	video.c fileio.h profiler.c main.c pd4990a.h video.h memory.c \
+	profiler.h ioapi.h blitter.h font.h memory.h timer.c effect.h \
+	frame_skip.c messages.c screen.c timer.h emu.c frame_skip.h \
+	messages.h screen.h unzip.c emu.h neocrypt.c sound.c unzip.h \
+	debug.c debug.h neocrypt.h state.c state.h video_template.h \
+	conf.c conf.h transpack.h transpack.c pbar.h pbar.c list.c \
+	list.h menu.c menu.h ioapi.c zip.c zip.h roms.h roms.c \
 	mame_layer.h mame_layer.c neoboot.c event.h event.c video_arm.s \
-	memcpy.S
+	memcpy.S gp2x.h gp2x.c gui_interf.c gui_interf.h \
+	cyclone_interf.c star_interf.c generator68k_interf.c \
+	drz80_interf.c raze_interf.c mamez80_interf.c
 @HAVE_NASM_FALSE@@USE_GP2X_TRUE@am__objects_1 = video_arm.$(OBJEXT) \
-@HAVE_NASM_FALSE@@USE_GP2X_TRUE@	memcpy.$(OBJEXT)
+@HAVE_NASM_FALSE@@USE_GP2X_TRUE@	memcpy.$(OBJEXT) gp2x.$(OBJEXT)
+@USE_GUI_TRUE@am__objects_2 = gui_interf.$(OBJEXT)
+@USE_CYCLONE_TRUE@@USE_GENERATOR68K_FALSE@@USE_STARSCREAM_FALSE@am__objects_3 = \
+@USE_CYCLONE_TRUE@@USE_GENERATOR68K_FALSE@@USE_STARSCREAM_FALSE@	cyclone_interf.$(OBJEXT)
+@USE_GENERATOR68K_TRUE@@USE_STARSCREAM_FALSE@am__objects_3 = \
+@USE_GENERATOR68K_TRUE@@USE_STARSCREAM_FALSE@	generator68k_interf.$(OBJEXT)
+@USE_STARSCREAM_TRUE@am__objects_3 = star_interf.$(OBJEXT)
+@USE_DRZ80_TRUE@@USE_MAMEZ80_FALSE@@USE_RAZE_FALSE@am__objects_4 = \
+@USE_DRZ80_TRUE@@USE_MAMEZ80_FALSE@@USE_RAZE_FALSE@	drz80_interf.$(OBJEXT)
+@USE_MAMEZ80_TRUE@@USE_RAZE_FALSE@am__objects_4 = \
+@USE_MAMEZ80_TRUE@@USE_RAZE_FALSE@	mamez80_interf.$(OBJEXT)
+@USE_RAZE_TRUE@am__objects_4 = raze_interf.$(OBJEXT)
 am_gngeo_OBJECTS = fileio.$(OBJEXT) pd4990a.$(OBJEXT) video.$(OBJEXT) \
-	profiler.$(OBJEXT) main.$(OBJEXT) star_interf.$(OBJEXT) \
-	memory.$(OBJEXT) mamez80_interf.$(OBJEXT) raze_interf.$(OBJEXT) \
+	profiler.$(OBJEXT) main.$(OBJEXT) memory.$(OBJEXT) \
 	timer.$(OBJEXT) frame_skip.$(OBJEXT) messages.$(OBJEXT) \
 	screen.$(OBJEXT) emu.$(OBJEXT) unzip.$(OBJEXT) \
-	neocrypt.$(OBJEXT) sound.$(OBJEXT) \
-	generator68k_interf.$(OBJEXT) debug.$(OBJEXT) state.$(OBJEXT) \
-	conf.$(OBJEXT) transpack.$(OBJEXT) pbar.$(OBJEXT) \
-	driver.$(OBJEXT) list.$(OBJEXT) gui_interf.$(OBJEXT) \
-	videogl.$(OBJEXT) cyclone_interf.$(OBJEXT) gp2x.$(OBJEXT) \
-	drz80_interf.$(OBJEXT) menu.$(OBJEXT) ioapi.$(OBJEXT) \
+	neocrypt.$(OBJEXT) sound.$(OBJEXT) debug.$(OBJEXT) \
+	state.$(OBJEXT) conf.$(OBJEXT) transpack.$(OBJEXT) \
+	pbar.$(OBJEXT) list.$(OBJEXT) menu.$(OBJEXT) ioapi.$(OBJEXT) \
 	zip.$(OBJEXT) roms.$(OBJEXT) mame_layer.$(OBJEXT) \
-	neoboot.$(OBJEXT) event.$(OBJEXT) $(am__objects_1)
+	neoboot.$(OBJEXT) event.$(OBJEXT) $(am__objects_1) \
+	$(am__objects_2) $(am__objects_3) $(am__objects_4)
 gngeo_OBJECTS = $(am_gngeo_OBJECTS)
 @HAVE_NASM_FALSE@@USE_CYCLONE_FALSE@@USE_DRZ80_FALSE@@USE_GENERATOR68K_FALSE@@USE_GP2X_FALSE@@USE_GUI_FALSE@@USE_MAMEZ80_FALSE@@USE_RAZE_FALSE@@USE_STARSCREAM_TRUE@gngeo_DEPENDENCIES = \
 @HAVE_NASM_FALSE@@USE_CYCLONE_FALSE@@USE_DRZ80_FALSE@@USE_GENERATOR68K_FALSE@@USE_GP2X_FALSE@@USE_GUI_FALSE@@USE_MAMEZ80_FALSE@@USE_RAZE_FALSE@@USE_STARSCREAM_TRUE@	effect/libeffect.a \
@@ -2838,9 +2850,9 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/conf.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/cyclone_interf.Po ./$(DEPDIR)/debug.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/driver.Po ./$(DEPDIR)/drz80_interf.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/emu.Po ./$(DEPDIR)/event.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/fileio.Po ./$(DEPDIR)/frame_skip.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/drz80_interf.Po ./$(DEPDIR)/emu.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/event.Po ./$(DEPDIR)/fileio.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/frame_skip.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/generator68k_interf.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/gp2x.Po ./$(DEPDIR)/gui_interf.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/ioapi.Po ./$(DEPDIR)/list.Po \
@@ -2854,8 +2866,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/sound.Po ./$(DEPDIR)/star_interf.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/state.Po ./$(DEPDIR)/timer.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/transpack.Po ./$(DEPDIR)/unzip.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/video.Po ./$(DEPDIR)/videogl.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/zip.Po
+@AMDEP_TRUE@	./$(DEPDIR)/video.Po ./$(DEPDIR)/zip.Po
 CCASCOMPILE = $(CCAS) $(AM_CCASFLAGS) $(CCASFLAGS)
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -2919,7 +2930,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/conf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cyclone_interf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/debug.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/driver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/drz80_interf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/emu.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/event.Po@am__quote@
@@ -2951,7 +2961,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/transpack.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unzip.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/video.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/videogl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zip.Po@am__quote@
 
 .S.o:

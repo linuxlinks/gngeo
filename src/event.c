@@ -266,6 +266,11 @@ int handle_event(void) {
 			}
 		}
 			break;
+		case SDL_VIDEORESIZE:
+			conf.res_x=event.resize.w;
+			conf.res_y=event.resize.h;
+			screen_resize(event.resize.w, event.resize.h);
+			break;
 		case SDL_QUIT:
 			return 1;
 			break;
@@ -313,6 +318,24 @@ int handle_event(void) {
 	if (joy_state[0][GN_D])
 	    memory.intern_p1 &= 0x7F;	// D
 
+	/* Update P1 */
+	memory.intern_p2 = 0xFF;
+	if (joy_state[1][GN_UP])
+	    memory.intern_p2 &= 0xFE;
+	if (joy_state[1][GN_DOWN])
+	    memory.intern_p2 &= 0xFD;
+	if (joy_state[1][GN_LEFT])
+	    memory.intern_p2 &= 0xFB;
+	if (joy_state[1][GN_RIGHT])
+	    memory.intern_p2 &= 0xF7;
+	if (joy_state[1][GN_A])
+	    memory.intern_p2 &= 0xEF;	// A
+	if (joy_state[1][GN_B])
+	    memory.intern_p2 &= 0xDF;	// B
+	if (joy_state[1][GN_C])
+	    memory.intern_p2 &= 0xBF;	// C
+	if (joy_state[1][GN_D])
+	    memory.intern_p2 &= 0x7F;	// D
 
 
 	if(joy_state[0][GN_MENU_KEY]==1)
@@ -320,4 +343,73 @@ int handle_event(void) {
 	else 
 		return 0;
 
+}
+
+int wait_event(void) {
+	SDL_Event event;
+	int rc,i;
+	int last;
+	for(i=0;i<GN_MAX_KEY;i++)
+		if (joy_state[0][i]) last=i;
+	SDL_WaitEvent(&event);
+	switch (event.type) {
+	case SDL_KEYDOWN:
+		/* Some default keyboard standard key */
+		switch (event.key.keysym.sym) {
+		case SDLK_TAB:
+			//joy_state[0][GN_MENU_KEY]=1;
+			return GN_MENU_KEY;
+			break;	
+		case SDLK_UP:
+			//joy_state[0][GN_UP]=1;
+			return GN_UP;
+			break;	
+		case SDLK_DOWN:
+			//joy_state[0][GN_DOWN]=1;
+			return GN_DOWN;
+			break;	
+		case SDLK_LEFT:
+			//joy_state[0][GN_LEFT]=1;
+			return GN_LEFT;
+			break;	
+		case SDLK_RIGHT:
+			//joy_state[0][GN_RIGHT]=1;
+			return GN_RIGHT;
+			break;	
+		case SDLK_ESCAPE:
+			//joy_state[0][GN_A]=1;
+			return GN_A;
+			break;
+		case SDLK_RETURN:
+		case SDLK_KP_ENTER:
+			//joy_state[0][GN_B]=1;
+			return GN_B;
+			break;
+		default:
+			//SDL_PushEvent(&event);
+			//handle_event();
+			break;
+		}
+		break;
+	case SDL_KEYUP:
+		printf("KEYUPPPPP!!!\n");
+
+		for(i=0;i<GN_MAX_KEY;i++)
+			joy_state[0][i]=0;
+		last=-1;
+
+		break;
+	default:
+		SDL_PushEvent(&event);
+		handle_event();
+		break;
+	}
+/*
+	}
+	SDL_PushEvent(&event);
+	handle_event();
+*/
+	for(i=0;i<GN_MAX_KEY;i++)
+		if (joy_state[0][i]&& i!=last) return i;
+	return 0;
 }

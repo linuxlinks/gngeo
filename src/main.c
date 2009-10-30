@@ -41,7 +41,7 @@
 #include "conf.h"
 #include "transpack.h"
 #include "gngeo_icon.h"
-#include "driver.h"
+//#include "driver.h"
 #include "event.h"
 
 #ifdef USE_GUI
@@ -221,8 +221,10 @@ void init_sdl(void /*char *rom_name*/)
     //init_joystick();
     init_event();
     /* init key mapping */
+/*
     conf.p1_key=CF_ARRAY(cf_get_item_by_name("p1key"));
     conf.p2_key=CF_ARRAY(cf_get_item_by_name("p2key"));
+*/
 
     if (nomouse == NULL)
 	SDL_ShowCursor(0);
@@ -300,12 +302,12 @@ int main(int argc, char *argv[])
 #endif
     //SDL_Delay(200);
     //benchmark ((void*)screen->pixels);
-    gn_init_skin();
+
     gp2x_init_mixer();
     SDL_FillRect(screen,NULL,0);
 
 #endif
-
+    gn_init_skin();
 
     if (conf.debug) conf.sound=0;
 

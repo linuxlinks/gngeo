@@ -352,9 +352,11 @@ SDL_bool save_state(char *game,int slot) {
 	return SDL_FALSE;
     }
 
+/*
 #ifndef GP2X
     SDL_BlitSurface(buffer, &buf_rect, state_img, &screen_rect);
 #endif
+*/
 
     gzwrite(gzf,"GNGST1",6);
     gzwrite(gzf,&endian,1);

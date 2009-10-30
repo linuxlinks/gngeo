@@ -41,7 +41,7 @@
 #include "SDL.h"
 #include "conf.h"
 #include "fileio.h"
-#include "driver.h"
+//#include "driver.h"
 #include "emu.h"
 #include "fileio.h"
 
@@ -453,14 +453,21 @@ void cf_init(void)
 #ifdef GP2X
     cf_create_string_item("frontend","Execute CMD when exit. Usefull to return to Selector or Rage2x","CMD",0,"./gngeo2x.gpe");
 #endif
-    cf_create_string_item("p1control","Player1 control configutation","...",0,"A=K123,B=K12,C=J1B2");
-    cf_create_string_item("p2control","Player2 control configutation","...",0,"A=K323,B=K52,C=J2B1");
-   
+#ifdef GP2X
+    cf_create_string_item("p1control","Player1 control configutation","...",0,
+			  "UP=J0B0,DOWN=J0B4,LEFT=J0B2,RIGHT=J0B6,A=J0B14,B=J0B13,C=J0B12,D=J0B15,COIN=J0B9,START=J0B8");
+    cf_create_string_item("p2control","Player2 control configutation","...",0,"");
+#else
+    /* TODO: Make Querty default instead of azerty */
+    cf_create_string_item("p1control","Player1 control configutation","...",0,"A=K119,B=K120,C=K113,D=K115,START=K38,COIN=K34,UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K27");
+    cf_create_string_item("p2control","Player2 control configutation","...",0,"");
+#endif
+#if 0   
     cf_create_array_item("p1key","Player1 Keyboard configuration","...",0,14,default_key1);
     cf_create_array_item("p2key","Player2 Keyboard configuration","...",0,14,default_key2);
     cf_create_array_item("p1joy","Player1 Joystick configuration","...",0,14,default_joy1);
     cf_create_array_item("p2joy","Player2 Joystick configuration","...",0,14,default_joy2);
-
+#endif
     cf_create_array_item("p1hotkey0","Player1 Hotkey 0 configuration","...",0,4,default_p1hotkey0);
     cf_create_array_item("p1hotkey1","Player1 Hotkey 1 configuration","...",0,4,default_p1hotkey1);
     cf_create_array_item("p1hotkey2","Player1 Hotkey 2 configuration","...",0,4,default_p1hotkey2);

@@ -30,7 +30,7 @@
 #include "frame_skip.h"
 #include "transpack.h"
 #include "pbar.h"
-#include "driver.h"
+//#include "driver.h"
 #include "unzip.h"
 /*
 #ifdef GP2X

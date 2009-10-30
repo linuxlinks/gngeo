@@ -41,7 +41,7 @@
 #include "screen.h"
 #include "neocrypt.h"
 #include "conf.h"
-#include "driver.h"
+//#include "driver.h"
 #include "gui_interf.h"
 #ifdef FULL_GL
 #include "videogl.h"
@@ -128,7 +128,7 @@ void setup_misc_patch(char *name)
 	(!strcmp(name, "mosyougi")) ||
 	(!strcmp(name, "twinspri")) ||
 	(!strcmp(name, "whp")) || 
-	(conf.rom_type == MGD2) ||
+	/*(conf.rom_type == MGD2) ||*/
 	(CF_BOOL(cf_get_item_by_name("forcepc"))) ) {
 	Uint8 *RAM = memory.cpu;
 	WRITE_WORD_ROM(&RAM[4], 0x00c0);
@@ -697,14 +697,14 @@ void main_loop(void)
     //int snd_volume=gp2x_sound_volume_get();
     int snd_volume=60;
     char volbuf[21];
-    static SDL_Rect buf_rect    =	{24, 16, 304, 224};
-    static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
+
     FILE *sndbuf;
     unsigned int sample_len=conf.sample_rate/60.0;
     static unsigned int gp2x_timer;
     static unsigned int gp2x_timer_prev;
 #endif
-
+    static SDL_Rect buf_rect    =	{24, 16, 304, 224};
+    static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
     Uint32 cpu_68k_timeslice = (m68k_overclk==0?200000:200000+(m68k_overclk*200000/100.0));
     Uint32 cpu_68k_timeslice_scanline = cpu_68k_timeslice/264.0;
     Uint32 cpu_z80_timeslice = (z80_overclk==0?73333:73333+(z80_overclk*73333/100.0));
@@ -730,7 +730,15 @@ void main_loop(void)
 	if (conf.test_switch == 1)
 	    conf.test_switch = 0;
 
-	neo_emu_done=handle_event();
+	//neo_emu_done=
+	if (handle_event()) {
+		SDL_BlitSurface(buffer, &buf_rect, state_img, &screen_rect);
+		if (conf.sound) {SDL_PauseAudio(1); SDL_LockAudio();}
+		if (run_menu()==2) neo_emu_done = 1; // A bit ugly...
+		if (conf.sound) {SDL_PauseAudio(0); SDL_UnlockAudio();}
+		//neo_emu_done = 1;
+		reset_frame_skip();
+	}
 
 #if 0
 	while (SDL_PollEvent(&event)) {

@@ -1,14 +1,17 @@
 if USE_STARSCREAM
 m68k_subdir = star
 m68k_lib = star/libstar.a
+m68ki_src = star_interf.c
 else
 if USE_GENERATOR68K
 m68k_subdir = generator68k
 m68k_lib = generator68k/libgenerator68k.a
+m68ki_src = generator68k_interf.c
 else
 if USE_CYCLONE
 m68k_subdir = cyclone
 m68k_lib = cyclone/libcyclone.a
+m68ki_src = cyclone_interf.c
 endif
 endif
 endif
@@ -16,14 +19,17 @@ endif
 if USE_RAZE
 z80_subdir = raze
 z80_lib = raze/libraze.a
+z80i_src = raze_interf.c
 else
 if USE_MAMEZ80
 z80_subdir = mamez80
 z80_lib = mamez80/libmamez80.a
+z80i_src = mamez80_interf.c
 else
 if USE_DRZ80
 z80_subdir = drz80
 z80_lib = drz80/libdrz80.a
+z80i_src = drz80_interf.c
 endif
 endif
 endif
@@ -31,6 +37,7 @@ endif
 if USE_GUI
 gui_lib = gui/libgui.a
 gui_subdir = gui
+gui_src = gui_interf.c gui_interf.h
 endif
 
 if HAVE_NASM
@@ -38,7 +45,7 @@ asm_lib = screen_i386.o video_i386.o
 else
 if USE_GP2X
 asm_lib = video_arm.o memcpy.o
-asm_src = video_arm.s memcpy.S
+pdep_src = video_arm.s memcpy.S gp2x.h gp2x.c
 else
 asm_lib = 
 endif
@@ -54,25 +61,22 @@ SUBDIRS = effect blitter ym2610 $(m68k_subdir) $(z80_subdir) $(gui_subdir)
 bin_PROGRAMS = gngeo
 gngeo_SOURCES = fileio.c         pd4990a.c        gngeo_icon.h      crypt.h         \
 		sound.h          video.c          fileio.h          profiler.c      \
-		main.c           pd4990a.h        star_interf.c     video.h         \
-		memory.c         profiler.h       mamez80_interf.c  ioapi.h         \
-		blitter.h        font.h           memory.h          raze_interf.c   \
+		main.c           pd4990a.h        video.h           list.c          \
+		memory.c         profiler.h       ioapi.h           list.h          \
+		blitter.h        font.h           memory.h                          \
 		timer.c          effect.h         frame_skip.c      messages.c      \
 		screen.c         timer.h          emu.c             frame_skip.h    \
 		messages.h       screen.h         unzip.c           emu.h           \
-		neocrypt.c       sound.c          unzip.h           generator68k_interf.c \
+		neocrypt.c       sound.c          unzip.h                           \
 		debug.c          debug.h          neocrypt.h	    state.c         \
 		state.h          video_template.h conf.c            conf.h          \
 		transpack.h      transpack.c      pbar.h            pbar.c          \
-		driver.h         driver.c         list.c            list.h	    \
-		gui_interf.c     gui_interf.h     videogl.c	    videogl.h       \
-		cyclone_interf.c gp2x.h		  gp2x.c	    drz80_interf.c  \
-		menu.c		 menu.h		  ioapi.c           zip.c           \
-		zip.h		 roms.h		  roms.c	    mame_layer.h    \
-		mame_layer.c	 neoboot.c	  event.h	    event.c         \
-		$(asm_src)
+		menu.c           menu.h           ioapi.c           zip.c           \
+		zip.h	         roms.h           roms.c            mame_layer.h    \
+		mame_layer.c     neoboot.c        event.h           event.c         \
+		$(pdep_src) $(gui_src) $(m68ki_src) $(z80i_src)
 
-EXTRA_DIST = c32.mac screen_i386.asm video_i386.asm video_i386.inc getopt.h video_arm.s memcpy.S
+EXTRA_DIST = c32.mac screen_i386.asm video_i386.asm video_i386.inc getopt.h
 
 if USE_GP2X
 #gngeo_LDADD = blitter/libblitter.a ym2610/libym2610.a $(m68k_lib) $(z80_lib) $(asm_lib) $(gui_lib) #$(LIBOBJS)

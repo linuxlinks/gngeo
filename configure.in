@@ -51,7 +51,7 @@ if test "$enable_gp2x" = yes ; then
 	else 
 		AC_MSG_ERROR(can't find sdl-config on your system);
 	fi
-	CFLAGS="$CFLAGS -DGP2X -mtune=arm920t"
+	CFLAGS="$CFLAGS -DENABLE_940T -DGP2X -mtune=arm920t"
 	#AS=arm-open2x-linux-gcc
 else
 	AC_CHECK_PROG(SDL_CONFIG, sdl-config, yes,no)
