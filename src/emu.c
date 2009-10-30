@@ -112,12 +112,12 @@ void setup_misc_patch(char *name)
 */
 
     if (!strcmp(name, "ssideki")) {
-	WRITE_WORD_ROM(&memory.cpu[0x2240], 0x4e71);
+	WRITE_WORD_ROM(&memory.rom.cpu_m68k.p[0x2240], 0x4e71);
     }
 
 
     if (!strcmp(name, "fatfury3")) {
-	WRITE_WORD_ROM(memory.cpu, 0x0010);
+	WRITE_WORD_ROM(memory.rom.cpu_m68k.p, 0x0010);
     }
 
     
@@ -130,7 +130,7 @@ void setup_misc_patch(char *name)
 	(!strcmp(name, "whp")) || 
 	/*(conf.rom_type == MGD2) ||*/
 	(CF_BOOL(cf_get_item_by_name("forcepc"))) ) {
-	Uint8 *RAM = memory.cpu;
+	Uint8 *RAM = memory.rom.cpu_m68k.p;
 	WRITE_WORD_ROM(&RAM[4], 0x00c0);
 	WRITE_WORD_ROM(&RAM[6], 0x0402);
     }
@@ -138,8 +138,8 @@ void setup_misc_patch(char *name)
     if (!strcmp(name, "mslugx")) {
 	/* patch out protection checks */
 	int i;
-	Uint8 *RAM = memory.cpu;
-	for (i = 0; i < memory.cpu_size; i += 2) {
+	Uint8 *RAM = memory.rom.cpu_m68k.p;
+	for (i = 0; i < memory.rom.cpu_m68k.size; i += 2) {
 	    if ((READ_WORD_ROM(&RAM[i + 0]) == 0x0243) && 
 		(READ_WORD_ROM(&RAM[i + 2]) == 0x0001) &&	/* andi.w  #$1, D3 */
 		(READ_WORD_ROM(&RAM[i + 4]) == 0x6600)) {	/* bne xxxx */
@@ -175,7 +175,7 @@ void neogeo_init(void)
     shared_ctl->pending_command=pending_command;
     shared_ctl->result_code=result_code;
 #endif
-    if (memory.cpu_size>0x100000)
+    if (memory.rom.cpu_m68k.size>0x100000)
 	cpu_68k_bankswitch(0x100000);
     else
 	cpu_68k_bankswitch(0);

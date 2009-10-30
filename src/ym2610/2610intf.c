@@ -104,10 +104,10 @@ int YM2610_sh_start(void)
     }
     stream = stream_init_multi(YM2610_NUMBUF, 0, YM2610UpdateOne);
 */
-    pcmbufa = (void *) memory.sound1;
-    pcmsizea = memory.sound1_size;
-    pcmbufb = (void *) memory.sound2;
-    pcmsizeb = memory.sound2_size;
+    pcmbufa = (void *) memory.rom.adpcma.p;
+    pcmsizea = memory.rom.adpcma.size;
+    pcmbufb = (void *) memory.rom.adpcmb.p;
+    pcmsizeb = memory.rom.adpcmb.size;
 
     //}
 

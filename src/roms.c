@@ -1175,6 +1175,7 @@ int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 	free(drv);
 
 	/* Setup mem pointer */
+/*	
 	memory.cpu = r->cpu_m68k.p;
 	memory.cpu_size = r->cpu_m68k.size;
 	
@@ -1188,25 +1189,29 @@ int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 
 	memory.sound1 = r->adpcma.p;
 	memory.sound1_size = r->adpcma.size;
-
+*/
 	if (r->adpcmb.size==0) {
-		memory.sound2 = r->adpcma.p;
-		memory.sound2_size = r->adpcma.size;
+		r->adpcmb.p = r->adpcma.p;
+		r->adpcmb.size = r->adpcma.size;
 #ifdef ENABLE_940T
-	shared_data->pcmbufb=(Uint8*)(memory.sound2-gp2x_ram);
-	printf("SOUND2 code: %08x\n",(Uint32)shared_data->pcmbufb);
-	shared_data->pcmbufb_size=memory.sound2_size;
+		shared_data->pcmbufb=(Uint8*)(r->adpcmb.p-gp2x_ram);
+		printf("SOUND2 code: %08x\n",(Uint32)shared_data->pcmbufb);
+		shared_data->pcmbufb_size=memory.sound2_size;
 #endif
-	} else {
+	} 
+	/*
+	  else {
 		memory.sound2 = r->adpcmb.p;
 		memory.sound2_size = r->adpcmb.size;
 	}
 	memory.gfx = r->tiles.p;
 	memory.gfx_size = r->tiles.size;
-	memory.pen_usage = malloc((memory.gfx_size >> 11) * sizeof(Uint32));
+	*/
+	memory.fix_game_usage= malloc(r->game_sfix.size >> 5);	
+	memory.pen_usage = malloc((r->tiles.size >> 11) * sizeof(Uint32));
 	CHECK_ALLOC(memory.pen_usage);
-	memset(memory.pen_usage, 0, (memory.gfx_size >> 11) * sizeof(Uint32));
-	memory.nb_of_tiles = memory.gfx_size >> 7;
+	memset(memory.pen_usage, 0, (r->tiles.size >> 11) * sizeof(Uint32));
+	memory.nb_of_tiles = r->tiles.size >> 7;
 
 
 	/* Init rom and bios */
@@ -1250,11 +1255,11 @@ void set_bankswitchers(int bt) {
     }
 }
 SDL_bool dr_load_game(char *name) {
-	GAME_ROMS rom;
+	//GAME_ROMS rom;
 	char *rpath=CF_STR(cf_get_item_by_name("rompath"));
 	int rc;
 	printf("Loading %s/%s.zip\n",rpath,name);
-	rc=dr_load_roms(&rom,rpath,name);
+	rc=dr_load_roms(&memory.rom,rpath,name);
 /*	
 	memory.cpu = rom.cpu_m68k.p;
 	memory.cpu_size = rom.cpu_m68k.size;
@@ -1285,13 +1290,13 @@ SDL_bool dr_load_game(char *name) {
 	memory.nb_of_tiles = memory.gfx_size >> 7;
 */
 
-	conf.game=rom.info.name;
+	conf.game=memory.rom.info.name;
 	/* TODO */ //neogeo_fix_bank_type =0;
 	/* TODO */ set_bankswitchers( 0);
 
-	memcpy(memory.game_vector,memory.cpu,0x80);
+	memcpy(memory.game_vector,memory.rom.cpu_m68k.p,0x80);
 
-	convert_all_char(memory.sfix_game, memory.sfix_size,
+	convert_all_char(memory.rom.game_sfix.p, memory.rom.game_sfix.size,
 			 memory.fix_game_usage);
 
 	init_video();

@@ -262,15 +262,15 @@ void save_memcard(char *name) {
 void free_game_memory(void) {
 
     /* clean up memory */
-    free(memory.cpu);memory.cpu=NULL;
+    free(memory.rom.cpu_m68k.p);memory.rom.cpu_m68k.p=NULL;
     
-    free(memory.sm1);memory.sm1=NULL;
-    free(memory.sfix_game);memory.sfix_game=NULL;
-    if (memory.sound1!=memory.sound2) 
-	free(memory.sound2);
-    memory.sound2=NULL;
-    free(memory.sound1);memory.sound1=NULL;
-    free(memory.gfx);memory.gfx=NULL;
+    free(memory.rom.cpu_z80.p);memory.rom.cpu_z80.p=NULL;
+    free(memory.rom.game_sfix.p);memory.rom.game_sfix.p=NULL;
+    if (memory.rom.adpcma.p!=memory.rom.adpcmb.p) 
+	free(memory.rom.adpcmb.p);
+    memory.rom.adpcmb.p=NULL;
+    free(memory.rom.adpcma.p);memory.rom.adpcma.p=NULL;
+    free(memory.rom.tiles.p);memory.rom.tiles.p=NULL;
     free(memory.pen_usage);memory.pen_usage=NULL;
 
 }
@@ -321,7 +321,7 @@ SDL_bool init_game(char *rom_name) {
 
 	fix_usage = memory.fix_board_usage;
 	current_pal = memory.pal1;
-	current_fix = memory.sfix_board;
+	current_fix = memory.rom.bios_sfix.p;
 	current_pc_pal = (Uint32 *) memory.pal_pc1;
 
 
@@ -333,9 +333,9 @@ SDL_bool init_game(char *rom_name) {
 void free_bios_memory(void) {
     free(memory.ram);memory.ram=NULL;
     if (!conf.special_bios)
-      free(memory.bios);memory.bios=NULL;
+      free(memory.rom.bios_m68k.p);memory.rom.bios_m68k.p=NULL;
     free(memory.ng_lo);memory.ng_lo=NULL;
-    free(memory.sfix_board);memory.sfix_board=NULL;
+    free(memory.rom.bios_sfix.p);memory.rom.bios_sfix.p=NULL;
 
     free(memory.pal1);memory.pal1=NULL;
     free(memory.pal2);memory.pal2=NULL;
@@ -358,8 +358,10 @@ void open_bios(void)
     CHECK_ALLOC(memory.ram);
     memset(memory.ram,0,0x10000);
     
-    memory.sfix_board = (Uint8 *) malloc(0x20000);
-    CHECK_ALLOC(memory.sfix_board);
+    memory.rom.bios_sfix.p = (Uint8 *) malloc(0x20000);
+    memory.rom.bios_sfix.size=0x20000;
+
+    CHECK_ALLOC(memory.rom.bios_sfix.p);
     memory.ng_lo = (Uint8 *) malloc(0x10000);
     CHECK_ALLOC(memory.ng_lo);
 
@@ -378,10 +380,10 @@ void open_bios(void)
     memset(romfile, 0, len);
 
     if (!conf.special_bios) {
-      memory.bios = (Uint8 *) malloc(0x20000);
-      CHECK_ALLOC(memory.bios);
+      memory.rom.bios_m68k.p = (Uint8 *) malloc(0x20000);
+      CHECK_ALLOC(memory.rom.bios_m68k.p);
 
-      memory.bios_size=0x20000;
+      memory.rom.bios_m68k.size=0x20000;
       /* try new bios */
       if (conf.system==SYS_UNIBIOS) {
 	      sprintf(romfile, "%s/uni-bios.rom", path);
@@ -409,7 +411,7 @@ void open_bios(void)
 	      sprintf(missedfiles,"%s\n %s",missedfiles, romfile);
 	      //sprintf(missedfiles,"%s",romfile);
       } else {
-	      fread(memory.bios, 1, 0x20000, f);
+	      fread(memory.rom.bios_m68k.p, 1, 0x20000, f);
 	      fclose(f);
       }
     }
@@ -423,7 +425,7 @@ void open_bios(void)
 	    }
 	    sprintf(missedfiles,"%s\n %s",missedfiles, romfile);
     } else {
-	    fread(memory.sfix_board, 1, 0x20000, f);
+	    fread(memory.rom.bios_sfix.p, 1, 0x20000, f);
 	    fclose(f);
     }
 
@@ -451,7 +453,7 @@ void open_bios(void)
     }
 
     /* convert bios fix char */
-    convert_all_char(memory.sfix_board, 0x20000, memory.fix_board_usage);
+    convert_all_char(memory.rom.bios_sfix.p, 0x20000, memory.fix_board_usage);
 
 
     free(romfile);

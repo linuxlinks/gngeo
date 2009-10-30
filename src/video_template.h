@@ -23,7 +23,7 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
 #endif
     tileno=tileno%memory.nb_of_tiles;
    
-    gfxdata = (unsigned int *)&memory.gfx[ tileno<<7];
+    gfxdata = (unsigned int *)&memory.rom.tiles.p[ tileno<<7];
 
     /* y zoom table */
     if(zy==16)
@@ -318,7 +318,7 @@ static inline void RENAME(draw_scanline)(unsigned int tileno,int yoffs,int sx,in
     unsigned int *paldata=(unsigned int *)&current_pc_pal[16*color];
 
     tileno=tileno%memory.nb_of_tiles;
-    gfxdata = (unsigned int *)&memory.gfx[ (tileno<<7)];
+    gfxdata = (unsigned int *)&memory.rom.tiles.p[ (tileno<<7)];
     gfxdata+=(yoffs<<1);
   
     

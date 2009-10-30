@@ -45,7 +45,7 @@ void mame_z80_writemem16(Uint16 addr, Uint8 val)
 Uint8 mame_z80_readmem16(Uint16 addr)
 {
     if (addr <= 0x7fff)
-	return memory.sm1[addr];
+	return memory.rom.cpu_z80.p[addr];
     if (addr <= 0xbfff)
 	return z80map1[addr - 0x8000];
     if (addr <= 0xdfff)
@@ -90,7 +90,7 @@ void cpu_z80_switchbank(Uint8 bank, Uint16 PortNo)
 
     switch (bank) {
     case 0:
-	z80map1 = memory.sm1 + (0x4000 * ((PortNo >> 8) & 0x0f));
+	z80map1 = memory.rom.cpu_z80.p + (0x4000 * ((PortNo >> 8) & 0x0f));
 #ifdef GP2X
 	memcpy(mame_z80mem + 0x8000, z80map1, 0x4000);
 #else
@@ -98,7 +98,7 @@ void cpu_z80_switchbank(Uint8 bank, Uint16 PortNo)
 #endif
 	break;
     case 1:
-	z80map2 = memory.sm1 + (0x2000 * ((PortNo >> 8) & 0x1f));
+	z80map2 = memory.rom.cpu_z80.p + (0x2000 * ((PortNo >> 8) & 0x1f));
 #ifdef GP2X
 	memcpy(mame_z80mem + 0xc000, z80map2, 0x2000);
 #else
@@ -106,7 +106,7 @@ void cpu_z80_switchbank(Uint8 bank, Uint16 PortNo)
 #endif
 	break;
     case 2:
-	z80map3 = memory.sm1 + (0x1000 * ((PortNo >> 8) & 0x3f));
+	z80map3 = memory.rom.cpu_z80.p + (0x1000 * ((PortNo >> 8) & 0x3f));
 #ifdef GP2X
 	memcpy(mame_z80mem + 0xe000, z80map3, 0x1000);
 #else
@@ -114,7 +114,7 @@ void cpu_z80_switchbank(Uint8 bank, Uint16 PortNo)
 #endif
 	break;
     case 3:
-	z80map4 = memory.sm1 + (0x0800 * ((PortNo >> 8) & 0x7f));
+	z80map4 = memory.rom.cpu_z80.p + (0x0800 * ((PortNo >> 8) & 0x7f));
 #ifdef GP2X
 	memcpy(mame_z80mem + 0xe000, z80map3, 0x1000);
 #else
@@ -219,17 +219,17 @@ void cpu_z80_init(void)
     z80_init();
 
     /* bank initalisation */
-    z80map1 = memory.sm1 + 0x8000;
-    z80map2 = memory.sm1 + 0xc000;
-    z80map3 = memory.sm1 + 0xe000;
-    z80map4 = memory.sm1 + 0xf000;
+    z80map1 = memory.rom.cpu_z80.p + 0x8000;
+    z80map2 = memory.rom.cpu_z80.p + 0xc000;
+    z80map3 = memory.rom.cpu_z80.p + 0xe000;
+    z80map4 = memory.rom.cpu_z80.p + 0xf000;
 
     z80_bank[0]=0x8000;
     z80_bank[1]=0xc000;
     z80_bank[2]=0xe000;
     z80_bank[3]=0xf000;
 
-    memcpy(mame_z80mem, memory.sm1, 0xf800);
+    memcpy(mame_z80mem, memory.rom.cpu_z80.p, 0xf800);
     z80_reset(NULL);
     z80_set_irq_callback(mame_z80_irq_callback);
     z80_init_save_state();

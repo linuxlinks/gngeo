@@ -199,29 +199,29 @@ int mem68k_init(void)
 
 Uint8 *mem68k_memptr_bad(Uint32 addr)
 {
-    return memory.cpu;
+    return memory.rom.cpu_m68k.p;
 }
 
 Uint8 *mem68k_memptr_cpu(Uint32 addr)
 {
     if (addr < cpu68k_romlen) {
-	return (memory.cpu + addr);
+	return (memory.rom.cpu_m68k.p + addr);
     }
     /* We should never reach this point */
-    return memory.cpu;
+    return memory.rom.cpu_m68k.p;
 }
 
 Uint8 *mem68k_memptr_bios(Uint32 addr)
 {
     addr &= 0x1FFFF;
-    return (memory.bios + addr);
+    return (memory.rom.bios_m68k.p + addr);
 }
 
 Uint8 *mem68k_memptr_cpu_bk(Uint32 addr)
 {
     addr &= 0xFFFFF;
     //printf("mem68k_memptr_cpu_bk %x %x %d\n",addr,bankaddress,current_cpu_bank);
-    return (memory.cpu + addr + bankaddress);
+    return (memory.rom.cpu_m68k.p + addr + bankaddress);
 }
 
 Uint8 *mem68k_memptr_ram(Uint32 addr)
@@ -273,7 +273,7 @@ static void cpu_68k_init_save_state(void) {
     create_state_register(ST_68k,"bank",1,(void *)&bankaddress,sizeof(Uint32),REG_UINT32);
     create_state_register(ST_68k,"ram",1,(void *)memory.ram,0x10000,REG_UINT8);
     create_state_register(ST_68k,"kof2003_bksw",1,(void *)memory.kof2003_bksw,0x1000,REG_UINT8);
-    create_state_register(ST_68k,"current_vector",1,(void *)memory.cpu,0x80,REG_UINT8);
+    create_state_register(ST_68k,"current_vector",1,(void *)memory.rom.cpu_m68k.p,0x80,REG_UINT8);
     set_post_load_function(ST_68k,cpu_68k_post_load_state);
     set_pre_save_function(ST_68k,cpu_68k_pre_save_state);
 }
@@ -282,20 +282,20 @@ void cpu_68k_init(void)
 {
 
     //#ifdef WORDS_BIGENDIAN
-    swap_memory(memory.cpu, memory.cpu_size);
-    swap_memory(memory.bios, memory.bios_size);
+    swap_memory(memory.rom.cpu_m68k.p, memory.rom.cpu_m68k.size);
+    swap_memory(memory.rom.bios_m68k.p, memory.rom.bios_m68k.size);
     swap_memory(memory.game_vector, 0x80);
     //#endif
 
     cpu68k_ram = memory.ram;
-    cpu68k_rom = memory.cpu;
-    if (memory.cpu_size < 0x100000)
-	cpu68k_romlen = memory.cpu_size;
+    cpu68k_rom = memory.rom.cpu_m68k.p;
+    if (memory.rom.cpu_m68k.size < 0x100000)
+	cpu68k_romlen = memory.rom.cpu_m68k.size;
     else
 	cpu68k_romlen = 0x100000;
     mem68k_init();
     cpu68k_init();
-    if (memory.cpu_size > 0x100000) {
+    if (memory.rom.cpu_m68k.size > 0x100000) {
 	cpu_68k_bankswitch(0);
     }
     cpu_68k_init_save_state();

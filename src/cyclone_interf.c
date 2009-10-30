@@ -148,10 +148,10 @@ static unsigned int   MyCheckPc(unsigned int pc) {
 	//printf("PC %08x %08x\n",(pc&0xF00000),(pc&0xF00000)>>20);
 	switch((pc&0xF00000)>>20) {
 	case 0x0:
-		MyCyclone.membase=(int)memory.cpu;
+		MyCyclone.membase=(int)memory.rom.cpu_m68k.p;
 		break;
 	case 0x2:
-		MyCyclone.membase=(int)(memory.cpu+bankaddress)-0x200000;
+		MyCyclone.membase=(int)(memory.rom.cpu_m68k.p+bankaddress)-0x200000;
 		break;
 	case 0x1:
 		if (pc<=0x10FFff) 
@@ -159,20 +159,20 @@ static unsigned int   MyCheckPc(unsigned int pc) {
 		break;
 	case 0xC:
 		if (pc<=0xc1FFff)
-			MyCyclone.membase=(int)memory.bios-0xc00000;
+			MyCyclone.membase=(int)memory.rom.bios_m68k.p-0xc00000;
 		break;
 	}
 #if 0
-	if (pc>=0x0 && pc<=0xFFFFF) MyCyclone.membase=(int)memory.cpu;
+	if (pc>=0x0 && pc<=0xFFFFF) MyCyclone.membase=(int)memory.rom.cpu_m68k.p;
 	if (pc>=0x200000 && pc<=0x2FFFfF) {
-		MyCyclone.membase=(int)(memory.cpu+bankaddress)-0x200000;
+		MyCyclone.membase=(int)(memory.rom.cpu_m68k.p+bankaddress)-0x200000;
 	}
 	if (pc>=0x100000 && pc<=0x10FFff) {
 		MyCyclone.membase=(int)memory.ram-0x100000;
 	}
 	if (pc>=0xc00000 && pc<=0xc1FFff) {
-		MyCyclone.membase=(int)memory.bios-0xc00000;
-		//printf("PC=%08x MemBase=%08x bios=%08x\n",pc,MyCyclone.membase,(int)memory.bios);
+		MyCyclone.membase=(int)memory.rom.bios_m68k.p-0xc00000;
+		//printf("PC=%08x MemBase=%08x bios=%08x\n",pc,MyCyclone.membase,(int)memory.rom.bios_m68k.p);
 	}
 
 	//if (pc>=0xff0000) MyCyclone.membase=(int)RamMem-0xff0000; // Jump to Ram
@@ -197,12 +197,12 @@ static unsigned char  MyRead8  (unsigned int a) {
 	case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05:
 	case 0x06: case 0x07: case 0x08: case 0x09: case 0x0A: case 0x0B:
 	case 0x0C: case 0x0D: case 0x0E: case 0x0F:
-		return (READ_BYTE_ROM(memory.cpu + addr));
+		return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + addr));
 		break;
 	case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25:
 	case 0x26: case 0x27: case 0x28: case 0x29: case 0x2A: case 0x2B:
 	case 0x2C: case 0x2D: case 0x2E: case 0x2F:
-		return (READ_BYTE_ROM(memory.cpu + bankaddress + addr));
+		return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
 		break;
 	case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15:
 	case 0x16: case 0x17: case 0x18: case 0x19: case 0x1A: case 0x1B:
@@ -210,7 +210,7 @@ static unsigned char  MyRead8  (unsigned int a) {
 		return (READ_BYTE_ROM(memory.ram + (addr&0xFFFF)));
 		break;
 	case 0xC0: case 0xC1:
-		return (READ_BYTE_ROM(memory.bios + addr));
+		return (READ_BYTE_ROM(memory.rom.bios_m68k.p + addr));
 		break;
 
 	case 0xd0:
@@ -241,16 +241,16 @@ static unsigned char  MyRead8  (unsigned int a) {
 #else
 	switch((a&0xFF0000)>>20) {
 	case 0x0:
-		return (READ_BYTE_ROM(memory.cpu + addr));
+		return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + addr));
 		break;
 	case 0x2:
-		return (READ_BYTE_ROM(memory.cpu + bankaddress + addr));
+		return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
 		break;
 	case 0x1:
 		return (READ_BYTE_ROM(memory.ram + (addr&0xFFFF)));
 		break;
 	case 0xC:
-		if (b<=1) return (READ_BYTE_ROM(memory.bios + addr));
+		if (b<=1) return (READ_BYTE_ROM(memory.rom.bios_m68k.p + addr));
 		break;
 	case 0xd:
 		if (b==0) return mem68k_fetch_sram_byte(a);
@@ -302,12 +302,12 @@ static unsigned short MyRead16 (unsigned int a) {
 	case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05:
 	case 0x06: case 0x07: case 0x08: case 0x09: case 0x0A: case 0x0B:
 	case 0x0C: case 0x0D: case 0x0E: case 0x0F:
-		return (READ_WORD_ROM(memory.cpu + addr));
+		return (READ_WORD_ROM(memory.rom.cpu_m68k.p + addr));
 		break;
 	case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25:
 	case 0x26: case 0x27: case 0x28: case 0x29: case 0x2A: case 0x2B:
 	case 0x2C: case 0x2D: case 0x2E: case 0x2F:
-		return (READ_WORD_ROM(memory.cpu + bankaddress + addr));
+		return (READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
 		break;
 	case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15:
 	case 0x16: case 0x17: case 0x18: case 0x19: case 0x1A: case 0x1B:
@@ -315,7 +315,7 @@ static unsigned short MyRead16 (unsigned int a) {
 		return (READ_WORD_ROM(memory.ram + (addr&0xFFFF)));
 		break;
 	case 0xC0: case 0xC1:
-		return (READ_WORD_ROM(memory.bios + addr));
+		return (READ_WORD_ROM(memory.rom.bios_m68k.p + addr));
 		break;
 
 	case 0xd0:
@@ -346,16 +346,16 @@ static unsigned short MyRead16 (unsigned int a) {
 #else
 	switch((a&0xFF0000)>>20) {
 	case 0x0:
-		return (READ_WORD_ROM(memory.cpu + addr));
+		return (READ_WORD_ROM(memory.rom.cpu_m68k.p + addr));
 		break;
 	case 0x2:
-		return (READ_WORD_ROM(memory.cpu + bankaddress + addr));
+		return (READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
 		break;
 	case 0x1:
 		return (READ_WORD_ROM(memory.ram + (addr&0xFFFF)));
 		break;
 	case 0xC:
-		if (b<=1) return (READ_WORD_ROM(memory.bios + addr));
+		if (b<=1) return (READ_WORD_ROM(memory.rom.bios_m68k.p + addr));
 		break;
 
 	case 0xd:
@@ -410,15 +410,15 @@ static unsigned int   MyRead32 (unsigned int a) {
 	case 0x06: case 0x07: case 0x08: case 0x09: case 0x0A: case 0x0B:
 	case 0x0C: case 0x0D: case 0x0E: case 0x0F:
 		//return mem68k_fetch_cpu_long(a);
-		return ((READ_WORD_ROM(memory.cpu + addr))<<16) | 
-			(READ_WORD_ROM(memory.cpu + (addr+2)));
+		return ((READ_WORD_ROM(memory.rom.cpu_m68k.p + addr))<<16) | 
+			(READ_WORD_ROM(memory.rom.cpu_m68k.p + (addr+2)));
 		break;
 	case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25:
 	case 0x26: case 0x27: case 0x28: case 0x29: case 0x2A: case 0x2B:
 	case 0x2C: case 0x2D: case 0x2E: case 0x2F:
 		//return mem68k_fetch_bk_normal_long(a);
-		return ((READ_WORD_ROM(memory.cpu + bankaddress + addr))<<16) | 
-			(READ_WORD_ROM(memory.cpu + bankaddress + (addr+2)));
+		return ((READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + addr))<<16) | 
+			(READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + (addr+2)));
 		break;
 	case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15:
 	case 0x16: case 0x17: case 0x18: case 0x19: case 0x1A: case 0x1B:
@@ -430,8 +430,8 @@ static unsigned int   MyRead32 (unsigned int a) {
 		break;
 	case 0xC0: case 0xC1:
 		//return mem68k_fetch_bios_long(a);
-		return ((READ_WORD_ROM(memory.bios + addr))<<16) | 
-			(READ_WORD_ROM(memory.bios + (addr+2)));
+		return ((READ_WORD_ROM(memory.rom.bios_m68k.p + addr))<<16) | 
+			(READ_WORD_ROM(memory.rom.bios_m68k.p + (addr+2)));
 		break;
 
 	case 0xd0:
@@ -463,13 +463,13 @@ static unsigned int   MyRead32 (unsigned int a) {
 	switch((a&0xFF0000)>>20) {
 	case 0x0:
 		//return mem68k_fetch_cpu_long(a);
-		return ((READ_WORD_ROM(memory.cpu + addr))<<16) | 
-			(READ_WORD_ROM(memory.cpu + (addr+2)));
+		return ((READ_WORD_ROM(memory.rom.cpu_m68k.p + addr))<<16) | 
+			(READ_WORD_ROM(memory.rom.cpu_m68k.p + (addr+2)));
 		break;
 	case 0x2:
 		//return mem68k_fetch_bk_normal_long(a);
-		return ((READ_WORD_ROM(memory.cpu + bankaddress + addr))<<16) | 
-			(READ_WORD_ROM(memory.cpu + bankaddress + (addr+2)));
+		return ((READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + addr))<<16) | 
+			(READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + (addr+2)));
 		break;
 	case 0x1:
 		//return mem68k_fetch_ram_long(a);
@@ -479,8 +479,8 @@ static unsigned int   MyRead32 (unsigned int a) {
 		break;
 	case 0xC:
 		//return mem68k_fetch_bios_long(a);
-		if (b<=1) return ((READ_WORD_ROM(memory.bios + addr))<<16) | 
-				 (READ_WORD_ROM(memory.bios + (addr+2)));
+		if (b<=1) return ((READ_WORD_ROM(memory.rom.bios_m68k.p + addr))<<16) | 
+				 (READ_WORD_ROM(memory.rom.bios_m68k.p + (addr+2)));
 		break;
 
 	case 0xd:
@@ -805,7 +805,7 @@ static void cpu_68k_init_save_state(void) {
 	create_state_register(ST_68k,"bank",1,(void *)&bankaddress,sizeof(Uint32),REG_UINT32);
 	create_state_register(ST_68k,"ram",1,(void *)memory.ram,0x10000,REG_UINT8);
 	create_state_register(ST_68k,"kof2003_bksw",1,(void *)memory.kof2003_bksw,0x1000,REG_UINT8);
-	create_state_register(ST_68k,"current_vector",1,(void *)memory.cpu,0x80,REG_UINT8);
+	create_state_register(ST_68k,"current_vector",1,(void *)memory.rom.cpu_m68k.p,0x80,REG_UINT8);
 	set_post_load_function(ST_68k,cpu_68k_post_load_state);
 	set_pre_save_function(ST_68k,cpu_68k_pre_save_state);
 	
@@ -828,8 +828,8 @@ void cpu_68k_init(void) {
 	CycloneInit();
 	memset(&MyCyclone, 0,sizeof(MyCyclone));
 	/*
-	swap_memory(memory.cpu, memory.cpu_size);
-	swap_memory(memory.bios, memory.bios_size);
+	swap_memory(memory.rom.cpu_m68k.p, memory.rom.cpu_m68k.size);
+	swap_memory(memory.rom.bios_m68k.p, memory.rom.bios_m68k.size);
 	swap_memory(memory.game_vector, 0x80);
 	*/
 	MyCyclone.read8=MyRead8;
@@ -852,7 +852,7 @@ void cpu_68k_init(void) {
 
 	
 
-	if (memory.cpu_size > 0x100000) {
+	if (memory.rom.cpu_m68k.size > 0x100000) {
 		bankaddress = 0x100000;
 	}
 	cpu_68k_init_save_state();

@@ -262,7 +262,7 @@ Uint8 z80_port_read(Uint16 PortNo)
 void z80_port_write(Uint16 PortNb, Uint8 Value)
 {
 	Uint8 data = Value;
-	//printf("z80_port_write PC=%04x OP=%02x p=%04x v=%02x\n",cpu_z80_get_pc(),memory.sm1[cpu_z80_get_pc()],PortNb,Value);
+	//printf("z80_port_write PC=%04x OP=%02x p=%04x v=%02x\n",cpu_z80_get_pc(),memory.rom.cpu_z80.p[cpu_z80_get_pc()],PortNb,Value);
 	//printf("Write port %04x %02x\n",PortNb,Value);
 	switch (PortNb & 0xff) {
 	case 0x4:
@@ -334,7 +334,7 @@ Uint8 mem68k_fetch_cpu_byte(Uint32 addr)
 {
     addr &= 0xFFFFF;
 
-    return (READ_BYTE_ROM(memory.cpu + addr));
+    return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + addr));
 }
 
 Uint16 mem68k_fetch_cpu_word(Uint32 addr)
@@ -344,7 +344,7 @@ Uint16 mem68k_fetch_cpu_word(Uint32 addr)
 	    printf("Prot reading\n");
     }
 
-    return (READ_WORD_ROM(memory.cpu + addr));
+    return (READ_WORD_ROM(memory.rom.cpu_m68k.p + addr));
 }
 
 LONG_FETCH(mem68k_fetch_cpu);
@@ -353,13 +353,13 @@ LONG_FETCH(mem68k_fetch_cpu);
 Uint8 mem68k_fetch_bios_byte(Uint32 addr)
 {
     addr &= 0xFFFFF;
-    return (READ_BYTE_ROM(memory.bios + addr));
+    return (READ_BYTE_ROM(memory.rom.bios_m68k.p + addr));
 }
 
 Uint16 mem68k_fetch_bios_word(Uint32 addr)
 {
     addr &= 0xFFFFF;
-    return (READ_WORD_ROM(memory.bios + addr));
+    return (READ_WORD_ROM(memory.rom.bios_m68k.p + addr));
 }
 
 LONG_FETCH(mem68k_fetch_bios);
@@ -859,20 +859,20 @@ void mem68k_store_setting_byte(Uint32 addr, Uint8 data)
 {
 	//printf("mem68k_store_setting_byte %08x\n",addr);
     if (addr == 0x3a0003) {
-	memcpy(memory.cpu,memory.bios,0x80);
+	memcpy(memory.rom.cpu_m68k.p,memory.rom.bios_m68k.p,0x80);
     }
   
     if (addr == 0x3a0013) {
-	memcpy(memory.cpu,memory.game_vector,0x80);
+	memcpy(memory.rom.cpu_m68k.p,memory.game_vector,0x80);
     }
   
     if (addr == 0x3a000b) {	/* select board fix */
-	current_fix = memory.sfix_board;
+	current_fix = memory.rom.bios_sfix.p;
 	fix_usage = memory.fix_board_usage;
 	return;
     }
     if (addr == 0x3a001b) {	/* select game fix */
-	current_fix = memory.sfix_game;
+	current_fix = memory.rom.game_sfix.p;
 	fix_usage = memory.fix_game_usage;
 	return;
     }
@@ -905,19 +905,19 @@ void mem68k_store_setting_word(Uint32 addr, Uint16 data)
       printf("mem68k_store_setting_word USED????\n");
     addr &= 0xFFFFFe;
     if (addr == 0x3a0002) {
-	memcpy(memory.cpu,memory.bios,0x80);
+	memcpy(memory.rom.cpu_m68k.p,memory.rom.bios_m68k.p,0x80);
     }
   
     if (addr == 0x3a0012) {
-	memcpy(memory.cpu,memory.game_vector,0x80);
+	memcpy(memory.rom.cpu_m68k.p,memory.game_vector,0x80);
     }
     if (addr == 0x3a000a) {
-	current_fix = memory.sfix_board;
+	current_fix = memory.rom.bios_sfix.p;
 	fix_usage = memory.fix_board_usage;
 	return;
     }
     if (addr == 0x3a001a) {
-	current_fix = memory.sfix_game;
+	current_fix = memory.rom.game_sfix.p;
 	fix_usage = memory.fix_game_usage;
 	return;
     }
@@ -968,13 +968,13 @@ void mem68k_store_memcrd_long(Uint32 addr, Uint32 data)
 Uint8 mem68k_fetch_bk_normal_byte(Uint32 addr)
 {
     addr &= 0xFFFFF;
-    return (READ_BYTE_ROM(memory.cpu + bankaddress + addr));
+    return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
 }
 
 Uint16 mem68k_fetch_bk_normal_word(Uint32 addr)
 {
     addr &= 0xFFFFF;
-    return (READ_WORD_ROM(memory.cpu + bankaddress + addr));
+    return (READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
 }
 
 LONG_FETCH(mem68k_fetch_bk_normal);
@@ -982,7 +982,7 @@ LONG_FETCH(mem68k_fetch_bk_normal);
 static void bankswitch(Uint32 address, Uint8 data)
 {
 
-    if (memory.cpu_size <= 0x100000)
+    if (memory.rom.cpu_m68k.size <= 0x100000)
 	return;
 
     if (address >= 0x2FFFF0) {
@@ -991,7 +991,7 @@ static void bankswitch(Uint32 address, Uint8 data)
     } else
 	return;
 
-    if (bankaddress >= memory.cpu_size)
+    if (bankaddress >= memory.rom.cpu_m68k.size)
 	bankaddress = 0x100000;
     cpu_68k_bankswitch(bankaddress);
 }
@@ -1023,7 +1023,7 @@ void scramble_bankswitch(Uint32 address, Uint8 data) {
 	bankaddress = 0x100000 + memory.bksw_offset[data];
     } else
 	return;
-    if (bankaddress >= memory.cpu_size)
+    if (bankaddress >= memory.rom.cpu_m68k.size)
 	bankaddress = 0x100000;
     cpu_68k_bankswitch(bankaddress);
 }
@@ -1033,7 +1033,7 @@ Uint8 mem68k_fetch_bk_kof2003_byte(Uint32 addr)
 {
     if (addr<0x2fe000) {
 	addr &= 0xFFFFF;
-	return (READ_BYTE_ROM(memory.cpu + bankaddress + addr));
+	return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
     } else {
 	return (READ_BYTE_ROM(memory.kof2003_bksw + addr - 0x2fe000));
     }
@@ -1043,7 +1043,7 @@ Uint16 mem68k_fetch_bk_kof2003_word(Uint32 addr)
 {
     if (addr<0x2fe000) {
 	addr &= 0xFFFFF;
-	return (READ_WORD_ROM(memory.cpu + bankaddress + addr));
+	return (READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
     } else {
 	return (READ_WORD_ROM(memory.kof2003_bksw + addr - 0x2fe000));
     }
@@ -1060,7 +1060,7 @@ void bankswitch_kof2003(Uint32 offset, Uint16 mem_mask, Uint16 data) {
     WRITE_BYTE_ROM(memory.kof2003_bksw+0x1ff0,READ_BYTE_ROM(memory.kof2003_bksw+0x1ff0)&0xfe);
     WRITE_BYTE_ROM(memory.kof2003_bksw+0x1ff2,READ_BYTE_ROM(memory.kof2003_bksw+0x1ff2)&0x7f);
     cpu_68k_bankswitch(bankaddress);
-    WRITE_BYTE_ROM(memory.cpu+0x58197,READ_BYTE_ROM(memory.kof2003_bksw + 0x1ff3));
+    WRITE_BYTE_ROM(memory.rom.cpu_m68k.p+0x58197,READ_BYTE_ROM(memory.kof2003_bksw + 0x1ff3));
 }
 
 void mem68k_store_bk_kof2003_byte(Uint32 addr, Uint8 data) {

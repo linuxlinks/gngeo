@@ -33,7 +33,7 @@ static __inline__ void draw_tile(unsigned int tileno,int color,SDL_Surface *bmp)
 
     tileno=tileno%memory.nb_of_tiles;
    
-    gfxdata = (unsigned int *)&memory.gfx[ tileno<<7];
+    gfxdata = (unsigned int *)&memory.rom.tiles.p[ tileno<<7];
         
     br= (unsigned short *)bmp->pixels;
     for(y=0;y<16;y++) {

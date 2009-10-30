@@ -37,27 +37,27 @@ void cpu_z80_switchbank(Uint8 bank, Uint16 PortNo)
     switch (bank) {
     case 0:
 	z80_map_fetch(0x8000, 0xbfff,
-		      memory.sm1 + (0x4000 * ((PortNo >> 8) & 0x0f)));
+		      memory.rom.cpu_z80.p + (0x4000 * ((PortNo >> 8) & 0x0f)));
 	z80_map_read(0x8000, 0xbfff,
-		     memory.sm1 + (0x4000 * ((PortNo >> 8) & 0x0f)));
+		     memory.rom.cpu_z80.p + (0x4000 * ((PortNo >> 8) & 0x0f)));
 	break;
     case 1:
 	z80_map_fetch(0xc000, 0xdfff,
-		      memory.sm1 + (0x2000 * ((PortNo >> 8) & 0x1f)));
+		      memory.rom.cpu_z80.p + (0x2000 * ((PortNo >> 8) & 0x1f)));
 	z80_map_read(0xc000, 0xdfff,
-		     memory.sm1 + (0x2000 * ((PortNo >> 8) & 0x1f)));
+		     memory.rom.cpu_z80.p + (0x2000 * ((PortNo >> 8) & 0x1f)));
 	break;
     case 2:
 	z80_map_fetch(0xe000, 0xefff,
-		      memory.sm1 + (0x1000 * ((PortNo >> 8) & 0x3f)));
+		      memory.rom.cpu_z80.p + (0x1000 * ((PortNo >> 8) & 0x3f)));
 	z80_map_read(0xe000, 0xefff,
-		     memory.sm1 + (0x1000 * ((PortNo >> 8) & 0x3f)));
+		     memory.rom.cpu_z80.p + (0x1000 * ((PortNo >> 8) & 0x3f)));
 	break;
     case 3:
 	z80_map_fetch(0xf000, 0xf7ff,
-		      memory.sm1 + (0x0800 * ((PortNo >> 8) & 0x7f)));
+		      memory.rom.cpu_z80.p + (0x0800 * ((PortNo >> 8) & 0x7f)));
 	z80_map_read(0xf000, 0xf7ff,
-		     memory.sm1 + (0x0800 * ((PortNo >> 8) & 0x7f)));
+		     memory.rom.cpu_z80.p + (0x0800 * ((PortNo >> 8) & 0x7f)));
 	break;
     }
 }
@@ -208,11 +208,11 @@ static void debug(UWORD pc)
 {
     //if (pc == 0x1234) printf("Breakpoint hit!\n");
     if (pc==0x145c) {
-	printf("Z %04x %02x\n",pc,memory.sm1[pc]);
+	printf("Z %04x %02x\n",pc,memory.rom.cpu_z80.p[pc]);
 	z80dumpreg();
     }
     if (pc==0x1450) {
-	printf("Z %04x %02x\n",pc,memory.sm1[pc]);
+	printf("Z %04x %02x\n",pc,memory.rom.cpu_z80.p[pc]);
 	z80dumpreg();
 
     }
@@ -224,18 +224,18 @@ static void debug(UWORD pc)
 void cpu_z80_init(void)
 {
     z80_init_memmap();
-    z80_map_fetch(0x0000, 0x7fff, memory.sm1);
-    z80_map_fetch(0x8000, 0xbfff, memory.sm1 + 0x8000);
-    z80_map_fetch(0xc000, 0xdfff, memory.sm1 + 0xc000);
-    z80_map_fetch(0xe000, 0xefff, memory.sm1 + 0xe000);
-    z80_map_fetch(0xf000, 0xf7ff, memory.sm1 + 0xf000);
+    z80_map_fetch(0x0000, 0x7fff, memory.rom.cpu_z80.p);
+    z80_map_fetch(0x8000, 0xbfff, memory.rom.cpu_z80.p + 0x8000);
+    z80_map_fetch(0xc000, 0xdfff, memory.rom.cpu_z80.p + 0xc000);
+    z80_map_fetch(0xe000, 0xefff, memory.rom.cpu_z80.p + 0xe000);
+    z80_map_fetch(0xf000, 0xf7ff, memory.rom.cpu_z80.p + 0xf000);
     z80_map_fetch(0xf800, 0xffff, memory.z80_ram);
 
-    z80_add_read(0x0000, 0x7fff, Z80_MAP_DIRECT, memory.sm1);
-    z80_map_read(0x8000, 0xbfff, memory.sm1 + 0x8000);
-    z80_map_read(0xc000, 0xdfff, memory.sm1 + 0xc000);
-    z80_map_read(0xe000, 0xefff, memory.sm1 + 0xe000);
-    z80_map_read(0xf000, 0xf7ff, memory.sm1 + 0xf000);
+    z80_add_read(0x0000, 0x7fff, Z80_MAP_DIRECT, memory.rom.cpu_z80.p);
+    z80_map_read(0x8000, 0xbfff, memory.rom.cpu_z80.p + 0x8000);
+    z80_map_read(0xc000, 0xdfff, memory.rom.cpu_z80.p + 0xc000);
+    z80_map_read(0xe000, 0xefff, memory.rom.cpu_z80.p + 0xe000);
+    z80_map_read(0xf000, 0xf7ff, memory.rom.cpu_z80.p + 0xf000);
     z80_add_read(0xf800, 0xffff, Z80_MAP_DIRECT, memory.z80_ram);
 
     z80_bank[0]=0x8000;

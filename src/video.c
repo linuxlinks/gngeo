@@ -42,7 +42,7 @@ extern int neogeo_fix_bank_type;
 
 #ifdef GP2X
 /* global declaration for video_arm.S */
-Uint8 *mem_gfx=0; /*=memory.gfx;*/
+Uint8 *mem_gfx=0; /*=memory.rom.tiles.p;*/
 Uint8 *mem_video=memory.video;
 //#define TOTAL_GFX_BANK 4096
 Uint32 *mem_bank_usage;
@@ -56,7 +56,7 @@ int draw_tile_arm_norm(unsigned int tileno, int color,unsigned char *bmp,int zy)
 
 #ifdef I386_ASM
 /* global declaration for video_i386.asm */
-Uint8 **mem_gfx=&memory.gfx;
+Uint8 **mem_gfx=&memory.rom.tiles.p;
 Uint8 *mem_video=memory.video;
 
 /* prototype */
@@ -231,7 +231,7 @@ void convert_tile(int tileno)
     int x,y;
     unsigned int pen,usage=0;
     TRANS_PACK *t;
-    gfxdata = (unsigned int *)&memory.gfx[ tileno<<7];
+    gfxdata = (unsigned int *)&memory.rom.tiles.p[ tileno<<7];
   
     memcpy(swap,gfxdata,128);
 
@@ -364,7 +364,7 @@ void convert_mgd2_tiles(unsigned char *buf,int len)
     int i;
     unsigned char t;
 
-    if (len==memory.gfx_size && mgd2_tile_pos==memory.gfx_size) {
+    if (len==memory.rom.tiles.size && mgd2_tile_pos==memory.rom.tiles.size) {
 	mgd2_tile_pos=0;
     }
     if (len == 2) {
@@ -400,7 +400,7 @@ void convert_mgd2_tiles(unsigned char *buf,int len)
     }
     if (len==2) {
 	mgd2_tile_pos+=2;
-	if ((mgd2_tile_pos&0x3f)==0)  update_progress_bar(mgd2_tile_pos,memory.gfx_size);
+	if ((mgd2_tile_pos&0x3f)==0)  update_progress_bar(mgd2_tile_pos,memory.rom.tiles.size);
     }
     convert_mgd2_tiles(buf,len);
     convert_mgd2_tiles(buf + len,len);
@@ -448,7 +448,7 @@ static __inline__ void draw_tile_full(unsigned int tileno,int sx,int sy,int zx,i
 #endif
     tileno=tileno%memory.nb_of_tiles;
    
-    gfxdata = (unsigned int *)&memory.gfx[ tileno<<7];
+    gfxdata = (unsigned int *)&memory.rom.tiles.p[ tileno<<7];
 
     /* y zoom table */
     if(zy==16)
@@ -900,8 +900,8 @@ static __inline__ void draw_fix_char(unsigned char *buf,int start,int end)
     SDL_Rect clip;
     int ystart=1,yend=32;
     
-    //banked = (current_fix == memory.sfix_game && memory.sfix_size > 0x1000) ? 1 : 0;
-    banked = (current_fix == memory.sfix_game && neogeo_fix_bank_type && memory.sfix_size > 0x1000) ? 1 : 0;
+    //banked = (current_fix == memory.rom.game_sfix.p && memory.rom.game_sfix.size > 0x1000) ? 1 : 0;
+    banked = (current_fix == memory.rom.game_sfix.p && neogeo_fix_bank_type && memory.rom.game_sfix.size > 0x1000) ? 1 : 0;
     //if (banked && conf.rom_type==MVS_CMC42)
     if (banked && neogeo_fix_bank_type == 1) {
 	    int garoubank = 0;
@@ -951,7 +951,7 @@ static __inline__ void draw_fix_char(unsigned char *buf,int start,int end)
 		}
 	    }
 
-	    if ((byte1>=(memory.sfix_size>>5)) || (fix_usage[byte1]==0x00)) continue;
+	    if ((byte1>=(memory.rom.game_sfix.size>>5)) || (fix_usage[byte1]==0x00)) continue;
 
             br=(unsigned short*)buf+((y<<3))*buffer->w+(x<<3)+16;
 #ifdef GP2X
@@ -1505,12 +1505,12 @@ void init_video(void) {
 	int i;
 #ifdef GP2X
 	if (!mem_gfx) {
-		mem_gfx=memory.gfx;
+		mem_gfx=memory.rom.tiles.p;
 	}
 	if (memory.gp2x_gfx_mapped==GZX_MAPPED) {
 		/* Create our video cache */
 
-		gcache.total_bank=memory.gfx_size/gcache.slot_size;
+		gcache.total_bank=memory.rom.tiles.size/gcache.slot_size;
 		gcache.ptr=malloc(gcache.total_bank*sizeof(Uint8*));
 		gcache.z_pos=malloc(gcache.total_bank*sizeof(unz_file_pos ));
 		memset(gcache.ptr,0,gcache.total_bank*sizeof(Uint8*));
@@ -1525,7 +1525,7 @@ void init_video(void) {
 			exit(1);
 		}
 		//gcache.max_slot=((float)gcache.size/0x4000000)*TOTAL_GFX_BANK;
-		gcache.max_slot=((float)gcache.size/memory.gfx_size)*gcache.total_bank;
+		gcache.max_slot=((float)gcache.size/memory.rom.tiles.size)*gcache.total_bank;
 		//gcache.slot_size=0x4000000/TOTAL_GFX_BANK;
 		printf("Allocating %08x for gfx cache (%d %d slot)\n",gcache.size,gcache.max_slot,gcache.slot_size);
 		gcache.usage=malloc(gcache.max_slot*sizeof(int));

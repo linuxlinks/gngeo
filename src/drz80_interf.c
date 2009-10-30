@@ -94,19 +94,19 @@ void cpu_z80_switchbank(Uint8 bank, Uint16 PortNo)
 
     switch (bank) {
     case 0:
-	z80map1 = memory.sm1 + (0x4000 * ((PortNo >> 8) & 0x0f));
+	z80map1 = memory.rom.cpu_z80.p + (0x4000 * ((PortNo >> 8) & 0x0f));
 	memcpy(drz80mem + 0x8000, z80map1, 0x4000);
 	break;
     case 1:
-	z80map2 = memory.sm1 + (0x2000 * ((PortNo >> 8) & 0x1f));
+	z80map2 = memory.rom.cpu_z80.p + (0x2000 * ((PortNo >> 8) & 0x1f));
 	memcpy(drz80mem + 0xc000, z80map2, 0x2000);
 	break;
     case 2:
-	z80map3 = memory.sm1 + (0x1000 * ((PortNo >> 8) & 0x3f));
+	z80map3 = memory.rom.cpu_z80.p + (0x1000 * ((PortNo >> 8) & 0x3f));
 	memcpy(drz80mem + 0xe000, z80map3, 0x1000);
 	break;
     case 3:
-	z80map4 = memory.sm1 + (0x0800 * ((PortNo >> 8) & 0x7f));
+	z80map4 = memory.rom.cpu_z80.p + (0x0800 * ((PortNo >> 8) & 0x7f));
 	memcpy(drz80mem + 0xf000, z80map4, 0x0800);
 	break;
     }
@@ -191,17 +191,17 @@ void cpu_z80_init(void)
         mydrz80.Z80SP=mydrz80.z80_rebaseSP(0xffff);/*0xf000;*/
 
 /* bank initalisation */
-	z80map1 = memory.sm1 + 0x8000;
-	z80map2 = memory.sm1 + 0xc000;
-	z80map3 = memory.sm1 + 0xe000;
-	z80map4 = memory.sm1 + 0xf000;
+	z80map1 = memory.rom.cpu_z80.p + 0x8000;
+	z80map2 = memory.rom.cpu_z80.p + 0xc000;
+	z80map3 = memory.rom.cpu_z80.p + 0xe000;
+	z80map4 = memory.rom.cpu_z80.p + 0xf000;
 	
 	z80_bank[0]=0x8000;
 	z80_bank[1]=0xc000;
 	z80_bank[2]=0xe000;
 	z80_bank[3]=0xf000;
 	
-	memcpy(drz80mem, memory.sm1, 0xf800);
+	memcpy(drz80mem, memory.rom.cpu_z80.p, 0xf800);
 	z80_init_save_state();
 }
 void cpu_z80_run(int nbcycle)
