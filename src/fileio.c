@@ -353,11 +353,6 @@ void open_bios(void)
 
     if (conf.game!=NULL) free_bios_memory();
 
-    /* allocation de la ram */
-    memory.ram = (Uint8 *) malloc(0x10000);
-    CHECK_ALLOC(memory.ram);
-    memset(memory.ram,0,0x10000);
-    
     memory.rom.bios_sfix.p = (Uint8 *) malloc(0x20000);
     memory.rom.bios_sfix.size=0x20000;
 
@@ -365,16 +360,6 @@ void open_bios(void)
     memory.ng_lo = (Uint8 *) malloc(0x10000);
     CHECK_ALLOC(memory.ng_lo);
 
-    /* partie video */
-    memory.pal1 = (Uint8 *) malloc(0x2000);
-    memory.pal2 = (Uint8 *) malloc(0x2000);
-    CHECK_ALLOC(memory.pal1);CHECK_ALLOC(memory.pal2);
-
-    memory.pal_pc1 = (Uint8 *) malloc(0x4000);
-    memory.pal_pc2 = (Uint8 *) malloc(0x4000);
-    CHECK_ALLOC(memory.pal_pc1);CHECK_ALLOC(memory.pal_pc2);
-
-    memset(memory.video, 0, 0x20000);
 
     romfile = (char *) malloc(len);
     memset(romfile, 0, len);

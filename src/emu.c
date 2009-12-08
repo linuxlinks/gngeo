@@ -189,6 +189,24 @@ void init_neo(char *rom_name)
 #ifdef ENABLE_940T
     int z80_overclk=CF_VAL(cf_get_item_by_name("z80clock"));
 #endif
+    /* allocation de la ram */
+    memory.ram = (Uint8 *) malloc(0x10000);
+    CHECK_ALLOC(memory.ram);
+    memset(memory.ram,0,0x10000);
+    /* partie video */
+    memory.pal1 = (Uint8 *) malloc(0x2000);
+    memory.pal2 = (Uint8 *) malloc(0x2000);
+    CHECK_ALLOC(memory.pal1);CHECK_ALLOC(memory.pal2);
+
+    memory.pal_pc1 = (Uint8 *) malloc(0x4000);
+    memory.pal_pc2 = (Uint8 *) malloc(0x4000);
+    CHECK_ALLOC(memory.pal_pc1);CHECK_ALLOC(memory.pal_pc2);
+
+    memory.video= (Uint8 *) malloc(0x20000);
+    CHECK_ALLOC(memory.video);
+    memset(memory.video, 0, 0x20000);
+
+
     cpu_68k_init();
     neogeo_init();
     pd4990a_init();
@@ -732,11 +750,14 @@ void main_loop(void)
 
 	//neo_emu_done=
 	if (handle_event()) {
+		int interp=interpolation;
 		SDL_BlitSurface(buffer, &buf_rect, state_img, &screen_rect);
+		interpolation=0;
 		if (conf.sound) {SDL_PauseAudio(1); SDL_LockAudio();}
 		if (run_menu()==2) neo_emu_done = 1; // A bit ugly...
 		if (conf.sound) {SDL_PauseAudio(0); SDL_UnlockAudio();}
 		//neo_emu_done = 1;
+		interpolation=interp;
 		reset_frame_skip();
 	}
 
@@ -1015,6 +1036,7 @@ void main_loop(void)
 #endif
 #ifdef ENABLE_940T
 	if (conf.sound) {
+		PROFILER_START(PROF_Z80);
 		wait_busy_940(JOB940_RUN_Z80);
 #if 0
 		if (gp2x_timer) {
@@ -1027,8 +1049,9 @@ void main_loop(void)
 		}	
 #endif
 		gp2x_add_job940(JOB940_RUN_Z80);
+		PROFILER_STOP(PROF_Z80);
 	}
-
+	
 #endif
 
 	if (!conf.debug) {
@@ -1070,9 +1093,9 @@ void main_loop(void)
 	    neo_emu_done=1;
 	}
 
-#ifdef ENABLE_PROFILER
+//#ifdef ENABLE_PROFILER
 	profiler_show_stat();
-#endif
+//#endif
 	PROFILER_START(PROF_ALL);
     }
     SDL_PauseAudio(1);

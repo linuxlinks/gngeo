@@ -42,24 +42,26 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
 #endif
                 for(y=0;y<zy;y++) {
                     gfxdata+=l_y_skip[l]<<1;
-                    myword = gfxdata[1];
-                    col=(myword>>0)&0xf; if (col) PUTPIXEL(br[0],paldata[col]);
-                    col=(myword>>4)&0xf; if (col) PUTPIXEL(br[1],paldata[col]);
-                    col=(myword>>8)&0xf; if (col) PUTPIXEL(br[2],paldata[col]);
-                    col=(myword>>12)&0xf; if (col) PUTPIXEL(br[3],paldata[col]);
-                    col=(myword>>16)&0xf; if (col) PUTPIXEL(br[4],paldata[col]);
-                    col=(myword>>20)&0xf; if (col) PUTPIXEL(br[5],paldata[col]);
-                    col=(myword>>24)&0xf; if (col) PUTPIXEL(br[6],paldata[col]);
-                    col=(myword>>28)&0xf; if (col) PUTPIXEL(br[7],paldata[col]);
-                    myword = gfxdata[0];
-                    col=(myword>>0)&0xf; if (col) PUTPIXEL(br[8],paldata[col]);
-                    col=(myword>>4)&0xf; if (col) PUTPIXEL(br[9],paldata[col]);
-                    col=(myword>>8)&0xf; if (col) PUTPIXEL(br[10],paldata[col]);
-                    col=(myword>>12)&0xf; if (col) PUTPIXEL(br[11],paldata[col]);
-                    col=(myword>>16)&0xf; if (col) PUTPIXEL(br[12],paldata[col]);
-                    col=(myword>>20)&0xf; if (col) PUTPIXEL(br[13],paldata[col]);
-                    col=(myword>>24)&0xf; if (col) PUTPIXEL(br[14],paldata[col]);
-                    col=(myword>>28)&0xf; if (col) PUTPIXEL(br[15],paldata[col]);
+		    if (gfxdata[1]+gfxdata[0]!=0) {
+			    myword = gfxdata[1];
+			    col=(myword>>0)&0xf; if (col) PUTPIXEL(br[0],paldata[col]);
+			    col=(myword>>4)&0xf; if (col) PUTPIXEL(br[1],paldata[col]);
+			    col=(myword>>8)&0xf; if (col) PUTPIXEL(br[2],paldata[col]);
+			    col=(myword>>12)&0xf; if (col) PUTPIXEL(br[3],paldata[col]);
+			    col=(myword>>16)&0xf; if (col) PUTPIXEL(br[4],paldata[col]);
+			    col=(myword>>20)&0xf; if (col) PUTPIXEL(br[5],paldata[col]);
+			    col=(myword>>24)&0xf; if (col) PUTPIXEL(br[6],paldata[col]);
+			    col=(myword>>28)&0xf; if (col) PUTPIXEL(br[7],paldata[col]);
+			    myword = gfxdata[0];
+			    col=(myword>>0)&0xf; if (col) PUTPIXEL(br[8],paldata[col]);
+			    col=(myword>>4)&0xf; if (col) PUTPIXEL(br[9],paldata[col]);
+			    col=(myword>>8)&0xf; if (col) PUTPIXEL(br[10],paldata[col]);
+			    col=(myword>>12)&0xf; if (col) PUTPIXEL(br[11],paldata[col]);
+			    col=(myword>>16)&0xf; if (col) PUTPIXEL(br[12],paldata[col]);
+			    col=(myword>>20)&0xf; if (col) PUTPIXEL(br[13],paldata[col]);
+			    col=(myword>>24)&0xf; if (col) PUTPIXEL(br[14],paldata[col]);
+			    col=(myword>>28)&0xf; if (col) PUTPIXEL(br[15],paldata[col]);
+		    }
 #ifdef DEBUG_VIDEO
                     br-=544;
 #else
@@ -76,6 +78,7 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
                 for(y=0;y<zy;y++) {
                     
                     gfxdata+=l_y_skip[l]<<1;
+		    if (gfxdata[1]+gfxdata[0]!=0) {
                     myword = gfxdata[1];
                     col=(myword>>0)&0xf; if (col) PUTPIXEL(br[0],paldata[col]);
                     col=(myword>>4)&0xf; if (col) PUTPIXEL(br[1],paldata[col]);
@@ -94,6 +97,7 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
                     col=(myword>>20)&0xf; if (col) PUTPIXEL(br[13],paldata[col]);
                     col=(myword>>24)&0xf; if (col) PUTPIXEL(br[14],paldata[col]);
                     col=(myword>>28)&0xf; if (col) PUTPIXEL(br[15],paldata[col]);
+		    }
 #ifdef DEBUG_VIDEO
                     br+=544;
 #else
@@ -113,6 +117,7 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
 #endif
                 for(y=0;y<zy;y++) {
                     gfxdata+=l_y_skip[l]<<1;
+		    if (gfxdata[1]+gfxdata[0]!=0) {
                     myword = gfxdata[0];
                     col=(myword>>28)&0xf; if (col) PUTPIXEL(br[0],paldata[col]);
                     col=(myword>>24)&0xf; if (col) PUTPIXEL(br[1],paldata[col]);
@@ -132,6 +137,7 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
                     col=(myword>>8)&0xf; if (col) PUTPIXEL(br[13],paldata[col]);
                     col=(myword>>4)&0xf; if (col) PUTPIXEL(br[14],paldata[col]);
                     col=(myword>>0)&0xf; if (col) PUTPIXEL(br[15],paldata[col]);
+		    }
                     l++;
 #ifdef DEBUG_VIDEO
                     br-=544;
@@ -147,6 +153,7 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
 #endif
                 for(y=0;y<zy;y++) {
                     gfxdata+=l_y_skip[l]<<1;
+		    if (gfxdata[1]+gfxdata[0]!=0) {
                     myword = gfxdata[0];
                     col=(myword>>28)&0xf; if (col) PUTPIXEL(br[0],paldata[col]);
                     col=(myword>>24)&0xf; if (col) PUTPIXEL(br[1],paldata[col]);
@@ -166,6 +173,7 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
                     col=(myword>>8)&0xf; if (col) PUTPIXEL(br[13],paldata[col]);
                     col=(myword>>4)&0xf; if (col) PUTPIXEL(br[14],paldata[col]);
                     col=(myword>>0)&0xf; if (col) PUTPIXEL(br[15],paldata[col]);
+		    }
                     l++;
 #ifdef DEBUG_VIDEO
                     br+=544;
@@ -321,7 +329,7 @@ static inline void RENAME(draw_scanline)(unsigned int tileno,int yoffs,int sx,in
     gfxdata = (unsigned int *)&memory.rom.tiles.p[ (tileno<<7)];
     gfxdata+=(yoffs<<1);
   
-    
+    if (gfxdata[1]+gfxdata[0]==0) return;
 
     if (zx==16) {
         if (xflip)

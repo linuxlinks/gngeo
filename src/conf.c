@@ -422,7 +422,7 @@ void cf_init(void)
     cf_create_bool_item("joystick","Enable joystick support",0,SDL_TRUE);
     //cf_create_bool_item("invertjoy","Invert joystick order",0,SDL_FALSE);
     cf_create_bool_item("debug","Start with inline debuger",'D',SDL_FALSE);
-    cf_create_bool_item("hwsurface","Use hardware surface for the screen",'H',SDL_FALSE);
+    cf_create_bool_item("hwsurface","Use hardware surface for the screen",'H',SDL_TRUE);
 #ifdef GP2X
     cf_create_bool_item("ramhack","Enable CraigX's RAM timing hack",0,SDL_FALSE);
     cf_create_bool_item("tvout","Enable Tvout (NTSC)",0,SDL_FALSE);
@@ -483,9 +483,10 @@ void cf_init(void)
     cf_create_int_item("samplerate","Set the sample rate to RATE","RATE",0,22050);
     cf_create_int_item("68kclock","Overclock the 68k by x% (-x% for underclk)","x",0,0);
     cf_create_int_item("z80clock","Overclock the Z80 by x% (-x% for underclk)","x",0,0);
-
+/*
     cf_create_int_item("p1joydev","Device index for p1joy (0 -> /dev/js0, etc.)","Device",0,0);
     cf_create_int_item("p2joydev","Device index for p2joy","Device",0,1);
+*/
 #ifdef GP2X
     cf_create_int_item("cpu_speed","Overclock the GP2X cpu to x Mhz","x",0,0);
 #endif
@@ -668,7 +669,7 @@ SDL_bool cf_open_file(char *filename)
 	//sscanf(buf, "%s ", name);
 	//strncpy(val,buf+strlen(name)+1,254);
 
-	printf("%s|%s|\n",name,val);
+	//printf("%s|%s|\n",name,val);
 	cf=cf_get_item_by_name(name);
 	if (cf && !(cf->flags&CF_SETBYCMD)) {
 	    /*printf("Option %s\n",cf->name);*/

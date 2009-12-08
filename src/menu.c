@@ -41,13 +41,25 @@
 #include "frame_skip.h"
 #include "video.h"
 #include "conf.h"
+#include "resfile.h"
 //#include "driver.h"
+typedef struct GNFONT {
+	SDL_Surface *bmp;
+	Uint8 ysize;
+	Uint16 xpos[128-32];
+	Uint8 xsize[128-32];
+	Sint8 pad;
+}GNFONT;
 
+static SDL_Surface *menu_buf;
 static SDL_Surface *back;
-static SDL_Surface *sfont;
-static SDL_Surface *mfont;
+static GNFONT *sfont;
+static GNFONT *mfont;
+static SDL_Surface *gngeo_logo;
 static SDL_Surface *pbar;
 static SDL_Surface *pbar_back;
+static SDL_Surface *arrow_l,*arrow_r;
+static int interp;
 
 #define MENU_BIG   0
 #define MENU_SMALL 1
@@ -70,112 +82,192 @@ static SDL_Surface *pbar_back;
 static GN_MENU *main_menu;
 static GN_MENU *rbrowser_menu;
 
+
 #define COL32_TO_16(col) ((((col&0xff0000)>>19)<<11)|(((col&0xFF00)>>10)<<5)|((col&0xFF)>>3))
-static void dr_putchar(SDL_Surface * dest,SDL_Surface *font,
-		       int x, int y, unsigned char c)
-{
-    static SDL_Rect font_rect, dest_rect;
-    int indice = c - 32;
-    int font_w=font->w/(float)95;
-    int font_h=font->h;
+GNFONT *load_font(char *file) {
+	GNFONT *ft=malloc(sizeof(GNFONT));
+	int i;
+	int x=0;
+	Uint32 *b;
+	Uint32 fpix;
+	if (!ft) return NULL;
 
-    if (c < 32 || c > 127)
-	return;
+	ft->bmp=res_load_stbi(file);
+	if (!ft->bmp) {
+		free(ft);
+		return NULL;
+	}
+	//SDL_SetAlpha(ft->bmp,SDL_SRCALPHA,128);
+	b=ft->bmp->pixels;
+	//ft->bmp->format->Amask=0xFF000000;
+	//ft->bmp->format->Ashift=24;
+	//printf("shift=%d %d\n",ft->bmp->pitch,ft->bmp->w*4);
+	if (ft->bmp->format->BitsPerPixel!=32) {
+		printf("Unsupported font (bpp=%d)\n",ft->bmp->format->BitsPerPixel);
+		SDL_FreeSurface(ft->bmp);
+		free(ft);
+		return NULL;
+	}
+	ft->xpos[0]=0;
+	for (i=0;i<ft->bmp->w;i++) {
+		//printf("%08x\n",b[i]);
+		if (b[i]!=b[0]) {
+			ft->xpos[x+1]=i+1;
+			if (x>0) 
+				ft->xsize[x]=i-ft->xpos[x];
+			else
+				ft->xsize[x]=i;
+			x++;
+		}
+	}
+	//printf("NB char found:%d\n",x);
+	if (x<=0 || x>95) return NULL;
+/*	b=ft->bmp->pixels+ft->bmp->pitch*3;
+	for (i=0;i<ft->bmp->w;i++) {
+		//printf("%08x\n",b[i]);
+	}
+*/
+	ft->xsize[94]=ft->bmp->w-ft->xpos[94];
+	ft->ysize=ft->bmp->h;
 
-    font_rect.x = indice * font_w;
-    font_rect.y = 0;
-    font_rect.w = font_w;
-    font_rect.h = font_h;
-
-    dest_rect.x = x;
-    dest_rect.y = y;
-    dest_rect.w = font_w;
-    dest_rect.h = font_h;
-
-    SDL_BlitSurface(font, &font_rect, dest, &dest_rect);
-
+	/* Default y padding=0 */
+	ft->pad=0;
+	return ft;
 }
-static void draw_string(SDL_Surface *s,SDL_Surface *font,int x,int y,char *string) {
-    int i,xx;
-    int font_w=font->w/(float)95;
-    int font_h=font->h;
-
-    if (x==ALIGN_LEFT) x=MENU_TEXT_X;
-    if (x==ALIGN_RIGHT) x=(MENU_TEXT_X_END-font_w*strlen(string));
-    if (x==ALIGN_CENTER) x=(MENU_TEXT_X+(MENU_TEXT_X_END-MENU_TEXT_X-font_w*strlen(string))/2);
-    if (y==ALIGN_UP) y=MENU_TEXT_Y;
-    if (y==ALIGN_DOWN) y=(MENU_TEXT_Y_END-font_h);
-    if (y==ALIGN_CENTER) y=(MENU_TEXT_Y+(MENU_TEXT_Y_END-MENU_TEXT_Y-font_h)/2);
-    xx=x;
-
-    if (string && s && font)
-	    for (i = 0; i < strlen(string); i++) {
-		    //printf("%c\n",string[i]);
-		    if (string[i]=='\n') {xx=x;y+=font_h;continue;}
-		    if (string[i]==' ' && string[i+1]!=0x0) {
-			    int len;
-			    char *ind=index(&string[i+1],' ');
-			    if (xx+font_w>MENU_TEXT_X_END) {xx=x;y+=font_h;continue;}
-			    if (ind) {
-				    len=((Uint32)ind-(Uint32)(&string[i+1]))*font_w;
-				    
-			    } else {
-				    len=strlen(&string[i+1])*font_w;
-				    
-			    }
-			    if (xx+len>MENU_TEXT_X_END-font_w) {xx=x;y+=font_h;continue;}
-		    }
-		    
-		    // Check how many space we need for the next word
-		    dr_putchar(s,font, xx , y, string[i]);
-		    xx+=font_w;
-	    }
-
-}
-
-static Uint32 string_len(SDL_Surface *font,char *string) {
-	int font_w=font->w/(float)95;
-	if (string) 
-		return strlen(string)*font_w;
-	else
+static Uint32 string_len(GNFONT *f,char *str) {
+	int i;
+	int size=0;
+	if (str) {
+		for (i=0;i<strlen(str);i++) {
+			switch(str[i]) {
+			case ' ':
+				size+=f->xsize[0];
+				break;
+			case '\t':
+				size+=(f->xsize[0]*8);
+				break;
+			default:
+				size+=(f->xsize[(int)str[i]-32]+f->pad);
+				break;
+			}
+		}
+		return size;
+	} else
 		return 0;
 }
 
+void draw_string(SDL_Surface *dst,GNFONT *f,int x,int y,char *str) {
+	SDL_Rect srect,drect;
+	int i;
+
+	if (x==ALIGN_LEFT) x=MENU_TEXT_X;
+	if (x==ALIGN_RIGHT) x=(MENU_TEXT_X_END- string_len(f,str));
+	if (x==ALIGN_CENTER) x=(MENU_TEXT_X+(MENU_TEXT_X_END-MENU_TEXT_X-string_len(f,str))/2);
+	if (y==ALIGN_UP) y=MENU_TEXT_Y;
+	if (y==ALIGN_DOWN) y=(MENU_TEXT_Y_END-f->ysize);
+	if (y==ALIGN_CENTER) y=(MENU_TEXT_Y+(MENU_TEXT_Y_END-MENU_TEXT_Y-f->ysize)/2);
+
+	drect.x=x;
+	drect.y=y;
+	drect.w=32;
+	drect.h=f->bmp->h;
+	srect.h=f->bmp->h;
+	srect.y=0;
+	for (i=0;i<strlen(str);i++) {
+		switch(str[i]) {
+		case ' ': /* Optimize space */
+			drect.x+=f->xsize[0];
+			break;
+		case '\t':
+			drect.x+=(f->xsize[0]*8);
+			break;
+		case '\n':
+			drect.x=x;
+			drect.y+=f->bmp->h;
+			break;
+		default:
+			srect.x=f->xpos[(int)str[i]-32];
+			srect.w=f->xsize[(int)str[i]-32];
+		
+		
+			SDL_BlitSurface(f->bmp,&srect,dst,&drect);
+			drect.x+=(f->xsize[(int)str[i]-32]+f->pad);
+			break;
+		}
+	}
+}
+
+
 static void draw_back(void) {
 	SDL_Rect dst_r={24,16,304,224};
-	
-	if (back) SDL_BlitSurface(back,NULL,buffer,&dst_r);
+	static SDL_Rect buf_rect    =	{24, 16, 304, 224};
+	static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
+	if (back) {
+		//SDL_BlitSurface(buffer,NULL,menu_buf,NULL);
+		SDL_BlitSurface(state_img, &screen_rect,menu_buf,&dst_r);
+		SDL_BlitSurface(back,NULL,menu_buf,&dst_r);
+	}
 	else {
 		SDL_Rect r1={24+16,16+16,271,191};
 		SDL_Rect r2={24+22,16+35,259,166};
 		SDL_Rect r3={24+24,16+24,271,191};
 
-		SDL_FillRect(buffer,&r3,COL32_TO_16(0x111111));
-		SDL_FillRect(buffer,&r1,COL32_TO_16(0xE8E8E8));
-		SDL_FillRect(buffer,&r2,COL32_TO_16(0x1C57A2));
+		SDL_FillRect(menu_buf,&r3,COL32_TO_16(0x111111));
+		SDL_FillRect(menu_buf,&r1,COL32_TO_16(0xE8E8E8));
+		SDL_FillRect(menu_buf,&r2,COL32_TO_16(0x1C57A2));
 	}
 
 }
 
+#define ALEFT  0
+#define ARIGHT 1
+static void draw_arrow(int type,int x,int y) {
+	SDL_Rect dst_r={x,y-13,32,32};
+	if (type)
+		SDL_BlitSurface(arrow_r,NULL,menu_buf,&dst_r);
+	else
+		SDL_BlitSurface(arrow_l,NULL,menu_buf,&dst_r);
+}
+
 int gn_init_skin(void) {
 	//back=IMG_Load("skin/back.png");
+	/*
 	back=SDL_LoadBMP("skin/back.bmp");
 	sfont=SDL_LoadBMP("skin/font.bmp");
 	mfont=SDL_LoadBMP("skin/font_x2.bmp");
 	pbar=SDL_LoadBMP("skin/pbar.bmp");
 	pbar_back=SDL_LoadBMP("skin/pbar_back.bmp");
+	*/
+	menu_buf=SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 32, 0xFF0000, 0xFF00, 0xFF, 0x0);
+
+	back=res_load_stbi("skin/back.tga");
+	//SDL_SetAlpha(back,SDL_SRCALPHA,128);
+	//sfont=res_load_bmp("skin/font.bmp");
+	//mfont=res_load_bmp("skin/font_x2.bmp");
+	sfont=load_font("skin/font_small.tga");
+	mfont=load_font("skin/font_large.tga");
+	arrow_r=res_load_stbi("skin/arrow_right.tga");
+	arrow_l=res_load_stbi("skin/arrow_left.tga");
+	//pbar=res_load_bmp("skin/pbar.bmp");
+	//pbar_back=res_load_bmp("skin/pbar_back.bmp");
+	gngeo_logo=res_load_stbi("skin/gngeo.tga");
+/*
 	if (!sfont) sfont=fontbuf;
 	if (!mfont) mfont=sfont;
-	if (back) SDL_SetColorKey(back,SDL_SRCCOLORKEY,SDL_MapRGB(back->format,0xFF,0,0xFF));
+*/
+	//if (back) SDL_SetColorKey(back,SDL_SRCCOLORKEY,SDL_MapRGB(back->format,0xFF,0,0xFF));
+/*
 	SDL_SetColorKey(sfont,SDL_SRCCOLORKEY,SDL_MapRGB(sfont->format,0xFF,0,0xFF));
 	SDL_SetColorKey(mfont,SDL_SRCCOLORKEY,SDL_MapRGB(mfont->format,0xFF,0,0xFF));
+*/
+/*
 	if (pbar) 
 		SDL_SetColorKey(pbar,SDL_SRCCOLORKEY,SDL_MapRGB(pbar->format,0xFF,0,0xFF));
 	if (pbar_back) 
 		SDL_SetColorKey(pbar_back,SDL_SRCCOLORKEY,SDL_MapRGB(pbar_back->format,0xFF,0,0xFF));
-
-	if (!back) return 1;
-	return 0;
+*/
+	if (!back || !sfont || !mfont || !arrow_r || !arrow_l || !gngeo_logo || !menu_buf) return SDL_FALSE;
+	return SDL_TRUE;
 }
 
 static int pbar_y;
@@ -184,128 +276,72 @@ void gn_reset_pbar(void) {
 	pbar_y=0;
 }
 void gn_init_pbar(char *name) {
-	int len=(sfont->w/95.0)*13;
-	int w=MENU_TEXT_X_END-(MENU_TEXT_X+len);
-	SDL_Rect r1={
-		MENU_TEXT_X+len,MENU_TEXT_Y+sfont->h*pbar_y+1,
-		w,sfont->h-2
-	}; 
-	if (pbar && pbar_back) {r1.w=pbar_back->w;r1.h=pbar_back->h;}
+	interp=interpolation;
+	interpolation=0;
+
 	if (pbar_y==0) {
 		draw_back();
-		draw_string(buffer,sfont,MENU_TITLE_X,MENU_TITLE_Y,"Loading ...");
+		draw_string(menu_buf,sfont,MENU_TITLE_X,MENU_TITLE_Y,"Loading...");
 	}
-	draw_string(buffer,sfont,ALIGN_LEFT,MENU_TEXT_Y+sfont->h*pbar_y,name);
-	if (pbar && pbar_back) 
-		SDL_BlitSurface(pbar_back,NULL,buffer,&r1);
-	else
-		SDL_FillRect(buffer,&r1,COL32_TO_16(0xA11111));
 
+	SDL_BlitSurface(menu_buf,NULL,buffer,NULL);
 	screen_update();
 }
 void gn_update_pbar(Uint32 pos,Uint32 size) {
-	int len=(sfont->w/95.0)*13;
-	int w=MENU_TEXT_X_END-(MENU_TEXT_X+len);
-	SDL_Rect r1={
-		MENU_TEXT_X+len,MENU_TEXT_Y+sfont->h*pbar_y+1,
-		w,sfont->h-2
-	}; 
-	SDL_Rect r2={r1.x+1,r1.y+1,(pos*(r1.w-2))/size,r1.h-2};
-	if (pbar && pbar_back) {
-		SDL_Rect r3={0,0,(pos*pbar->w)/size,pbar->h};
-		r1.w=pbar_back->w;r1.h=pbar_back->h;
-		r2.w=(pos*pbar->w)/size;r2.h=pbar->h;
-		//SDL_FillRect(buffer,&r1,COL32_TO_16(0x111111));
-		SDL_BlitSurface(pbar_back,NULL,buffer,&r1);
-		SDL_BlitSurface(pbar,&r3,buffer,&r2);
-	} else {
-		SDL_FillRect(buffer,&r1,COL32_TO_16(0x111111));
-		SDL_FillRect(buffer,&r2,COL32_TO_16(0x1123AE));
-	}
-
-
+	SDL_Rect src_r={2,0,(pos*67)/size,gngeo_logo->h};
+	SDL_Rect dst_r={219+26,146+16,gngeo_logo->w,gngeo_logo->h};
+	
+	SDL_BlitSurface(gngeo_logo,&src_r,menu_buf,&dst_r);
+	
+	SDL_BlitSurface(menu_buf,NULL,buffer,NULL);
 	screen_update();
 }
 
 void gn_terminate_pbar(void) {
-	int len=(sfont->w/95.0)*13;
-	int w=MENU_TEXT_X_END-(MENU_TEXT_X+len);
-	SDL_Rect r1={
-		MENU_TEXT_X+len,MENU_TEXT_Y+sfont->h*pbar_y+1,
-		w,sfont->h-2
-	};
-	SDL_Rect r2={r1.x+1,r1.y+1,r1.w-2,r1.h-2};
-	if (pbar && pbar_back) {
-		r1.w=pbar_back->w;r1.h=pbar_back->h;
-		r2.w=pbar->w;r2.h=pbar->h;
-		//SDL_FillRect(buffer,&r1,COL32_TO_16(0x111111));
-		SDL_BlitSurface(pbar_back,NULL,buffer,&r1);
-		SDL_BlitSurface(pbar,NULL,buffer,&r2);
-	} else {
-		SDL_FillRect(buffer,&r1,COL32_TO_16(0x111111));
-		SDL_FillRect(buffer,&r2,COL32_TO_16(0x1123AE));
-	}
-
-	pbar_y++;
-	if (MENU_TEXT_Y+(pbar_y+1)*sfont->h>MENU_TEXT_Y_END) {
-		pbar_y=0;
-	}
-	//printf(" %d %d\n",r2.w,r2.h);
-
+	SDL_Rect src_r={2,0,gngeo_logo->w,gngeo_logo->h};
+	SDL_Rect dst_r={219+26,146+16,gngeo_logo->w,gngeo_logo->h};
+	
+	SDL_BlitSurface(gngeo_logo,&src_r,menu_buf,&dst_r);
+	
+	SDL_BlitSurface(menu_buf,NULL,buffer,NULL);
 	screen_update();
-
+	interpolation=interp;
 	
 }
 void gn_popup_error(char *name,char *fmt,...) {
 	char buf[512];
 	va_list pvar;
 	va_start(pvar,fmt);
-	//SDL_Event event;
-	
 
 	draw_back();
-	//SDL_textout(buffer,46,36,name);
-	draw_string(buffer,sfont,MENU_TITLE_X,MENU_TITLE_Y,name);
+	draw_string(menu_buf,sfont,MENU_TITLE_X,MENU_TITLE_Y,name);
 
 	vsnprintf(buf,511,fmt,pvar);
-	//SDL_textout(buffer,62,62,buf);
-	//SDL_textout(buffer,170,210,"Press any key ...");
 
-	draw_string(buffer,sfont,MENU_TEXT_X,MENU_TEXT_Y,buf);
-	//draw_string(buffer,sfont,175+24,190+16,"Press any key ...");
-	draw_string(buffer,sfont,ALIGN_RIGHT,ALIGN_DOWN,"Press any key ...");
+	draw_string(menu_buf,sfont,MENU_TEXT_X,MENU_TEXT_Y,buf);
 
+	draw_string(menu_buf,sfont,ALIGN_RIGHT,ALIGN_DOWN,"Press any key ...");
+	SDL_BlitSurface(menu_buf,NULL,buffer,NULL);
 	screen_update();
 
 	while(wait_event()==0);
-/*
-	while(1) {
-		SDL_WaitEvent(&event);
-		switch (event.type) {
-			case SDL_JOYBUTTONDOWN:
-				return;
-				break;
-		}
-	}
-*/
 }
+
+/* TODO: use a mini yes/no menu instead of B/X */
 int gn_popup_question(char *name,char *fmt,...) {
 	char buf[512];
 	va_list pvar;
 	va_start(pvar,fmt);
-	//SDL_Event event;
 	int rc;
 
 	draw_back();
 
-	//SDL_textout(buffer,46,36,name);
-	draw_string(buffer,sfont,MENU_TITLE_X,MENU_TITLE_Y,name);
+	draw_string(menu_buf,sfont,MENU_TITLE_X,MENU_TITLE_Y,name);
 
 	vsnprintf(buf,511,fmt,pvar);
-	//SDL_textout(buffer,62,62,buf);
-	//SDL_textout(buffer,170,210,"   B: Yes  X: No ");
-	draw_string(buffer,sfont,MENU_TEXT_X,MENU_TEXT_Y,buf);
-	draw_string(buffer,sfont,ALIGN_RIGHT,ALIGN_DOWN,"B: Yes  X: No");
+	draw_string(menu_buf,sfont,MENU_TEXT_X,MENU_TEXT_Y,buf);
+	draw_string(menu_buf,sfont,ALIGN_RIGHT,ALIGN_DOWN,"B: Yes  X: No");
+	SDL_BlitSurface(menu_buf,NULL,buffer,NULL);
 	screen_update();
 
 	while(1) {
@@ -316,24 +352,7 @@ int gn_popup_question(char *name,char *fmt,...) {
 			break;
 		}
 	}
-/*
-	while(1) {
-		SDL_WaitEvent(&event);
-		switch (event.type) {
-		case SDL_JOYBUTTONDOWN:
-			//joy_button[event.jbutton.which][event.jbutton.button] = 1;
-			switch (event.jbutton.button) {
-			case GP2X_B: return 1;
-			case GP2X_X: return 0;
-			default:
-				break;
-			}
-			break;
-		default:
-			break;
-		}
-	}
-*/
+
 }
 
 //#define NB_ITEM_2 4
@@ -342,7 +361,7 @@ static void draw_menu(GN_MENU *m) {
 	SDL_Event event;
 	int start,end,i;
 	int nb_item;
-	SDL_Surface *fnt;
+	GNFONT *fnt;
 	LIST *l=m->item;
 
 
@@ -351,31 +370,34 @@ static void draw_menu(GN_MENU *m) {
 	else
 		fnt=sfont;
 
-	nb_item=(MENU_TEXT_Y_END-MENU_TEXT_Y)/fnt->h-1;
+	nb_item=(MENU_TEXT_Y_END-MENU_TEXT_Y)/fnt->ysize-1;
 
 	draw_back();
 
-	//if (m->title) SDL_textout(buffer,46,36,m->title);
-	if (m->title) draw_string(buffer,sfont,MENU_TITLE_X,MENU_TITLE_Y,m->title);
+	if (m->title) draw_string(menu_buf,sfont,MENU_TITLE_X,MENU_TITLE_Y,m->title);
 
 	start=(m->current-nb_item>=0?m->current-nb_item:0);
-	//end=(m->current+nb_item<m->nb_elem?m->current+nb_item:m->nb_elem);
 	end=(start+nb_item<m->nb_elem?start+nb_item:m->nb_elem-1);
-	//printf("%d %d %d %d\n",nb_item,start,end,m->current);
 
 	for (i=0;i<start;i++,l=l->next);
 	for (i=start;i<=end;i++,l=l->next) {
 		GN_MENU_ITEM *mi=(GN_MENU_ITEM *)l->data;
 		int j=i-start;
-		//SDL_textout(buffer,62,62+(i*16),m->name);
+
 		if (m->draw_type==MENU_BIG) {
-			draw_string(buffer,fnt,ALIGN_CENTER,MENU_TEXT_Y+(j*fnt->h+2),mi->name);
-			if (i==m->current) draw_string(buffer,fnt,ALIGN_CENTER,MENU_TEXT_Y+(j*fnt->h+2),">           <");
+			draw_string(menu_buf,fnt,ALIGN_CENTER,MENU_TEXT_Y+(j*fnt->ysize+2),mi->name);
+			if (i==m->current) {
+				int len=string_len(fnt,mi->name)/2;
+				draw_arrow(ARIGHT,176-len-32,MENU_TEXT_Y+(j*fnt->ysize+2)+fnt->ysize/2);
+				draw_arrow(ALEFT,176+len,MENU_TEXT_Y+(j*fnt->ysize+2)+fnt->ysize/2);
+			}
+			
 		} else {
-			draw_string(buffer,fnt,MENU_TEXT_X+10,MENU_TEXT_Y+(j*fnt->h+2),mi->name);
-			if (i==m->current) draw_string(buffer,fnt,MENU_TEXT_X,MENU_TEXT_Y+(j*fnt->h+2),">");
+			draw_string(menu_buf,fnt,MENU_TEXT_X+10,MENU_TEXT_Y+(j*fnt->ysize+2),mi->name);
+			if (i==m->current) draw_string(menu_buf,fnt,MENU_TEXT_X,MENU_TEXT_Y+(j*fnt->ysize+2),">");
 		}
 	}
+	SDL_BlitSurface(menu_buf,NULL,buffer,NULL);
 	screen_update();
 }
 
@@ -403,7 +425,7 @@ static int load_state_action(GN_MENU_ITEM *self,void *param) {
 	SDL_Rect dstrect_binding={24+73,16+64,304/2+4,224/2+4};
 	//SDL_Rect dst_r={24,16,304,224};
 	//SDL_Event event;
-	SDL_Surface *slot_img;
+	SDL_Surface *tmps,*slot_img;
 	char slot_str[32];
 
 	Uint32 nb_slot=how_many_slot(conf.game);
@@ -413,32 +435,35 @@ static int load_state_action(GN_MENU_ITEM *self,void *param) {
 		return 0; // nothing to do
 	}
 
-	slot_img=load_state_img(conf.game,slot);
+	//slot_img=load_state_img(conf.game,slot);
+	tmps=load_state_img(conf.game,slot);
+	slot_img=SDL_ConvertSurface(tmps,menu_buf->format,SDL_SWSURFACE);
 
 	while(1) {
-		//if (back) SDL_BlitSurface(back,NULL,buffer,&dst_r);
-		//else SDL_FillRect(buffer,NULL,COL32_TO_16(0x11A011));
+		//if (back) SDL_BlitSurface(back,NULL,menu_buf,&dst_r);
+		//else SDL_FillRect(menu_buf,NULL,COL32_TO_16(0x11A011));
 		draw_back();
-		SDL_FillRect(buffer,&dstrect_binding,COL32_TO_16(0xFEFEFE));
-		SDL_SoftStretch(slot_img, NULL,buffer, &dstrect);
+		SDL_FillRect(menu_buf,&dstrect_binding,COL32_TO_16(0xFEFEFE));
+		SDL_SoftStretch(slot_img, NULL,menu_buf, &dstrect);
 
-		draw_string(buffer,sfont,MENU_TITLE_X,MENU_TITLE_Y,"Load State");
+		draw_string(menu_buf,sfont,MENU_TITLE_X,MENU_TITLE_Y,"Load State");
 		sprintf(slot_str,"Slot Number %03d",slot);
-		//draw_string(buffer,sfont,24+102,16+40,slot_str);
-		draw_string(buffer,sfont,ALIGN_CENTER,ALIGN_UP,slot_str);
+		//draw_string(menu_buf,sfont,24+102,16+40,slot_str);
+		draw_string(menu_buf,sfont,ALIGN_CENTER,ALIGN_UP,slot_str);
 
-		if(slot>0) draw_string(buffer,mfont,ALIGN_LEFT,ALIGN_CENTER," <<");
-		if (slot<nb_slot-1) draw_string(buffer,mfont,ALIGN_RIGHT,ALIGN_CENTER,">> ");
-		
+		if(slot>0) draw_arrow(ALEFT,44+16,224/2+16);
+		if (slot<nb_slot-1) draw_arrow(ARIGHT,304-43,224/2+16);
+			
+		SDL_BlitSurface(menu_buf,NULL,buffer,NULL);
 		screen_update();
 		switch(wait_event()) {
 		case GN_LEFT:
 			if (slot>0) slot--;
-			slot_img=load_state_img(conf.game,slot);
+			slot_img=SDL_ConvertSurface(load_state_img(conf.game,slot),menu_buf->format,SDL_SWSURFACE);
 			break;
 		case GN_RIGHT:
 			if (slot<nb_slot-1) slot++;
-			slot_img=load_state_img(conf.game,slot);
+			slot_img=SDL_ConvertSurface(load_state_img(conf.game,slot),menu_buf->format,SDL_SWSURFACE);
 			break;
 		case GN_A:
 			return 0;
@@ -452,37 +477,6 @@ static int load_state_action(GN_MENU_ITEM *self,void *param) {
 		default:
 			break;
 		}
-/*
-		SDL_WaitEvent(&event);
-		//while(SDL_PollEvent(&event));
-		switch (event.type) {
-		case SDL_JOYBUTTONDOWN:
-			switch (event.jbutton.button) {
-			case GP2X_LEFT:
-				if (slot>0) slot--;
-				slot_img=load_state_img(conf.game,slot);
-				break;
-			case GP2X_RIGHT:
-				if(slot<nb_slot-1) slot++;
-				slot_img=load_state_img(conf.game,slot);
-				break;
-			case GP2X_X:
-				return 0;
-				break;
-			case GP2X_B:
-			case GP2X_A:
-				load_state(conf.game,slot);
-				printf("Load state!!\n");
-				return 1;
-				break;
-			default:
-				break;
-			}
-			break;
-		default:
-			break;
-		}
-*/
 	}
 	return 0;
 }
@@ -490,44 +484,46 @@ static int save_state_action(GN_MENU_ITEM *self,void *param) {
 	static Uint32 slot=0;
 	SDL_Rect dstrect={24+75,16+66,304/2,224/2};
 	SDL_Rect dstrect_binding={24+73,16+64,304/2+4,224/2+4};
-	//SDL_Rect dst_r={24,16,304,224};
-	//SDL_Event event;
-	SDL_Surface *slot_img;
+	SDL_Surface *tmps,*slot_img;
 	char slot_str[32];
 	Uint32 nb_slot=how_many_slot(conf.game);
 
-	if (nb_slot!=0) slot_img=load_state_img(conf.game,slot);
+	if (nb_slot!=0) {
+		tmps=load_state_img(conf.game,slot);
+		slot_img=SDL_ConvertSurface(tmps,menu_buf->format,SDL_SWSURFACE);
+	}
 
 	while(1) {
-		//if (back) SDL_BlitSurface(back,NULL,buffer,&dst_r);
-		//else SDL_FillRect(buffer,NULL,COL32_TO_16(0x11A011));
 		draw_back();
 		if (slot!=nb_slot) {
-			SDL_FillRect(buffer,&dstrect_binding,COL32_TO_16(0xFEFEFE));
-			SDL_SoftStretch(slot_img, NULL,buffer, &dstrect);
+			SDL_FillRect(menu_buf,&dstrect_binding,COL32_TO_16(0xFEFEFE));
+			SDL_SoftStretch(slot_img, NULL,menu_buf, &dstrect);
 		} else {
-			SDL_FillRect(buffer,&dstrect_binding,COL32_TO_16(0xFEFEFE));
-			SDL_FillRect(buffer,&dstrect,COL32_TO_16(0xA0B0B0));
-			//draw_string(buffer,sfont,24+102,16+107,"Create a new Slot");
-			draw_string(buffer,sfont,ALIGN_CENTER,ALIGN_CENTER,"Create a new Slot");
+			SDL_FillRect(menu_buf,&dstrect_binding,COL32_TO_16(0xFEFEFE));
+			SDL_FillRect(menu_buf,&dstrect,COL32_TO_16(0xA0B0B0));
+			draw_string(menu_buf,sfont,ALIGN_CENTER,ALIGN_CENTER,"Create a new Slot");
 		}
 
-		draw_string(buffer,sfont,MENU_TITLE_X,MENU_TITLE_Y,"Save State");
+		draw_string(menu_buf,sfont,MENU_TITLE_X,MENU_TITLE_Y,"Save State");
 		sprintf(slot_str,"Slot Number %03d",slot);
-		draw_string(buffer,sfont,ALIGN_CENTER,ALIGN_UP,slot_str);
-		if(slot>0) draw_string(buffer,mfont,ALIGN_LEFT,ALIGN_CENTER," <<");
-		if (slot<nb_slot) draw_string(buffer,mfont,ALIGN_RIGHT,ALIGN_CENTER,">> ");
+		draw_string(menu_buf,sfont,ALIGN_CENTER,ALIGN_UP,slot_str);
 
+		if(slot>0) draw_arrow(ALEFT,44+16,224/2+16);
+		if (slot<nb_slot) draw_arrow(ARIGHT,304-43,224/2+16);
+
+		SDL_BlitSurface(menu_buf,NULL,buffer,NULL);
 		screen_update();
 
 		switch(wait_event()) {
 		case GN_LEFT:
 			if (slot>0) slot--;
-			if (slot!=nb_slot) slot_img=load_state_img(conf.game,slot);
+			if (slot!=nb_slot) slot_img=SDL_ConvertSurface(load_state_img(conf.game,slot),
+								       menu_buf->format,SDL_SWSURFACE);
 			break;
 		case GN_RIGHT:
 			if (slot<nb_slot) slot++;
-			if (slot!=nb_slot) slot_img=load_state_img(conf.game,slot);
+			if (slot!=nb_slot) slot_img=SDL_ConvertSurface(load_state_img(conf.game,slot),
+								       menu_buf->format,SDL_SWSURFACE);
 			break;
 		case GN_A:
 			return 0;
@@ -541,37 +537,6 @@ static int save_state_action(GN_MENU_ITEM *self,void *param) {
 		default:
 			break;
 		}
-/*
-		SDL_WaitEvent(&event);
-		//while(SDL_PollEvent(&event));
-		switch (event.type) {
-		case SDL_JOYBUTTONDOWN:
-			switch (event.jbutton.button) {
-			case GP2X_LEFT:
-				if (slot>0) slot--;
-				if (slot!=nb_slot) slot_img=load_state_img(conf.game,slot);
-				break;
-			case GP2X_RIGHT:
-				if(slot<nb_slot) slot++;
-				if (slot!=nb_slot) slot_img=load_state_img(conf.game,slot);
-				break;
-			case GP2X_X:
-				return 0;
-				break;
-			case GP2X_B:
-			case GP2X_A:
-				save_state(conf.game,slot);
-				printf("Save state!!\n");
-				return 1;
-				break;
-			default:
-				break;
-			}
-			break;
-		default:
-			break;
-		}
-*/
 	}
 	return 0;
 }
@@ -630,58 +595,6 @@ int menu_event_handling(struct GN_MENU *self) {
 		break;
 		
 	}
-/*
-	SDL_WaitEvent(&event);
-	//SDL_PollEvent(&event);
-	//while(SDL_PollEvent(&event));
-
-	switch (event.type) {
-	case SDL_JOYBUTTONDOWN:
-		switch (event.jbutton.button) {
-		case GP2X_UP:
-		case GP2X_UP_LEFT:
-		case GP2X_UP_RIGHT:
-			if(self->current>0) 
-				self->current--;
-			else
-				self->current=self->nb_elem-1;
-			break;
-		case GP2X_DOWN:
-		case GP2X_DOWN_LEFT:
-		case GP2X_DOWN_RIGHT:
-			if(self->current<self->nb_elem-1) 
-				self->current++;
-			else
-				self->current=0;
-			break;
-		case GP2X_L:
-			self->current-=10;
-			if (self->current<0) self->current=0;
-			break;
-		case GP2X_R:
-			self->current+=10;
-			if (self->current>=self->nb_elem) self->current=self->nb_elem-1;
-			break;
-		case GP2X_X:
-			return 0;
-			break;
-		case GP2X_B:
-		case GP2X_A:
-			l=list_get_item_by_index(self->item, self->current);
-			if (l) {
-				mi=(GN_MENU_ITEM *)l->data;
-				if (mi->action) 
-					if ((a=mi->action(mi,NULL))) return a;
-			}
-			break;
-		default:
-			break;
-		}
-		break;
-	default:
-		break;
-	}
-*/
 	return -1;
 }
 int icasesort(const struct dirent **a, const struct dirent **b) {
@@ -752,7 +665,8 @@ int rom_browser_menu(void) {
 		init=1;
 		
 		draw_back();
-		draw_string(buffer,sfont,MENU_TITLE_X,MENU_TITLE_Y,"Scanning ....");
+		draw_string(menu_buf,sfont,MENU_TITLE_X,MENU_TITLE_Y,"Scanning ....");
+		SDL_BlitSurface(menu_buf,NULL,buffer,NULL);
 		screen_update();
 		
 		init_rom_browser_menu();
@@ -802,24 +716,18 @@ void gn_init_menu(void) {
 
 Uint32 run_menu(void) {
 	static Uint32 init=0;
-	//SDL_Event event;
 	int a;
-
-	//while (SDL_PollEvent(&event));
 
 	if (init==0) {
 		init=1;
 		gn_init_menu();
 	}
-	//main_menu->draw(main_menu);
-	
 
 	while(1) {
 		main_menu->draw(main_menu);
 		if ((a=main_menu->event_handling(main_menu))>=0)
 			return a;
 	}
-	//while (SDL_PollEvent(&event));
 	return 0;
 }
 

@@ -46,36 +46,36 @@ void pd4990a_addretrace()
   ++testwaits;
   if(testwaits>=maxwaits)
   {
-    testbit ^= 1;
-    testwaits=0;
+	testbit ^= 1;
+	testwaits=0;
   }
   retraces++;
   if (retraces < 60)
-    return;
+	return;
   retraces = 0;
   pd4990a.seconds++;
   if ( (pd4990a.seconds & 0x0f) < 10 )
-    return;
+	return;
   pd4990a.seconds &= 0xf0;
   pd4990a.seconds += 0x10;
   if (pd4990a.seconds < 0x60)
-    return;
+	return;
   pd4990a.seconds = 0;
   pd4990a.minutes++;
   if ( (pd4990a.minutes & 0x0f) < 10 )
-    return;
+	return;
   pd4990a.minutes &= 0xf0;
   pd4990a.minutes += 0x10;
   if (pd4990a.minutes < 0x60)
-    return;
+	return;
   pd4990a.minutes = 0;
   pd4990a.hours++;
   if ( (pd4990a.hours & 0x0f) < 10 )
-    return;
+	return;
   pd4990a.hours &= 0xf0;
   pd4990a.hours += 0x10;
   if (pd4990a.hours < 0x24)
-    return;
+	return;
   pd4990a.hours = 0;
   pd4990a_increment_day();
 }

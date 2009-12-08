@@ -45,21 +45,21 @@ int create_joymap_from_string(int player,char *jconf) {
 	if (jconf==NULL) return 0;
 	v=strdup(jconf);
 	v=strtok(v,",");
-	printf("V1=%s\n",v);
+	//printf("V1=%s\n",v);
 	while(v) {
 		rc=sscanf(v,"%[A-Z]=%c%d%c%d",butid,&type,&jid,&jevt,&code);
 		if (rc==3 && type=='K') { /* Keyboard */
-			printf("%s | keycode %d\n",butid,jid);
+			//printf("%s | keycode %d\n",butid,jid);
 			code=jid;
 			if (code<SDLK_LAST) {
 				jmap->key[code].player=player;
 				jmap->key[code].map=get_mapid(butid);
 			}
-			printf("%d\n",get_mapid(butid));
+			//printf("%d\n",get_mapid(butid));
 		}
 		if (rc==5 && type=='J') {
-			printf("%d, %s | joy no %d | evt %c | %d\n",
-			       rc,butid,jid,jevt,code);
+			//printf("%d, %s | joy no %d | evt %c | %d\n",
+			//rc,butid,jid,jevt,code);
 			if (jid<conf.nb_joy) {
 				switch(jevt) {
 				case 'A':
@@ -188,8 +188,8 @@ int handle_event(void) {
 
 			}
 			
-			printf("SDL_JOYHATMOTION  %d %d %d\n",event.jhat.which,
-			       event.jhat.hat,event.jhat.value);
+			//printf("SDL_JOYHATMOTION  %d %d %d\n",event.jhat.which,
+			//event.jhat.hat,event.jhat.value);
 		}
 		break;
 		case SDL_JOYAXISMOTION:
@@ -239,21 +239,21 @@ int handle_event(void) {
 				
 				
 			}
-			printf("SDL_JOYAXISMOTION %d %d %d %d\n",event.jaxis.which,
-			event.jaxis.axis,value,jmap->jaxe[event.jaxis.which][event.jaxis.axis].dir);
+			//printf("SDL_JOYAXISMOTION %d %d %d %d\n",event.jaxis.which,
+			//event.jaxis.axis,value,jmap->jaxe[event.jaxis.which][event.jaxis.axis].dir);
 		}
 			break;
 		case SDL_JOYBUTTONDOWN: 
 		{
 			int player=jmap->jbutton[event.jbutton.which][event.jbutton.button].player;
 			int map=jmap->jbutton[event.jbutton.which][event.jbutton.button].map;
-			printf("player %d map %d\n",player,map);
+			//printf("player %d map %d\n",player,map);
 			if (player) {
 				player-=1;
 				joy_state[player][map]=1;
 			}
 			
-			printf("SDL_JOYBUTTONDOWN %d %d\n",event.jbutton.which,event.jbutton.button);
+			//printf("SDL_JOYBUTTONDOWN %d %d\n",event.jbutton.which,event.jbutton.button);
 		}
 			break;
 		case SDL_JOYBUTTONUP:
@@ -392,7 +392,7 @@ int wait_event(void) {
 		}
 		break;
 	case SDL_KEYUP:
-		printf("KEYUPPPPP!!!\n");
+		//printf("KEYUPPPPP!!!\n");
 
 		for(i=0;i<GN_MAX_KEY;i++)
 			joy_state[0][i]=0;

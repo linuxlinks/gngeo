@@ -42,8 +42,8 @@ extern int neogeo_fix_bank_type;
 
 #ifdef GP2X
 /* global declaration for video_arm.S */
-Uint8 *mem_gfx=0; /*=memory.rom.tiles.p;*/
-Uint8 *mem_video=memory.video;
+Uint8 *mem_gfx=NULL; /*=memory.rom.tiles.p;*/
+Uint8 *mem_video=NULL;//memory.video;
 //#define TOTAL_GFX_BANK 4096
 Uint32 *mem_bank_usage;
 
@@ -1507,6 +1507,10 @@ void init_video(void) {
 	if (!mem_gfx) {
 		mem_gfx=memory.rom.tiles.p;
 	}
+	if (!mem_video) {
+		mem_video=memory.video;
+	}
+	
 	if (memory.gp2x_gfx_mapped==GZX_MAPPED) {
 		/* Create our video cache */
 

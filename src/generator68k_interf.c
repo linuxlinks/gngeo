@@ -58,7 +58,7 @@ t_mem68k_def mem68k_def[] = {
      mem68k_store_invalid_long},
 
     /* RAM */
-    {0x100, 0x10F, mem68k_memptr_ram,
+    {0x100, 0x1FF, mem68k_memptr_ram,
      mem68k_fetch_ram_byte, mem68k_fetch_ram_word, mem68k_fetch_ram_long,
      mem68k_store_ram_byte, mem68k_store_ram_word, mem68k_store_ram_long},
 
@@ -73,7 +73,7 @@ t_mem68k_def mem68k_def[] = {
      mem68k_store_invalid_long},
 
     /* BIOS */
-    {0xc00, 0xc1f, mem68k_memptr_bios,
+    {0xc00, 0xcFf, mem68k_memptr_bios,
      mem68k_fetch_bios_byte, mem68k_fetch_bios_word,
      mem68k_fetch_bios_long,
      mem68k_store_invalid_byte, mem68k_store_invalid_word,

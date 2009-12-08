@@ -126,7 +126,7 @@ void main_loop(void);
 void init_neo(char *rom_name);
 void cpu_68k_dpg_step(void);
 
-#ifdef ENABLE_PROFILER
+#ifndef ENABLE_PROFILER
 #define PROFILER_START profiler_start
 #define PROFILER_STOP profiler_stop
 

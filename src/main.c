@@ -25,7 +25,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-//#include "streams.h"
 #include "ym2610/2610intf.h"
 #include "font.h"
 #include "fileio.h"
@@ -41,15 +40,14 @@
 #include "conf.h"
 #include "transpack.h"
 #include "gngeo_icon.h"
-//#include "driver.h"
 #include "event.h"
+#include "menu.h"
 
 #ifdef USE_GUI
 #include "gui_interf.h"
 #endif
 #ifdef GP2X
 #include "gp2x.h"
-#include "menu.h"
 #include "ym2610-940/940shared.h"
 #endif
 
@@ -79,90 +77,6 @@ void calculate_hotkey_bitmasks()
 
 }
 
-void init_joystick_new(void) {
-	int i;
-	conf.p1_joy=CF_ARRAY(cf_get_item_by_name("p1joy"));
-	conf.p2_joy=CF_ARRAY(cf_get_item_by_name("p2joy"));
-	conf.nb_joy = SDL_NumJoysticks();
-
-	if (conf.joy!=NULL) free(conf.joy);
-	conf.joy=malloc(sizeof(SDL_Joystick*)*conf.nb_joy);
-
-	SDL_JoystickEventState(SDL_ENABLE);
-
-	/* Open all the avaiable joystick */
-	for (i=0;i<conf.nb_joy;i++) {
-		conf.joy[i]=SDL_JoystickOpen(i);
-		printf("joy \"%s\", axe:%d, button:%d\n",
-		       SDL_JoystickName(i),
-		       SDL_JoystickNumAxes(conf.joy[i])+ (SDL_JoystickNumHats(conf.joy[i]) * 2),
-		       SDL_JoystickNumButtons(conf.joy[i]));
-	}
-
-}
-
-/* TODO: Rewrite all this mess!!  */
-void init_joystick(void) 
-{
-    //    int invert_joy=CF_BOOL(cf_get_item_by_name("invertjoy"));
-    int i;
-    int joyindex[3];
-    int lastinit=-1;
-
-    int nb_joy=2;
-    joyindex[0]=CF_VAL(cf_get_item_by_name("p1joydev"));
-    joyindex[1]=CF_VAL(cf_get_item_by_name("p2joydev"));
-
-
-    if (!CF_BOOL(cf_get_item_by_name("joystick")))
-	return;
-
-    SDL_JoystickEventState(SDL_ENABLE);
-
-    conf.nb_joy = SDL_NumJoysticks();
-
-    printf("Nb_joy=%d %d %d \n",conf.nb_joy,joyindex[1],joyindex[2]);
-    /* on ne gere que les deux premiers joysticks */
-    /*
-      if (conf.nb_joy > 2)
-      conf.nb_joy = 2;
-
-      if (invert_joy && conf.nb_joy < 2) {
-      invert_joy = 0;
-      CF_BOOL(cf_get_item_by_name("invertjoy"))=SDL_FALSE;
-      }
-    */
-    if (conf.joy!=NULL) free(conf.joy);
-    conf.joy=malloc(sizeof(SDL_Joystick*)*conf.nb_joy);
-
-    for (i=0;i<conf.nb_joy;i++) {
-	if (lastinit!=joyindex[i]) {
-	    lastinit=joyindex[i];
-	    //printf("Try to init joy %d\n",i);
-	    conf.joy[i] = SDL_JoystickOpen(joyindex[i]);
-	    if (conf.joy[i] && joyindex[i]<conf.nb_joy) {
-		    joy_numaxes[i] = SDL_JoystickNumAxes(conf.joy[i]);
-		    printf("joy %s, axe:%d, hat:%d, button:%d\n",
-			   SDL_JoystickName(i),
-			   // HAT SUPPORT SDL_JoystickNumAxes(conf.joy[i]),
-			   joy_numaxes[i] , (SDL_JoystickNumHats(conf.joy[i]) * 2),
-			   SDL_JoystickNumButtons(conf.joy[i]));
-		    joy_button[i] =	(Uint8 *) malloc(SDL_JoystickNumButtons(conf.joy[i]));
-		    // joy_axe[i] = (Uint32 *) malloc(SDL_JoystickNumAxes(conf.joy[i]) * sizeof(Sint32));
-		    joy_axe[i] = (Sint32 *) malloc((joy_numaxes[i] + (SDL_JoystickNumHats(conf.joy[i]) * 2)) * sizeof(Uint32));
-		    memset(joy_button[i], 0, SDL_JoystickNumButtons(conf.joy[i]));
-		    // memset(joy_axe[i], 0, SDL_JoystickNumAxes(conf.joy[i]) * sizeof(Sint32));
-		    memset(joy_axe[i], 0, (joy_numaxes[i] + (SDL_JoystickNumHats(conf.joy[i]) * 2)) * sizeof(Uint32));
-	    }
-	} else {
-	    printf("Joystick number %d used for Player1, skip..\n",joyindex[i]);
-	}
-    }
-    conf.p2_joy = CF_ARRAY(cf_get_item_by_name("p2joy"));
-    conf.p1_joy = CF_ARRAY(cf_get_item_by_name("p1joy"));
- 
-}
-
 void sdl_set_title(char *name) {
     char *title;
     if (name) {
@@ -179,11 +93,7 @@ void init_sdl(void /*char *rom_name*/)
     Uint32 sdl_flag = 0;
     //char title[32] = "Gngeo : ";
     int i;
-#ifdef GP2X
-    int surface_type = SDL_HWSURFACE;//(conf.hw_surface ? SDL_HWSURFACE : SDL_SWSURFACE);
-#else
-    int surface_type = SDL_SWSURFACE;//(conf.hw_surface ? SDL_HWSURFACE : SDL_SWSURFACE);
-#endif
+    int surface_type = (CF_BOOL(cf_get_item_by_name("hwsurface"))? SDL_HWSURFACE : SDL_SWSURFACE);
 
 
     char *nomouse = getenv("SDL_NOMOUSE");
@@ -218,13 +128,7 @@ void init_sdl(void /*char *rom_name*/)
     SDL_WM_SetIcon(icon,NULL);
 
     calculate_hotkey_bitmasks();    
-    //init_joystick();
-    init_event();
-    /* init key mapping */
-/*
-    conf.p1_key=CF_ARRAY(cf_get_item_by_name("p1key"));
-    conf.p2_key=CF_ARRAY(cf_get_item_by_name("p2key"));
-*/
+	init_event();
 
     if (nomouse == NULL)
 	SDL_ShowCursor(0);
@@ -283,9 +187,7 @@ int main(int argc, char *argv[])
 /* GP2X stuff */
 #ifdef GP2X
     gp2x_init();
-
-
-
+/*
     sdl_set_title(NULL);
     SDL_textout(screen, 1, 231, "Patching MMU ... ");SDL_Flip(screen);
 
@@ -305,9 +207,12 @@ int main(int argc, char *argv[])
 
     gp2x_init_mixer();
     SDL_FillRect(screen,NULL,0);
-
+*/
 #endif
-    gn_init_skin();
+    if (gn_init_skin()!=SDL_TRUE) {
+	    printf("Can't load skin...\n");
+            exit(1);
+    }    
 
     if (conf.debug) conf.sound=0;
 

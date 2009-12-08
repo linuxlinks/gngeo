@@ -48,6 +48,7 @@
 
 //#include "driver.h"
 //#include "neogeo.h"
+#include "resfile.h"
 #include "mame_layer.h"
 
 /***************************************************************************
@@ -108,17 +109,18 @@ analyzed, quickly leading to the algorithm.
 
 ***************************************************************************/
 
-static const UINT8 *type0_t03;
-static const UINT8 *type0_t12;
-static const UINT8 *type1_t03;
-static const UINT8 *type1_t12;
-static const UINT8 *address_8_15_xor1;
-static const UINT8 *address_8_15_xor2;
-static const UINT8 *address_16_23_xor1;
-static const UINT8 *address_16_23_xor2;
-static const UINT8 *address_0_7_xor;
-
-
+static UINT8 *type0_t03;
+static UINT8 *type0_t12;
+static UINT8 *type1_t03;
+static UINT8 *type1_t12;
+static UINT8 *address_8_15_xor1;
+static UINT8 *address_8_15_xor2;
+static UINT8 *address_16_23_xor1;
+static UINT8 *address_16_23_xor2;
+static UINT8 *address_0_7_xor;
+static UINT8 *m1_address_8_15_xor;
+static UINT8 *m1_address_0_7_xor;
+#if 0
 static const UINT8 kof99_type0_t03[256] =
 {
 	0xfb, 0x86, 0x9d, 0xf1, 0xbf, 0x80, 0xd5, 0x43, 0xab, 0xb3, 0x9f, 0x6a, 0x33, 0xd9, 0xdb, 0xb6,
@@ -499,7 +501,7 @@ static const UINT8 kof2000_address_0_7_xor[256] =
 	0x32, 0x3e, 0x45, 0xaf, 0x1e, 0x43, 0x44, 0x8c, 0x53, 0x86, 0x6b, 0xee, 0xa8, 0x8a, 0x8f, 0x17,
 };
 
-
+#endif
 
 static void decrypt(UINT8 *r0, UINT8 *r1,
 					UINT8 c0,  UINT8 c1,
@@ -604,10 +606,50 @@ void neogeo_sfix_decrypt(running_machine *machine)
 		dst[i] = src[(i & ~0x1f) + ((i & 7) << 2) + ((~i & 8) >> 2) + ((i & 0x10) >> 4)];
 }
 
+void load_cmc42_table(void) {
+/*
+	FILE *f;
+	type0_t03=malloc(0x950);
+	f=fopen("/home/mathieu/.gngeo/cmc42.xor","rb");
+	fread(type0_t03,0xB00,1,f);
+	fclose(f);
+*/
+	type0_t03=(UINT8*)res_load_data("rom/cmc42.xor");
+	type0_t12 = type0_t03 +256;
+	type1_t03 = type0_t12 +256;
+	type1_t12 = type1_t03 +256;
+	address_8_15_xor1 = type1_t12 +256;
+	address_8_15_xor2 = address_8_15_xor1 +256;
+	address_16_23_xor1 = address_8_15_xor2 +256;
+	address_16_23_xor2 = address_16_23_xor1 +256;
+	address_0_7_xor = address_16_23_xor2 +256;
+}
+void load_cmc50_table(void) {
+/*
+	FILE *f;
+	type0_t03=malloc(0xB00);
+	f=fopen("/home/mathieu/.gngeo/cmc50.xor","rb");
+	fread(type0_t03,0xB00,1,f);
+	fclose(f);
+*/
+	type0_t03=(UINT8*)res_load_data("rom/cmc50.xor");
+	type0_t12 = type0_t03 +256;
+	type1_t03 = type0_t12 +256;
+	type1_t12 = type1_t03 +256;
+	address_8_15_xor1 = type1_t12 +256;
+	address_8_15_xor2 = address_8_15_xor1 +256;
+	address_16_23_xor1 = address_8_15_xor2 +256;
+	address_16_23_xor2 = address_16_23_xor1 +256;
+	address_0_7_xor = address_16_23_xor2 +256;
+
+	m1_address_8_15_xor = address_0_7_xor +256;
+	m1_address_0_7_xor = m1_address_8_15_xor +256;
+}
 
 /* CMC42 protection chip */
 void kof99_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 {
+	/*
 	type0_t03 =          kof99_type0_t03;
 	type0_t12 =          kof99_type0_t12;
 	type1_t03 =          kof99_type1_t03;
@@ -617,14 +659,18 @@ void kof99_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 	address_16_23_xor1 = kof99_address_16_23_xor1;
 	address_16_23_xor2 = kof99_address_16_23_xor2;
 	address_0_7_xor =    kof99_address_0_7_xor;
+	*/
+	load_cmc42_table();
 	neogeo_gfx_decrypt(machine, extra_xor);
 	neogeo_sfix_decrypt(machine);
+	free(type0_t03);
 }
 
 
 /* CMC50 protection chip */
 void kof2000_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 {
+	/*
 	type0_t03 =          kof2000_type0_t03;
 	type0_t12 =          kof2000_type0_t12;
 	type1_t03 =          kof2000_type1_t03;
@@ -634,14 +680,18 @@ void kof2000_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 	address_16_23_xor1 = kof2000_address_16_23_xor1;
 	address_16_23_xor2 = kof2000_address_16_23_xor2;
 	address_0_7_xor =    kof2000_address_0_7_xor;
+	*/
+	load_cmc50_table();
 	neogeo_gfx_decrypt(machine, extra_xor);
 	neogeo_sfix_decrypt(machine);
+	free(type0_t03);
 }
 
 
 /* CMC42 protection chip */
 void cmc42_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 {
+	/*
 	type0_t03 =          kof99_type0_t03;
 	type0_t12 =          kof99_type0_t12;
 	type1_t03 =          kof99_type1_t03;
@@ -651,13 +701,17 @@ void cmc42_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 	address_16_23_xor1 = kof99_address_16_23_xor1;
 	address_16_23_xor2 = kof99_address_16_23_xor2;
 	address_0_7_xor =    kof99_address_0_7_xor;
+	*/
+	load_cmc42_table();
 	neogeo_gfx_decrypt(machine, extra_xor);
+	free(type0_t03);
 }
 
 
 /* CMC50 protection chip */
 void cmc50_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 {
+	/*
 	type0_t03 =          kof2000_type0_t03;
 	type0_t12 =          kof2000_type0_t12;
 	type1_t03 =          kof2000_type1_t03;
@@ -667,7 +721,10 @@ void cmc50_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 	address_16_23_xor1 = kof2000_address_16_23_xor1;
 	address_16_23_xor2 = kof2000_address_16_23_xor2;
 	address_0_7_xor =    kof2000_address_0_7_xor;
+	*/
+	load_cmc50_table();
 	neogeo_gfx_decrypt(machine, extra_xor);
+	free(type0_t03);
 }
 
 
@@ -793,7 +850,7 @@ NeoGeo 'M' ROM encryption
 
 ***************************************************************************/
 
-
+/*
 static const UINT8 m1_address_8_15_xor[256] =
 {
         0x0a, 0x72, 0xb7, 0xaf, 0x67, 0xde, 0x1d, 0xb1, 0x78, 0xc4, 0x4f, 0xb5, 0x4b, 0x18, 0x76, 0xdd,
@@ -833,7 +890,7 @@ static const UINT8 m1_address_0_7_xor[256] =
         0xc2, 0x86, 0xf3, 0x67, 0xba, 0x60, 0x43, 0xc9, 0x04, 0xb3, 0xb0, 0x1e, 0xb5, 0xc8, 0xeb, 0xa5,
         0x76, 0xea, 0x5c, 0x82, 0x1a, 0x4f, 0xaa, 0xca, 0xe1, 0x0b, 0x4e, 0xcb, 0x6a, 0xef, 0xd1, 0xd6,
 };
-
+*/
 
 /* The CMC50 hardware does a checksum of the first 64kb of the M1 rom,
    ,and uses this checksum as the basis of the key with which to decrypt
@@ -898,6 +955,8 @@ void neogeo_cmc50_m1_decrypt(running_machine *machine)
 
 	UINT16 key=generate_cs16(rom,0x10000);
 
+	/* TODO don't open it 2 times... */
+	load_cmc50_table();
 	//printf("key %04x\n",key);
 
 	for (i=0; i<rom_size; i++)
@@ -944,6 +1003,7 @@ void neogeo_cmc50_m1_decrypt(running_machine *machine)
 	#endif
 
 	free( buffer );
+	free(type0_t03);
 }
 
 

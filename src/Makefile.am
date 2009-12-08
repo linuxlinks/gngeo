@@ -63,17 +63,18 @@ gngeo_SOURCES = fileio.c         pd4990a.c        gngeo_icon.h      crypt.h     
 		sound.h          video.c          fileio.h          profiler.c      \
 		main.c           pd4990a.h        video.h           list.c          \
 		memory.c         profiler.h       ioapi.h           list.h          \
-		blitter.h        font.h           memory.h                          \
+		blitter.h        font.h           memory.h          resfile.c       \
 		timer.c          effect.h         frame_skip.c      messages.c      \
 		screen.c         timer.h          emu.c             frame_skip.h    \
 		messages.h       screen.h         unzip.c           emu.h           \
-		neocrypt.c       sound.c          unzip.h                           \
+		neocrypt.c       sound.c          unzip.h           resfile.h       \
 		debug.c          debug.h          neocrypt.h	    state.c         \
 		state.h          video_template.h conf.c            conf.h          \
 		transpack.h      transpack.c      pbar.h            pbar.c          \
 		menu.c           menu.h           ioapi.c           zip.c           \
 		zip.h	         roms.h           roms.c            mame_layer.h    \
 		mame_layer.c     neoboot.c        event.h           event.c         \
+		stb_image.c      stb_image.h                                        \
 		$(pdep_src) $(gui_src) $(m68ki_src) $(z80i_src)
 
 EXTRA_DIST = c32.mac screen_i386.asm video_i386.asm video_i386.inc getopt.h

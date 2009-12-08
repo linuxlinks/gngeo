@@ -9,6 +9,7 @@
 #include "video.h"
 #include "transpack.h"
 #include "conf.h"
+#include "resfile.h"
 #ifdef GP2X
 #include "gp2x.h"
 #include "ym2610-940/940shared.h"
@@ -39,6 +40,98 @@ void neo_pcm2_swap(GAME_ROMS *r, int value);
 void neo_pcm2_snk_1999(GAME_ROMS *r, int value);
 
 int neogeo_fix_bank_type = 0;
+
+const int bankoffset_kof99[64] = {
+	0x000000, 0x100000, 0x200000, 0x300000,
+	0x3cc000, 0x4cc000, 0x3f2000, 0x4f2000,
+	0x407800, 0x507800, 0x40d000, 0x50d000,
+	0x417800, 0x517800, 0x420800, 0x520800,
+	0x424800, 0x524800, 0x429000, 0x529000,
+	0x42e800, 0x52e800, 0x431800, 0x531800,
+	0x54d000, 0x551000, 0x567000, 0x592800,
+	0x588800, 0x581800, 0x599800, 0x594800,
+	0x598000,	/* rest not used? */
+};
+/* addr,uncramblecode,.... */
+const Uint8 scramblecode_kof99[7] = {
+	0xF0,14,6,8,10,12,5,
+};
+const int bankoffset_garou[64] = {
+	0x000000, 0x100000, 0x200000, 0x300000, // 00
+	0x280000, 0x380000, 0x2d0000, 0x3d0000, // 04
+	0x2f0000, 0x3f0000, 0x400000, 0x500000, // 08
+	0x420000, 0x520000, 0x440000, 0x540000, // 12
+	0x498000, 0x598000, 0x4a0000, 0x5a0000, // 16
+	0x4a8000, 0x5a8000, 0x4b0000, 0x5b0000, // 20
+	0x4b8000, 0x5b8000, 0x4c0000, 0x5c0000, // 24
+	0x4c8000, 0x5c8000, 0x4d0000, 0x5d0000, // 28
+	0x458000, 0x558000, 0x460000, 0x560000, // 32
+	0x468000, 0x568000, 0x470000, 0x570000, // 36
+	0x478000, 0x578000, 0x480000, 0x580000, // 40
+	0x488000, 0x588000, 0x490000, 0x590000, // 44
+	0x5d0000, 0x5d8000, 0x5e0000, 0x5e8000, // 48
+	0x5f0000, 0x5f8000, 0x600000, /* rest not used? */
+};
+const Uint8 scramblecode_garou[7] = {
+	0xC0,5,9,7,6,14,12,
+};
+const int bankoffset_garouo[64] = {
+	0x000000, 0x100000, 0x200000, 0x300000, // 00
+	0x280000, 0x380000, 0x2d0000, 0x3d0000, // 04
+	0x2c8000, 0x3c8000, 0x400000, 0x500000, // 08
+	0x420000, 0x520000, 0x440000, 0x540000, // 12
+	0x598000, 0x698000, 0x5a0000, 0x6a0000, // 16
+	0x5a8000, 0x6a8000, 0x5b0000, 0x6b0000, // 20
+	0x5b8000, 0x6b8000, 0x5c0000, 0x6c0000, // 24
+	0x5c8000, 0x6c8000, 0x5d0000, 0x6d0000, // 28
+	0x458000, 0x558000, 0x460000, 0x560000, // 32
+	0x468000, 0x568000, 0x470000, 0x570000, // 36
+	0x478000, 0x578000, 0x480000, 0x580000, // 40
+	0x488000, 0x588000, 0x490000, 0x590000, // 44
+	0x5d8000, 0x6d8000, 0x5e0000, 0x6e0000, // 48
+	0x5e8000, 0x6e8000, 0x6e8000, 0x000000, // 52
+	0x000000, 0x000000, 0x000000, 0x000000, // 56
+	0x000000, 0x000000, 0x000000, 0x000000, // 60
+};
+const Uint8 scramblecode_garouo={
+	0xC0,4,8,14,2,11,13,
+};
+
+const int bankoffset_mslug3[64] = {
+	0x000000, 0x020000, 0x040000, 0x060000, // 00
+	0x070000, 0x090000, 0x0b0000, 0x0d0000, // 04
+	0x0e0000, 0x0f0000, 0x120000, 0x130000, // 08
+	0x140000, 0x150000, 0x180000, 0x190000, // 12
+	0x1a0000, 0x1b0000, 0x1e0000, 0x1f0000, // 16
+	0x200000, 0x210000, 0x240000, 0x250000, // 20
+	0x260000, 0x270000, 0x2a0000, 0x2b0000, // 24
+	0x2c0000, 0x2d0000, 0x300000, 0x310000, // 28
+	0x320000, 0x330000, 0x360000, 0x370000, // 32
+	0x380000, 0x390000, 0x3c0000, 0x3d0000, // 36
+	0x400000, 0x410000, 0x440000, 0x450000, // 40
+	0x460000, 0x470000, 0x4a0000, 0x4b0000, // 44
+	0x4c0000, /* rest not used? */
+};
+const Uint8 scramblecode_mslug3[7] = {
+	0xE4,14,12,15,6,3,9,
+};
+const int bankoffset_kof2000[64] = {
+	0x000000, 0x100000, 0x200000, 0x300000, // 00
+	0x3f7800, 0x4f7800, 0x3ff800, 0x4ff800, // 04
+	0x407800, 0x507800, 0x40f800, 0x50f800, // 08
+	0x416800, 0x516800, 0x41d800, 0x51d800, // 12
+	0x424000, 0x524000, 0x523800, 0x623800, // 16
+	0x526000, 0x626000, 0x528000, 0x628000, // 20
+	0x52a000, 0x62a000, 0x52b800, 0x62b800, // 24
+	0x52d000, 0x62d000, 0x52e800, 0x62e800, // 28
+	0x618000, 0x619000, 0x61a000, 0x61a800, // 32
+};
+const Uint8 scramblecode_kof2000[7] = {
+	0xEC,15,14,7,3,10,5,
+};
+
+
+
 
 /* Some utility function  */
 /* Get the file szFileName in the zip.
@@ -87,10 +180,38 @@ static DRIVER_INIT( mslugx )
 
 */
 
+int init_mslugx(GAME_ROMS *r) {
+	int i;
+	Uint8 *RAM = r->cpu_m68k.p;
+	for (i = 0; i < r->cpu_m68k.size; i += 2) {
+	    if ((READ_WORD_ROM(&RAM[i + 0]) == 0x0243) && 
+		(READ_WORD_ROM(&RAM[i + 2]) == 0x0001) &&	/* andi.w  #$1, D3 */
+		(READ_WORD_ROM(&RAM[i + 4]) == 0x6600)) {	/* bne xxxx */
+
+		WRITE_WORD_ROM(&RAM[i + 4], 0x4e71);
+		WRITE_WORD_ROM(&RAM[i + 6], 0x4e71);
+	    }
+	}
+
+	WRITE_WORD_ROM(&RAM[0x3bdc], 0x4e71);
+	WRITE_WORD_ROM(&RAM[0x3bde], 0x4e71);
+	WRITE_WORD_ROM(&RAM[0x3be0], 0x4e71);
+	WRITE_WORD_ROM(&RAM[0x3c0c], 0x4e71);
+	WRITE_WORD_ROM(&RAM[0x3c0e], 0x4e71);
+	WRITE_WORD_ROM(&RAM[0x3c10], 0x4e71);
+
+	WRITE_WORD_ROM(&RAM[0x3c36], 0x4e71);
+	WRITE_WORD_ROM(&RAM[0x3c38], 0x4e71);
+	return 0;
+}
+
 int init_kof99(GAME_ROMS *r) {
 	kof99_decrypt_68k(r);
-	neogeo_fix_bank_type = 1;
+	neogeo_fix_bank_type = 0;
 	kof99_neogeo_gfx_decrypt(r, 0x00);
+	memory.bksw_offset=bankoffset_kof99;
+	memory.bksw_unscramble=scramblecode_kof99;
+	memory.sma_rng_addr=0xF8FA;
 	//kof99_install_protection(machine);
 	return 0;
 }
@@ -106,6 +227,9 @@ int init_garou(GAME_ROMS *r) {
 	garou_decrypt_68k(r);
 	kof99_neogeo_gfx_decrypt(r, 0x06);
 	neogeo_fix_bank_type = 1;
+	memory.bksw_offset=bankoffset_garou;
+	memory.bksw_unscramble=scramblecode_garou;
+	memory.sma_rng_addr=0xCCF0;
 	//garou_install_protection(machine);
 	DEBUG_LOG("I HAS INITIALIZD GAROU\n");
 	return 0;
@@ -115,6 +239,11 @@ int init_garouo(GAME_ROMS *r) {
 	garouo_decrypt_68k(r);
 	neogeo_fix_bank_type = 1;
 	kof99_neogeo_gfx_decrypt(r, 0x06);
+	
+	memory.bksw_offset=bankoffset_garouo;
+	memory.bksw_unscramble=scramblecode_garouo;
+	memory.sma_rng_addr=0xCCF0;
+
 	//garouo_install_protection(machine);
 	return 0;
 }
@@ -139,6 +268,11 @@ int init_mslug3(GAME_ROMS *r)
 	mslug3_decrypt_68k(r);
 	neogeo_fix_bank_type = 1;
 	kof99_neogeo_gfx_decrypt(r, 0xad);
+
+	memory.bksw_offset=bankoffset_mslug3;
+	memory.bksw_unscramble=scramblecode_mslug3;
+	//memory.sma_rng_addr=0xF8FA;
+	memory.sma_rng_addr=0;
 
 	//mslug3_install_protection(r);
 	return 0;
@@ -165,7 +299,9 @@ int init_kof2000(GAME_ROMS *r)
 	neogeo_fix_bank_type = 2;
 	neogeo_cmc50_m1_decrypt(r);
 	kof2000_neogeo_gfx_decrypt(r, 0x00);
-
+	memory.bksw_offset=bankoffset_kof2000;
+	memory.bksw_unscramble=scramblecode_kof2000;
+	memory.sma_rng_addr=0xD8DA;
 	//kof2000_install_protection(r);
 	return 0;
 
@@ -700,6 +836,7 @@ struct roms_init_func {
 	char *name;
 	int (*init)(GAME_ROMS *r);
 } init_func_table[]={ 
+//	{"mslugx",init_mslugx},
 	{"kof99",init_kof99},
 	{"kof99n",init_kof99n},
 	{"garou",init_garou},
@@ -708,6 +845,7 @@ struct roms_init_func {
 	{"garoubl",init_garoubl},
 	{"mslug3",init_mslug3},
 	{"mslug3h",init_mslug3h},
+	{"mslug3n",init_mslug3h},
 	{"mslug3b6",init_mslug3b6},
 	{"kof2000",init_kof2000},
 	{"kof2000n",init_kof2000n},
@@ -785,6 +923,7 @@ static int allocate_region(ROM_REGION *r,Uint32 size,int region) {
 static void free_region(ROM_REGION *r) {
 	if (r->p) free(r->p);
 	r->size=0;
+	r->p=NULL;
 }
 /* Bourrin, mais bon... */
 static int zip_seek_current_file(unzFile *gz,Uint32 offset) {
@@ -998,7 +1137,7 @@ static void convert_all_tile(GAME_ROMS *r) {
 static int init_roms(GAME_ROMS *r) {
 	int i=0;
 
-
+	
 
 	while (init_func_table[i].name) {
 		if (strcmp(init_func_table[i].name,r->info.name)==0 && init_func_table[i].init!=NULL ) {
@@ -1027,23 +1166,6 @@ int dr_load_bios(GAME_ROMS *r) {
 	return 0;
 }
 
-void zread_char(unzFile *gz,char *c,int len) {
-	int rc;
-	rc=unzReadCurrentFile(gz, c, len);
-	printf("HS  %s %d\n",c,rc);
-}
-void zread_uint8(unzFile *gz,Uint8 *c) {
-	int rc;
-	rc=unzReadCurrentFile(gz, c, 1);
-	printf("H8  %02x %d\n",*c,rc);
-}
-void zread_uint32(unzFile *gz,Uint32 *c) {
-	int rc;
-	rc=unzReadCurrentFile(gz, c, sizeof(Uint32));
-	printf("H32  %08x %d\n",*c,rc);
-}
-
-
 int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 	unzFile *gz,*gzp=NULL,*rdefz;
 	char drvfname[32];
@@ -1052,47 +1174,17 @@ int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 	unz_file_info rdefz_info;
 	int i;
 
+	drv=res_load_drv(name);
+	if (!drv) {
+		fprintf(stderr, "Can't find rom driver for %s\n",name);
+		return SDL_FALSE;
+	}
 
-	drv=calloc(sizeof(ROM_DEF),1);
+	
 	gz=open_rom_zip(rom_path,name);
 	if (gz==NULL) {
 		printf("File %s/%s.zip not found\n",rom_path,name);
-		return FALSE;
-	}
-	/* Open the rom driver def */
-	rdefz=unzOpen(gngeo_dat);
-	if (rdefz==NULL) {
-		fprintf(stderr, "Can't open the %s\n",gngeo_dat);
-		return FALSE;
-	}
-	sprintf(drvfname,"rom/%s.drv",name);
-	if (unzLocateFile(rdefz,drvfname,2) == UNZ_END_OF_LIST_OF_FILE) {
-		fprintf(stderr, "Can't find rom driver for %s\n",name);
-		return FALSE;
-	}
-	if (unzOpenCurrentFile(rdefz) != UNZ_OK) {
-		fprintf(stderr,"Can't open rom driver for %s\n",name);
-		return FALSE;
-	}
-
-	//unzGetCurrentFileInfo(rdefz,&rdefz_info,NULL,0,NULL,0,NULL,0);
-	//printf("size=%d\n",rdefz_info.uncompressed_size);
-	
-	//Fill the driver struct
-	zread_char(rdefz,drv->name,32);
-	zread_char(rdefz,drv->parent,32);
-	zread_char(rdefz,drv->longname,128);
-	zread_uint32(rdefz,&drv->year);
-	for(i=0;i<10;i++)
-		zread_uint32(rdefz,&drv->romsize[i]);
-	zread_uint32(rdefz,&drv->nb_romfile);
-	for(i=0;i<drv->nb_romfile;i++) {
-		zread_char(rdefz,drv->rom[i].filename,32);
-		zread_uint8(rdefz,&drv->rom[i].region);
-		zread_uint32(rdefz,&drv->rom[i].src);
-		zread_uint32(rdefz,&drv->rom[i].dest);
-		zread_uint32(rdefz,&drv->rom[i].size);
-		zread_uint32(rdefz,&drv->rom[i].crc);
+		return SDL_FALSE;
 	}
 
 	/* Open Parent.
@@ -1143,7 +1235,9 @@ int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 	}
 
 	/* Now, load the roms */
+	gn_init_pbar("Loading");
 	for(i=0;i<drv->nb_romfile;i++) {
+		gn_update_pbar(i,drv->nb_romfile);
 		if (load_region(gz,r,drv->rom[i].region,drv->rom[i].src,
 				drv->rom[i].dest,drv->rom[i].size,
 				drv->rom[i].crc,drv->rom[i].filename)!=0) {
@@ -1160,53 +1254,34 @@ int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 					goto error1;
 				}
 			} else {
-				fprintf(stderr,"ERROR: File %s not found\n",drv->rom[i].filename);
-				goto error1;
+				int region=drv->rom[i].region;
+				if (region!=5 && region!=0 && region!=7) {
+					fprintf(stderr,"ERROR: File %s not found\n",drv->rom[i].filename);
+					goto error1;
+				}
 				
 			}
 		}
 		
 	}
-
+	gn_terminate_pbar();
 	/* Close/clean up */
 	unzClose(gz);
-	unzClose(rdefz);
+
 	if (gzp) unzClose(gzp);
 	free(drv);
 
-	/* Setup mem pointer */
-/*	
-	memory.cpu = r->cpu_m68k.p;
-	memory.cpu_size = r->cpu_m68k.size;
-	
-	memory.sfix_game = r->game_sfix.p;
-	memory.sfix_size = r->game_sfix.size;	
-	memory.fix_game_usage= malloc(r->game_sfix.size >> 5);	
 
-	
-	memory.sm1 = r->cpu_z80.p;
-	memory.sm1_size = r->cpu_z80.size;
-
-	memory.sound1 = r->adpcma.p;
-	memory.sound1_size = r->adpcma.size;
-*/
 	if (r->adpcmb.size==0) {
 		r->adpcmb.p = r->adpcma.p;
 		r->adpcmb.size = r->adpcma.size;
 #ifdef ENABLE_940T
 		shared_data->pcmbufb=(Uint8*)(r->adpcmb.p-gp2x_ram);
 		printf("SOUND2 code: %08x\n",(Uint32)shared_data->pcmbufb);
-		shared_data->pcmbufb_size=memory.sound2_size;
+		shared_data->pcmbufb_size=r->adpcmb.size;
 #endif
 	} 
-	/*
-	  else {
-		memory.sound2 = r->adpcmb.p;
-		memory.sound2_size = r->adpcmb.size;
-	}
-	memory.gfx = r->tiles.p;
-	memory.gfx_size = r->tiles.size;
-	*/
+
 	memory.fix_game_usage= malloc(r->game_sfix.size >> 5);	
 	memory.pen_usage = malloc((r->tiles.size >> 11) * sizeof(Uint32));
 	CHECK_ALLOC(memory.pen_usage);
@@ -1219,14 +1294,14 @@ int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 	convert_all_tile(r);
 	//dr_load_bios(r);
 
-	return TRUE;
+	return SDL_TRUE;
 error1:
 	
 	unzClose(gz);
 	unzClose(rdefz);
 	if (gzp) unzClose(gzp);
 	free(drv);
-	return FALSE;
+	return SDL_FALSE;
 }
 /* TODO: */
 void set_bankswitchers(int bt) {
@@ -1259,37 +1334,13 @@ SDL_bool dr_load_game(char *name) {
 	char *rpath=CF_STR(cf_get_item_by_name("rompath"));
 	int rc;
 	printf("Loading %s/%s.zip\n",rpath,name);
+	memory.bksw_unscramble=NULL;
+	memory.bksw_offset=NULL;
+
 	rc=dr_load_roms(&memory.rom,rpath,name);
-/*	
-	memory.cpu = rom.cpu_m68k.p;
-	memory.cpu_size = rom.cpu_m68k.size;
-	
-	memory.sfix_game = rom.game_sfix.p;
-	memory.sfix_size = rom.game_sfix.size;	
-	memory.fix_game_usage= malloc(rom.game_sfix.size >> 5);	
-
-	
-	memory.sm1 = rom.cpu_z80.p;
-	memory.sm1_size = rom.cpu_z80.size;
-
-	memory.sound1 = rom.adpcma.p;
-	memory.sound1_size = rom.adpcma.size;
-
-	if (rom.adpcmb.size==0) {
-		memory.sound2 = rom.adpcma.p;
-		memory.sound2_size = rom.adpcma.size;
-	} else {
-		memory.sound2 = rom.adpcmb.p;
-		memory.sound2_size = rom.adpcmb.size;
+	if (rc==SDL_FALSE) {
+		return SDL_FALSE;
 	}
-	memory.gfx = rom.tiles.p;
-	memory.gfx_size = rom.tiles.size;
-	memory.pen_usage = malloc((memory.gfx_size >> 11) * sizeof(Uint32));
-	CHECK_ALLOC(memory.pen_usage);
-	memset(memory.pen_usage, 0, (memory.gfx_size >> 11) * sizeof(Uint32));
-	memory.nb_of_tiles = memory.gfx_size >> 7;
-*/
-
 	conf.game=memory.rom.info.name;
 	/* TODO */ //neogeo_fix_bank_type =0;
 	/* TODO */ set_bankswitchers( 0);
@@ -1299,6 +1350,7 @@ SDL_bool dr_load_game(char *name) {
 	convert_all_char(memory.rom.game_sfix.p, memory.rom.game_sfix.size,
 			 memory.fix_game_usage);
 
+	/* TODO: Move this somewhere else. */
 	init_video();
 
 	return SDL_TRUE;
