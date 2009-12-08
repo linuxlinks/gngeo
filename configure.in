@@ -226,6 +226,7 @@ AC_CHECK_FUNCS([atexit floor gettimeofday memset mkdir pow strchr strstr strtoul
 #echo target_cpu: $target_cpu
 
 dnl Check for processor.
+
   case $target_cpu in
     i?86)  AC_MSG_RESULT(Turning on x86 processor optimisations)
            AC_DEFINE(PROCESSOR_INTEL, 1, [Define if you have an x86 processor])

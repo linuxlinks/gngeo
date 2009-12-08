@@ -5563,6 +5563,7 @@ done
 
 #echo target_cpu: $target_cpu
 
+
   case $target_cpu in
     i?86)  { $as_echo "$as_me:${as_lineno-$LINENO}: result: Turning on x86 processor optimisations" >&5
 $as_echo "Turning on x86 processor optimisations" >&6; }

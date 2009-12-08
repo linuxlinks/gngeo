@@ -112,7 +112,7 @@ int init_sdl_audio(void)
     desired->userdata = NULL;
     //SDL_OpenAudio(desired, NULL);
     SDL_OpenAudio(desired, obtain);
-    printf("Obtained sample rate: %d\n",obtain->freq);
+    //printf("Obtained sample rate: %d\n",obtain->freq);
     conf.sample_rate=obtain->freq;
     return 1;
 }

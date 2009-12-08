@@ -753,9 +753,9 @@ void main_loop(void)
 		int interp=interpolation;
 		SDL_BlitSurface(buffer, &buf_rect, state_img, &screen_rect);
 		interpolation=0;
-		if (conf.sound) {SDL_PauseAudio(1); SDL_LockAudio();}
-		if (run_menu()==2) neo_emu_done = 1; // A bit ugly...
-		if (conf.sound) {SDL_PauseAudio(0); SDL_UnlockAudio();}
+		if (conf.sound) {SDL_PauseAudio(1); /*SDL_LockAudio()*/;}
+		if (run_menu()==2) {neo_emu_done = 1;/*printf("Unlock audio\n");SDL_UnlockAudio()*/;} // A bit ugly...
+		if (conf.sound) {SDL_PauseAudio(0); /*SDL_UnlockAudio()*/;}
 		//neo_emu_done = 1;
 		interpolation=interp;
 		reset_frame_skip();
@@ -872,7 +872,7 @@ void main_loop(void)
 
 			SDL_BlitSurface(buffer, &buf_rect, state_img, &screen_rect);
 			if (conf.sound) {SDL_PauseAudio(1); SDL_LockAudio();}
-			if (run_menu()==2) neo_emu_done = 1; // A bit ugly...
+			if (run_menu()==2) {neo_emu_done = 1;SDL_UnlockAudio();} // A bit ugly...
 			if (conf.sound) {SDL_PauseAudio(0); SDL_UnlockAudio();}
 			//neo_emu_done = 1;
 			reset_frame_skip();
