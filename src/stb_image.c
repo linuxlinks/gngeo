@@ -66,6 +66,7 @@
 */
 
 #include "stb_image.h"
+#define USE_STBZLIB 1
 
 #ifndef STBI_NO_HDR
 #include <math.h>  // ldexp
@@ -88,7 +89,9 @@
   #endif
 #endif
 
-
+#ifdef USE_STBZLIB
+#include "stb_zlib.h"
+#else
 // implementation:
 typedef unsigned char uint8;
 typedef unsigned short uint16;
@@ -96,7 +99,7 @@ typedef   signed short  int16;
 typedef unsigned int   uint32;
 typedef   signed int    int32;
 typedef unsigned int   uint;
-
+#endif
 // should produce compiler error if size is wrong
 typedef unsigned char validate_uint32[sizeof(uint32)==4];
 
@@ -1589,6 +1592,8 @@ extern int      stbi_jpeg_info_from_file  (FILE *f,                  int *x, int
 #endif
 extern int      stbi_jpeg_info_from_memory(stbi_uc const *buffer, int len, int *x, int *y, int *comp);
 
+int stbi_png_partial; // a quick hack to only allow decoding some of a PNG... I should implement real streaming support instead
+#ifndef USE_STBZLIB
 // public domain zlib decode    v0.2  Sean Barrett 2006-11-18
 //    simple implementation
 //      - all input must be provided in an upfront buffer
@@ -1906,7 +1911,7 @@ static void init_defaults(void)
    for (i=0; i <=  31; ++i)     default_distance[i] = 5;
 }
 
-int stbi_png_partial; // a quick hack to only allow decoding some of a PNG... I should implement real streaming support instead
+
 static int parse_zlib(zbuf *a, int parse_header)
 {
    int final, type;
@@ -2006,6 +2011,7 @@ int stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const char *ibuffe
    else
       return -1;
 }
+#endif
 
 // public domain "baseline" PNG decoder   v0.10  Sean Barrett 2006-11-18
 //    simple implementation

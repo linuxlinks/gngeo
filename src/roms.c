@@ -5,7 +5,11 @@
 #include "roms.h"
 #include "emu.h"
 #include "memory.h"
-#include "unzip.h"
+//#include "unzip.h"
+#ifdef BUILD_DUMPER
+#include "zlib.h"
+#endif
+#include "stb_zlib.h"
 #include "video.h"
 #include "transpack.h"
 #include "conf.h"
@@ -137,6 +141,7 @@ const Uint8 scramblecode_kof2000[7] = {
 /* Get the file szFileName in the zip.
    If szFileName begins by 0x, search by crc
 */
+#if 0
 static int unzLocateFileByCRC(unzFile file,Uint32 crc)
 {
 	unz_file_pos filepos;
@@ -162,7 +167,7 @@ static int unzLocateFileByCRC(unzFile file,Uint32 crc)
 	unzGoToFilePos(file,&filepos);
 	return err;
 }
-
+#endif
 /* Actuall Code */
 /* 
 TODO
@@ -926,6 +931,7 @@ static void free_region(ROM_REGION *r) {
 	r->p=NULL;
 }
 /* Bourrin, mais bon... */
+#if 0
 static int zip_seek_current_file(unzFile *gz,Uint32 offset) {
 	Uint8 *buf;
 	Uint32 s=4096,c,i;
@@ -986,7 +992,6 @@ static int read_data_p(unzFile *gz,ROM_REGION *r,Uint32 dest,Uint32 size) {
 	//printf("%08x %08x\n",((Uint32*)(r->p))[0],dest);
 	return 0;
 }
-
 static int load_region(unzFile *gz,GAME_ROMS *r,int region, Uint32 src, Uint32 dest, Uint32 size, Uint32 crc,char *filename) {
 	int rc;
 	int badcrc=0;
@@ -1011,6 +1016,135 @@ static int load_region(unzFile *gz,GAME_ROMS *r,int region, Uint32 src, Uint32 d
 		return 1;
 	}
 	if (src!=0) {
+
+		if (region==REGION_SPRITES)
+			rc=zip_seek_current_file(gz,src/2);
+		else
+			rc=zip_seek_current_file(gz,src);
+		DEBUG_LOG("setoffset: %d %08x %08x %08x\n",rc,src,dest,size);
+	}
+
+
+	switch(region) {
+	case REGION_SPRITES: /* Special interleaved loading  */
+		read_data_i(gz,&r->tiles,dest,size);
+		break;
+	case REGION_AUDIO_CPU_CARTRIDGE:
+		read_data_p(gz,&r->cpu_z80,dest,size);
+		break;
+	case REGION_AUDIO_CPU_ENCRYPTED:
+		read_data_p(gz,&r->cpu_z80c,dest,size);
+		break;
+	case REGION_MAIN_CPU_CARTRIDGE:
+		read_data_p(gz,&r->cpu_m68k,dest,size);
+		break;
+	case REGION_FIXED_LAYER_CARTRIDGE:
+		read_data_p(gz,&r->game_sfix,dest,size);
+		break;
+	case REGION_AUDIO_DATA_1:
+		read_data_p(gz,&r->adpcma,dest,size);
+		break;
+	case REGION_AUDIO_DATA_2:
+		read_data_p(gz,&r->adpcmb,dest,size);
+		break;
+	case REGION_MAIN_CPU_BIOS:
+		read_data_p(gz,&r->bios_m68k,dest,size);
+		break;
+	case REGION_AUDIO_CPU_BIOS:
+		read_data_p(gz,&r->bios_m68k,dest,size);
+		break;
+	case REGION_FIXED_LAYER_BIOS:
+		read_data_p(gz,&r->bios_sfix,dest,size);
+		break;
+
+	default:
+		DEBUG_LOG("Unhandled region %d\n",region);
+		break;
+
+	}
+	DEBUG_LOG("Load file %-17s in region %d: OK %s\n",filename,region,(badcrc?"(Bad CRC)":""));
+	unzCloseCurrentFile(gz);
+	return 0;
+}
+
+#else
+static int zip_seek_current_file(ZFILE *gz,Uint32 offset) {
+	Uint8 *buf;
+	Uint32 s=4096,c,i;
+	buf=malloc(s);
+	if (!buf) return -1;
+	while (offset) {
+		c = offset;
+		if (c > s)
+			c = s;
+
+		c = gn_unzip_fread(gz, buf, c);
+		if (c == 0) {
+			break;
+		}
+		offset -= c;
+	}
+	free(buf);
+	return 0;
+
+}
+static int read_data_i(ZFILE *gz,ROM_REGION *r,Uint32 dest,Uint32 size) {
+	Uint8 *buf;
+	Uint8 *p=r->p+dest;
+	Uint32 s=4096,c,i;
+	if (r->p==NULL || r->size<(dest&~0x1)+(size*2)) {
+		printf("Region not allocated or not big enough %08x %08x\n",r->size,dest+(size*2));
+		return -1;
+	}
+	buf=malloc(s);
+	if (!buf) return -1;
+
+	while (size) {
+		c = size;
+		if (c > s)
+			c = s;
+
+		c = gn_unzip_fread(gz, buf, c);
+		if (c == 0) {
+			free(buf);
+			return 0;
+		}
+		for (i = 0; i < c; i++) {
+			//printf("%d %d\n",i,c);
+			*p = buf[i];
+			p += 2;
+		}
+		size -= c;
+	}
+	free(buf);
+	return 0;
+}
+static int read_data_p(ZFILE *gz,ROM_REGION *r,Uint32 dest,Uint32 size) {
+	if (r->p==NULL || r->size<dest+size) {
+		printf("Region not allocated or not big enough\n");
+		return -1;
+	}
+	gn_unzip_fread(gz,r->p+dest,size);
+	//printf("%08x %08x\n",((Uint32*)(r->p))[0],dest);
+	return 0;
+}
+static int load_region(PKZIP *pz,GAME_ROMS *r,int region, Uint32 src, Uint32 dest, Uint32 size, Uint32 crc,char *filename) {
+	int rc;
+	int badcrc=0;
+	ZFILE *gz;
+/*	if (region==5 || region==0 || region==7) {
+		DEBUG_LOG("Roms contain bios info... TODO\n");
+		//return 0;
+	}
+*/
+	gz=gn_unzip_fopen(pz,filename,crc);
+	if (gz==NULL) {
+		DEBUG_LOG("KO\n");
+		DEBUG_LOG("Load file %-17s in region %d: KO\n",filename,region);
+		return 1;
+	}
+
+	if (src!=0) { /* TODO: Reuse an allready opened zfile */
 		
 		if (region==REGION_SPRITES)
 			rc=zip_seek_current_file(gz,src/2);
@@ -1058,10 +1192,13 @@ static int load_region(unzFile *gz,GAME_ROMS *r,int region, Uint32 src, Uint32 d
 
 	}
 	DEBUG_LOG("Load file %-17s in region %d: OK %s\n",filename,region,(badcrc?"(Bad CRC)":""));
-	unzCloseCurrentFile(gz);
+	//unzCloseCurrentFile(gz);
+	gn_unzip_fclose(gz);
 	return 0;
 }
 
+#endif
+#if 0
 static unzFile *open_rom_zip(char *rom_path,char *name) {
 	char *buf;
 	int size=strlen(rom_path)+strlen(name)+6;
@@ -1072,6 +1209,18 @@ static unzFile *open_rom_zip(char *rom_path,char *name) {
 	free(buf);
 	return gz;
 }
+#else
+static PKZIP *open_rom_zip(char *rom_path,char *name) {
+	char *buf;
+	int size=strlen(rom_path)+strlen(name)+6;
+	PKZIP *gz;
+	buf=malloc(size);
+	snprintf(buf,size,"%s/%s.zip",rom_path,name);
+	gz=gn_open_zip(buf);
+	free(buf);
+	return gz;
+}
+#endif
 
 static int convert_roms_tile(Uint8 *g,int tileno) {
 	unsigned char swap[128];
@@ -1167,11 +1316,13 @@ int dr_load_bios(GAME_ROMS *r) {
 }
 
 int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
-	unzFile *gz,*gzp=NULL,*rdefz;
+	//unzFile *gz,*gzp=NULL,*rdefz;
+	PKZIP *gz,*gzp=NULL;
+
 	char drvfname[32];
 	char *gngeo_dat=CF_STR(cf_get_item_by_name("gngeo.dat"));
 	ROM_DEF *drv;
-	unz_file_info rdefz_info;
+	//unz_file_info rdefz_info;
 	int i;
 
 	drv=res_load_drv(name);
@@ -1266,9 +1417,11 @@ int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 	}
 	gn_terminate_pbar();
 	/* Close/clean up */
-	unzClose(gz);
+	//unzClose(gz);
+	gn_close_zip(gz);
 
-	if (gzp) unzClose(gzp);
+	//if (gzp) unzClose(gzp);
+	if (gzp) gn_close_zip(gzp);
 	free(drv);
 
 
@@ -1297,9 +1450,11 @@ int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 	return SDL_TRUE;
 error1:
 	
-	unzClose(gz);
-	unzClose(rdefz);
-	if (gzp) unzClose(gzp);
+	//unzClose(gz);
+	//if (gzp) unzClose(gzp);
+	gn_close_zip(gz);
+	if (gzp) gn_close_zip(gzp);
+
 	free(drv);
 	return SDL_FALSE;
 }
@@ -1357,7 +1512,7 @@ SDL_bool dr_load_game(char *name) {
 
 }
 
-
+#ifdef BUILD_DUMPER
 static int dump_region(FILE *gno,ROM_REGION *rom,Uint8 id,Uint8 type,Uint32 block_size) {
 	if (rom->p==NULL) return FALSE;
 	fwrite(&rom->size,sizeof(Uint32),1,gno);
@@ -1453,6 +1608,15 @@ int dr_save_gno(GAME_ROMS *r,char *filename) {
 	fclose(gno);
 	return TRUE;
 }
+#else
+static int dump_region(FILE *gno,ROM_REGION *rom,Uint8 id,Uint8 type,Uint32 block_size) {
+	return TRUE;
+}
+int dr_save_gno(GAME_ROMS *r,char *filename) {
+	return TRUE;
+}
+#endif
+
 
 void dr_free_roms(GAME_ROMS *r) {
 	free_region(&r->cpu_m68k);

@@ -249,6 +249,7 @@ static uint8 default_length[288], default_distance[32];
 static void init_defaults(void)
 {
    int i;   // use <= to match clearly with spec
+   printf("Init defaults length\n");
    for (i=0; i <= 143; ++i)     default_length[i]   = 8;
    for (   ; i <= 255; ++i)     default_length[i]   = 9;
    for (   ; i <= 279; ++i)     default_length[i]   = 7;
@@ -415,10 +416,11 @@ static int parse_header(zbuf *a) {
 		break;
 	case 1:
 		// use fixed code lengths
+
 		if (!default_distance[31]) init_defaults();
 		if (!zbuild_huffman(&a->z_length  , default_length  , 288)) return 0;
 		if (!zbuild_huffman(&a->z_distance, default_distance,  32)) return 0;
-
+		printf("Fixed code length\n");
 		
 		break;
 	case 2:
@@ -574,7 +576,7 @@ static Uint32 fget32le(FILE *f)
 static int freadvle(FILE *f, char *fmt, ...) {
 	va_list v;
 	va_start(v,fmt);
-	printf("%d\n",sizeof(Uint16));
+	//printf("%d\n",sizeof(Uint16));
 	while (*fmt) {
 		switch (*fmt++) {
 		case ' ': break;
@@ -672,10 +674,10 @@ static int unzip_locate_file(PKZIP *zf,char *filename,Uint32 file_crc) {
 	char *fname=NULL;
 	fseek(zf->file,zf->cd_offset,SEEK_SET);
 	pos=ftell(zf->file);
-	
+	if (file_crc==0) file_crc=(Uint32)-1; /* because crc=0=dir */
 	while(1) {
 		sig=fget32le(zf->file);
-		printf("SIG=%08x\n",sig);
+		//printf("SIG=%08x\n",sig);
 		if (sig==0x02014b50) { /* File header */
 			freadvle(zf->file,"222222 4 44 222 224 4 ",
 				 NULL,NULL,NULL,NULL,NULL,NULL,
@@ -688,8 +690,8 @@ static int unzip_locate_file(PKZIP *zf,char *filename,Uint32 file_crc) {
 			fname=calloc(fname_len+1,sizeof(unsigned char));
 			fread(fname,fname_len,1,zf->file);
 			fskip(zf->file,xf_len+fcomment_len);
-			printf("0x%08x %s\n",crc,fname);
-			if (strcmp(fname,filename)==0 || crc==file_crc) {
+			//printf("0x%08x %s=%s?\n",crc,fname,filename);
+			if ((strcmp(fname,filename)==0 && strlen(fname)==strlen(filename)) || crc==file_crc) {
 				printf("Found 0x%08x %s\n",crc,fname);
 				free(fname);
 				fseek(zf->file,offset,SEEK_SET);
@@ -731,16 +733,19 @@ ZFILE *gn_unzip_fopen(PKZIP *zf,char *filename,Uint32 file_crc) {
 
 		fskip(zf->file,xf_len+fname_len);
 
-		printf("compressed size %d uncompressed size %d\n",csize,uncsize);
+		printf("compressed size %d uncompressed size %d method=%d\n",csize,uncsize,cmeth);
 
 
-		z=malloc(sizeof(z));
+		z=malloc(sizeof(ZFILE));
 		if (!z) return NULL;
 		//z->name=fname;
 		z->pos=ftell(zf->file);
 		z->csize=csize;
 		z->uncsize=uncsize;
-		z->zb=stbi_zlib_create_zbuf(NULL,zf->file,csize);
+		if (cmeth==8)
+			z->zb=stbi_zlib_create_zbuf(NULL,zf->file,csize);
+		z->cmeth=cmeth;
+		z->readed=0;
 		z->f=zf->file;
 		return z;
 	} 
@@ -751,9 +756,20 @@ ZFILE *gn_unzip_fopen(PKZIP *zf,char *filename,Uint32 file_crc) {
 
 int gn_unzip_fread(ZFILE *z,Uint8 *data,int size) {
 	int readed;
+	int todo;
 	if (!z) return -1;
 	fseek(z->f,z->pos,SEEK_SET);
-	readed=stbi_zlib_decode_noheader_stream(z->zb,data,size);
+	if (z->cmeth==8)
+		readed=stbi_zlib_decode_noheader_stream(z->zb,data,size);
+	else { /* Stored */
+		todo=z->readed-z->uncsize;
+		if (todo<size) todo=size;
+		printf("read %d of stored data\n");
+
+		readed=fread(data,1,size,z->f);
+		z->readed+=readed;
+	}
+
 	z->pos=ftell(z->f);
 	return readed;
 }
@@ -764,10 +780,13 @@ Uint8 *gn_unzip_file_malloc(PKZIP *zf,char *filename,Uint32 file_crc,int *outlen
 	if (!z) return NULL;
 	Uint8 *data=malloc(z->uncsize);
 	if (!data) return NULL;
-
-	readed=stbi_zlib_decode_noheader_stream(z->zb,data,z->uncsize);
+	if (z->cmeth==8)
+		readed=stbi_zlib_decode_noheader_stream(z->zb,data,z->uncsize);
+	else
+		readed=fread(data,1,z->uncsize,z->f);
 	if (readed!=z->uncsize)
-		printf("GNZIP: Readed data size different from uncompressed size\n");
+		printf("GNZIP: Readed data size different from uncompressed size %d!=%d \n",
+				readed,z->uncsize);
 	*outlen=z->uncsize;
 	gn_unzip_fclose(z);
 	return data;
@@ -775,7 +794,7 @@ Uint8 *gn_unzip_file_malloc(PKZIP *zf,char *filename,Uint32 file_crc,int *outlen
 
 void gn_unzip_fclose(ZFILE *z) {
 	if (!z) return;
-	free(z->zb->cbuf);
+	if (z->cmeth==8) free(z->zb->cbuf);
 	free(z);
 }
 
@@ -791,3 +810,8 @@ PKZIP *gn_open_zip(char *file) {
 	}
 	return zf;
 }
+void gn_close_zip(PKZIP *zf) {
+	fclose(zf->file);
+	free(zf);
+}
+

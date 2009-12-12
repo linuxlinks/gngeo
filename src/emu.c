@@ -691,15 +691,15 @@ static int slow_motion = 0;
 
 static inline void state_handling(save,load) {
     if (save) {
-	if (conf.sound) SDL_LockAudio();
+	//if (conf.sound) SDL_LockAudio();
 	save_state(conf.game,save-1);
-	if (conf.sound) SDL_UnlockAudio();
+	//if (conf.sound) SDL_UnlockAudio();
 	reset_frame_skip();
     }
     if (load) {
-	if (conf.sound) SDL_LockAudio();
+	//if (conf.sound) SDL_LockAudio();
 	load_state(conf.game,load-1);
-	if (conf.sound) SDL_UnlockAudio();
+	//if (conf.sound) SDL_UnlockAudio();
 	reset_frame_skip();
     }
     pending_load_state=pending_save_state=0;
