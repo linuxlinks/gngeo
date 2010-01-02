@@ -31,7 +31,7 @@
 #include "transpack.h"
 #include "pbar.h"
 //#include "driver.h"
-#include "unzip.h"
+//#include "unzip.h"
 /*
 #ifdef GP2X
 #include "shared940.h"
@@ -140,7 +140,7 @@ SDL_Rect buf_rect={16,16,304,224};
 SDL_Rect screen_rect={0,0,304,224};
 */
 
-#ifdef GP2X
+#ifdef GP2XDEPRECATED
 Uint8 *cache_get_gfx_ptr(Uint32 tileno) {
 	static int pos=0;
 	static int init=1;
@@ -165,19 +165,6 @@ Uint8 *cache_get_gfx_ptr(Uint32 tileno) {
 			unzGetFilePos(gp2x_gfx_dump_gz,&gcache.z_pos[i]);
 			if (unzGoToNextFile(gp2x_gfx_dump_gz)!=UNZ_OK) break;
 		}
-#if 0
-		for(i=0;i<gcache.max_slot/2;i++) {
-			int b=rand()%gcache.total_bank;
-			unzGoToFilePos(gp2x_gfx_dump_gz,&gcache.z_pos[b]);
-			printf("Get File %d %d!!\n",bank,gcache.z_pos[b].num_of_file);
-			unzOpenCurrentFile(gp2x_gfx_dump_gz);
-			unzReadCurrentFile(gp2x_gfx_dump_gz,gcache.data+i*gcache.slot_size,gcache.slot_size);
-			unzCloseCurrentFile(gp2x_gfx_dump_gz);
-			gcache.ptr[b]=gcache.data+i*gcache.slot_size;
-			gcache.usage[i]=b;
-		}
-		pos=i;
-#endif
 	}
 
 	mem_bank_usage[bank]++;
@@ -740,13 +727,13 @@ static __inline__ void draw_tile_gp2x_norm(unsigned int tileno,int sx,int sy,int
 			 int color,int xflip,int yflip,unsigned char *bmp) {
 	Uint32 pitch=352/*buffer->pitch>>1*/;
 	//static SDL_Rect blit_rect={0,0,16,16};
-
+#if 0
 	if (memory.gp2x_gfx_mapped==GZX_MAPPED) {
 		mem_gfx=cache_get_gfx_ptr(tileno);
 		tileno=(tileno&((gcache.slot_size>>7)-1));
 		//printf("%08X\n",((gcache.slot_size>>7)-1));
 	}
-
+#endif
 	if(zy==16)
 		ldda_y_skip=full_y_skip;
 	else
@@ -1510,7 +1497,7 @@ void init_video(void) {
 	if (!mem_video) {
 		mem_video=memory.video;
 	}
-	
+#if 0
 	if (memory.gp2x_gfx_mapped==GZX_MAPPED) {
 		/* Create our video cache */
 
@@ -1536,6 +1523,7 @@ void init_video(void) {
 		for (i=0;i<gcache.max_slot;i++)
 			gcache.usage[i]=-1;
 	}
+#endif
 #endif
 
 	fix_value_init();

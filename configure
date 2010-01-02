@@ -2689,7 +2689,7 @@ fi
 
 
 # Humm is this a good idea?
-CFLAGS=""
+# CFLAGS=""
 
  #echo $CC
 
@@ -3729,7 +3729,8 @@ fi
 
 
 
-#echo $CC
+echo $CC
+echo $PATH
 
 CC_VERSION=`$CC -dumpversion`
 CC_MAJOR=`echo $CC_VERSION|sed 's/\..*$//'`
@@ -4037,6 +4038,51 @@ _ACEOF
 fi
 
 #AC_CHECK_LIB([z], [gzopen],,AC_MSG_ERROR(can't find zlib on your system))
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inflate in -lz" >&5
+$as_echo_n "checking for inflate in -lz... " >&6; }
+if test "${ac_cv_lib_z_inflate+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lz  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char inflate ();
+int
+main ()
+{
+return inflate ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_z_inflate=yes
+else
+  ac_cv_lib_z_inflate=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_z_inflate" >&5
+$as_echo "$ac_cv_lib_z_inflate" >&6; }
+if test "x$ac_cv_lib_z_inflate" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBZ 1
+_ACEOF
+
+  LIBS="-lz $LIBS"
+
+fi
+
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for jpeg_read_header in -ljpeg" >&5
 $as_echo_n "checking for jpeg_read_header in -ljpeg... " >&6; }

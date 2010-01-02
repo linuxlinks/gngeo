@@ -5,6 +5,13 @@
 //    performance
 //      - fast huffman
 // implementation:
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifndef HAVE_LIBZ
+
 #include "stb_zlib.h"
 #ifndef STBI_NO_STDIO
 #include <stdio.h>
@@ -249,7 +256,7 @@ static uint8 default_length[288], default_distance[32];
 static void init_defaults(void)
 {
    int i;   // use <= to match clearly with spec
-   printf("Init defaults length\n");
+   //printf("Init defaults length\n");
    for (i=0; i <= 143; ++i)     default_length[i]   = 8;
    for (   ; i <= 255; ++i)     default_length[i]   = 9;
    for (   ; i <= 279; ++i)     default_length[i]   = 7;
@@ -296,9 +303,9 @@ static int parse_zlib_header(zbuf *a)
 static int parse_huffman_block(zbuf *a,int maxlen)
 {
 	int totdec=0;//a->zout-a->zout_start;
-	printf("TODEC=%d %d\n",totdec,maxlen);
+	//printf("TODEC=%d %d\n",totdec,maxlen);
 	if (a->left>0) {
-		printf("a->left=%d a->dist=%d\n",a->left,a->dist);
+		//printf("a->left=%d a->dist=%d\n",a->left,a->dist);
 		while (a->left--) {
 			uint8 o=pop_cbuf_from_dist(a,a->dist);
 			push_cbuf(a,o);
@@ -306,7 +313,7 @@ static int parse_huffman_block(zbuf *a,int maxlen)
 			totdec++;
 						
 			if (totdec==maxlen) {
-				printf("  Dyn block max read reach %d %d %d\n",a->type,a->left,a->dist);
+				//printf("  Dyn block max read reach %d %d %d\n",a->type,a->left,a->dist);
 				return maxlen;
 			}
 		}
@@ -322,14 +329,14 @@ static int parse_huffman_block(zbuf *a,int maxlen)
 			push_cbuf(a,z);
 			totdec++;
 			if (totdec==maxlen) {
-				printf("  Dyn block max read reach %d %d\n",a->type,a->left);
+				//printf("  Dyn block max read reach %d %d\n",a->type,a->left);
 				return maxlen;
 			}
 		} else {
 			uint8 *p;
 			int len,dist;
 			if (z == 256) {
-				printf("End of huffman block\n");
+				//printf("End of huffman block\n");
 				a->type=-1; /* New block ahead */
 				return totdec;
 			}
@@ -357,7 +364,7 @@ static int parse_huffman_block(zbuf *a,int maxlen)
 				totdec++;
 
 				if (totdec==maxlen) {
-					printf("  Dyn block max read reach %d %d %d\n",a->type,a->left,a->dist);
+					//printf("  Dyn block max read reach %d %d %d\n",a->type,a->left,a->dist);
 					return maxlen;
 				}
 			}
@@ -370,7 +377,7 @@ static int copy_uncompressed_block(zbuf *a,int maxlen)
 	int len=(a->left>maxlen?maxlen:a->left);
 	int i=len;
 	uint8 data;
-	printf("BBBBBBBBBBBBb\n");
+	//printf("BBBBBBBBBBBBb\n");
 	while(i) {
 		if (a->zbuffer) { /* Stream from memory */
 			push_cbuf(a,*a->zbuffer);
@@ -392,7 +399,7 @@ static int parse_header(zbuf *a) {
 	int len,nlen,k;
 	switch(a->type) {
 	case 0: 
-		printf("CCCCCCCCCCCcccccc\n");
+		//printf("CCCCCCCCCCCcccccc\n");
 /* Read uncompressed block header */
 		if (a->num_bits & 7)
 			zreceive(a, a->num_bits & 7); // discard
@@ -420,7 +427,7 @@ static int parse_header(zbuf *a) {
 		if (!default_distance[31]) init_defaults();
 		if (!zbuild_huffman(&a->z_length  , default_length  , 288)) return 0;
 		if (!zbuild_huffman(&a->z_distance, default_distance,  32)) return 0;
-		printf("Fixed code length\n");
+		//printf("Fixed code length\n");
 		
 		break;
 	case 2:
@@ -473,7 +480,7 @@ int stbi_zlib_decode_noheader_stream(zbuf *a,char *obuffer, int olen) {
 	int totread=0;
 	int l;
 	if(!a) return -1;
-	printf("TOTRED %d TOTSIZE %d %d\n",a->totread,a->totsize,a->num_bits);
+	//printf("TOTRED %d TOTSIZE %d %d\n",a->totread,a->totsize,a->num_bits);
 	if (a->totread>=a->totsize) return -1;
 
 	a->zout_start=obuffer;
@@ -483,7 +490,7 @@ int stbi_zlib_decode_noheader_stream(zbuf *a,char *obuffer, int olen) {
 		if (a->type==-1) { /* start */
 			a->final = zreceive(a,1);
 			a->type = zreceive(a,2);
-			printf("Begining of a block type %d\n",a->type);
+			//printf("Begining of a block type %d\n",a->type);
 			parse_header(a);
 		}
 	
@@ -495,7 +502,7 @@ int stbi_zlib_decode_noheader_stream(zbuf *a,char *obuffer, int olen) {
 			break;
 		case 1: /* Huffman block (fixed) */
 		case 2: /* Huffman block (dyn, calculated in parse_header() ) */
-			printf(" .Dyn huffman block\n");
+			//printf(" .Dyn huffman block\n");
 			readed=parse_huffman_block(a,todo);
 			totread+=readed;
 			break;
@@ -505,9 +512,9 @@ int stbi_zlib_decode_noheader_stream(zbuf *a,char *obuffer, int olen) {
 		}
 
 		todo-=readed;
-		printf(".--End one pass readed=%d totread=%d todo=%d type=%d\n",readed,totread,todo,a->type);
+		//printf(".--End one pass readed=%d totread=%d todo=%d type=%d\n",readed,totread,todo,a->type);
 	} while(!a->final && totread<olen);
-	printf(". End all pass readed=%d olen=%d type=%d\n",readed,olen,a->type);
+	//printf(". End all pass readed=%d olen=%d type=%d\n",readed,olen,a->type);
 	return totread;
 }
 
@@ -525,293 +532,14 @@ char *stbi_zlib_decode_malloc(char const *buffer, int len, int *outlen) {
 
 	while((readed=stbi_zlib_decode_noheader_stream(z,buf,guesssize))!=-1) {
 		//readed=stbi_zlib_decode_noheader_stream(z,buf,guesssize);
-		printf("1block %d %d z->num_bits %d\n",totread,readed,z->num_bits);
+		//printf("1block %d %d z->num_bits %d\n",totread,readed,z->num_bits);
 		totread+=readed;
 		buf=realloc(buf,guesssize+totread);
 	}
-	printf("Readed %d \n",totread);
+	//printf("Readed %d \n",totread);
 	buf=realloc(buf,totread);
 	*outlen=totread;
 	return buf;
 }
 
-/* Basic unzip interface */
-
-static int fget8(FILE *f) {
-	if (f) {
-		int c = fgetc(f);
-		return c == EOF ? 0 : c;
-	}
-}
-static Uint8 fget8u(FILE *f) {
-	return (Uint8) fget8(f);
-}
-static void fskip(FILE *f,int n) {
-	if (f) fseek(f,n,SEEK_CUR);
-}
-static Uint16 fget16(FILE *f)
-{
-   int z = fget8(f);
-   return (z << 8) + fget8(f);
-}
-
-static Uint32 fget32(FILE *f)
-{
-   Uint32 z = fget16(f);
-   return (z << 16) + fget16(f);
-}
-
-static  Uint16 fget16le(FILE *f)
-{
-   int z = fget8(f);
-   return z + (fget8(f) << 8);
-}
-
-static Uint32 fget32le(FILE *f)
-{
-   Uint32 z = fget16le(f);
-   return z + (fget16le(f) << 16);
-}
-
-static int freadvle(FILE *f, char *fmt, ...) {
-	va_list v;
-	va_start(v,fmt);
-	//printf("%d\n",sizeof(Uint16));
-	while (*fmt) {
-		switch (*fmt++) {
-		case ' ': break;
-		case '1': { 
-			Uint8 *x = (Uint8*) va_arg(v, int*); 
-			//printf("%p\n",x);
-			if (x) (*x)=fget8(f); 
-			else fskip(f,1); 
-			break; }
-		case '2': { 
-			Uint16 *x = (Uint16*) va_arg(v, int*);
-			//printf("%p\n",x);
-			if (x) (*x)=fget16le(f);
-			else fskip(f,2); 
-			break; }
-		case '4': { 
-			Uint32 *x = (Uint32*) va_arg(v, int*); 
-			//printf("%p\n",x);
-			if (x) (*x)=fget32le(f); 
-			else fskip(f,4); 
-			break; }
-		default:
-			va_end(v);
-			return;
-		}
-	}
-	va_end(v);
-}
-
-static int search_sig32(PKZIP *zf,Uint8 sig[4]) {
-	int i=0,pos;
-	Uint8 a;
-	if (!zf || !zf->file) return -1;
-	//pos=ftell(zf->file);
-	while(!feof(zf->file)) {
-		fread(&a,sizeof(char),1,zf->file);
-		if (sig[i]==a) {
-			//printf("%02x\n",a);
-			if (i==3) {
-				fseek(zf->file,-4,SEEK_CUR);
-				pos=ftell(zf->file);
-				return pos;
-				break;
-			}
-			i++;
-		} else
-			i=0;
-	}
-	return -1;
-}
-
-static int search_central_dir(PKZIP *zf) {
-	int i=0;
-	unsigned char sig_cde[4]={0x50,0x4b,0x05,0x06};
-	unsigned char sig_cd[4]={0x50,0x4b,0x01,0x02};
-	int pos;
-	unsigned char a;
-	Uint16 nbdsk,cd_nb_item;
-
-	if (!zf || !zf->file) return -1;
-	zf->cde_offset=0;
-	fseek(zf->file,0,SEEK_END-0xffff-22);
-/* Max comment size + size of [end of central dir record ] */
-	zf->cde_offset=search_sig32(zf,sig_cde);
-	
-	if (zf->cde_offset==-1) {
-		printf("Couldn't find central dir, Corrupted zip\n");
-		return -1;
-	} else {
-		printf("End of central dir here %08x\n",zf->cde_offset);
-		freadvle(zf->file,"4 22 22 44",0,&nbdsk,0,0,&zf->nb_item,&zf->cd_size,&zf->cd_offset);
-		if (nbdsk!=0) {
-			printf("Multi disk not supported (%d)\n",nbdsk);
-			return -1;
-		}
-		/*fskip(zf->file,12);
-		zf->cd_size=fget32le(zf->file);
-		zf->cd_offset=fget32le(zf->file);*/
-		printf("CD off=%08x CD size=%08x\n",zf->cd_offset,zf->cd_size);
-		/* check sig */
-		fseek(zf->file,zf->cd_offset,SEEK_SET);
-		if (search_sig32(zf,sig_cd)!=zf->cd_offset) {
-			printf("Corrupted zip\n");
-			return -1;
-		}
-		return 0;
-	}
-}
-
-static int unzip_locate_file(PKZIP *zf,char *filename,Uint32 file_crc) {
-	int pos;
-	Uint32 crc,offset;
-	Uint16 xf_len,fcomment_len,fname_len;
-	Uint32 sig;
-	char *fname=NULL;
-	fseek(zf->file,zf->cd_offset,SEEK_SET);
-	pos=ftell(zf->file);
-	if (file_crc==0) file_crc=(Uint32)-1; /* because crc=0=dir */
-	while(1) {
-		sig=fget32le(zf->file);
-		//printf("SIG=%08x\n",sig);
-		if (sig==0x02014b50) { /* File header */
-			freadvle(zf->file,"222222 4 44 222 224 4 ",
-				 NULL,NULL,NULL,NULL,NULL,NULL,
-				 &crc,
-				 NULL,NULL,
-				 &fname_len,&xf_len,&fcomment_len,
-				 NULL,NULL,NULL,
-				 &offset);
-			if (fname) free(fname);
-			fname=calloc(fname_len+1,sizeof(unsigned char));
-			fread(fname,fname_len,1,zf->file);
-			fskip(zf->file,xf_len+fcomment_len);
-			//printf("0x%08x %s=%s?\n",crc,fname,filename);
-			if ((strcmp(fname,filename)==0 && strlen(fname)==strlen(filename)) || crc==file_crc) {
-				printf("Found 0x%08x %s\n",crc,fname);
-				free(fname);
-				fseek(zf->file,offset,SEEK_SET);
-				return 0;
-			}
-		} else
-			break;
-	}
-	if (fname) free(fname);
-	return -1;
-}
-
-ZFILE *gn_unzip_fopen(PKZIP *zf,char *filename,Uint32 file_crc) {
-	ZFILE *z;
-	Uint32 sig;
-	char *fname=NULL;
-	int cmeth,xf_len,fname_len;
-	int csize,uncsize;
-
-	if (unzip_locate_file(zf,filename,file_crc)==0) {
-		sig=fget32le(zf->file);
-		printf("SIG=%08x\n",sig);
-		if (sig!=0x04034b50) {
-			printf("Error\n");
-			return NULL;
-		}
-		fskip(zf->file,2+2);
-		cmeth=fget16le(zf->file);
-		if (cmeth!=0 && cmeth!=8) {
-			printf("Error: Unsupported compression method\n");
-			return NULL;
-		}
-		fskip(zf->file,2+2+4);
-		csize=fget32le(zf->file);
-		uncsize=fget32le(zf->file);
-
-		fname_len=fget16le(zf->file);
-		xf_len=fget16le(zf->file);
-
-		fskip(zf->file,xf_len+fname_len);
-
-		printf("compressed size %d uncompressed size %d method=%d\n",csize,uncsize,cmeth);
-
-
-		z=malloc(sizeof(ZFILE));
-		if (!z) return NULL;
-		//z->name=fname;
-		z->pos=ftell(zf->file);
-		z->csize=csize;
-		z->uncsize=uncsize;
-		if (cmeth==8)
-			z->zb=stbi_zlib_create_zbuf(NULL,zf->file,csize);
-		z->cmeth=cmeth;
-		z->readed=0;
-		z->f=zf->file;
-		return z;
-	} 
-	
-	return NULL;
-
-}
-
-int gn_unzip_fread(ZFILE *z,Uint8 *data,int size) {
-	int readed;
-	int todo;
-	if (!z) return -1;
-	fseek(z->f,z->pos,SEEK_SET);
-	if (z->cmeth==8)
-		readed=stbi_zlib_decode_noheader_stream(z->zb,data,size);
-	else { /* Stored */
-		todo=z->readed-z->uncsize;
-		if (todo<size) todo=size;
-		printf("read %d of stored data\n");
-
-		readed=fread(data,1,size,z->f);
-		z->readed+=readed;
-	}
-
-	z->pos=ftell(z->f);
-	return readed;
-}
-
-Uint8 *gn_unzip_file_malloc(PKZIP *zf,char *filename,Uint32 file_crc,int *outlen) {
-	ZFILE *z=gn_unzip_fopen(zf,filename,file_crc);
-	int readed;
-	if (!z) return NULL;
-	Uint8 *data=malloc(z->uncsize);
-	if (!data) return NULL;
-	if (z->cmeth==8)
-		readed=stbi_zlib_decode_noheader_stream(z->zb,data,z->uncsize);
-	else
-		readed=fread(data,1,z->uncsize,z->f);
-	if (readed!=z->uncsize)
-		printf("GNZIP: Readed data size different from uncompressed size %d!=%d \n",
-				readed,z->uncsize);
-	*outlen=z->uncsize;
-	gn_unzip_fclose(z);
-	return data;
-}
-
-void gn_unzip_fclose(ZFILE *z) {
-	if (!z) return;
-	if (z->cmeth==8) free(z->zb->cbuf);
-	free(z);
-}
-
-PKZIP *gn_open_zip(char *file) {
-	PKZIP *zf=malloc(sizeof(PKZIP));
-	int e;
-	zf->file=fopen(file,"rb");
-	e=search_central_dir(zf);
-	if (e) {
-		fclose(zf->file);
-		free(zf);
-		return NULL;
-	}
-	return zf;
-}
-void gn_close_zip(PKZIP *zf) {
-	fclose(zf->file);
-	free(zf);
-}
-
+#endif

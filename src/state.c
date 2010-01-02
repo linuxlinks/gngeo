@@ -6,7 +6,9 @@
 #include "SDL_endian.h"
 #include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_LIBZ
 #include <zlib.h>
+#endif
 
 #include "memory.h"
 #include "state.h"
@@ -15,6 +17,17 @@
 #include "sound.h"
 #include "emu.h"
 //#include "streams.h"
+
+#ifndef HAVE_LIBZ
+#define gzopen fopen
+#define gzread(f,data,size) fread(data,size,1,f)
+#define gzwrite(f,data,size) fwrite(data,size,1,f)
+#define gzclose fclose
+#define gzFile FILE
+#define gzeof feof
+#define gzseek fseek
+
+#endif
 
 static ST_REG *reglist;
 static ST_MODULE st_mod[ST_MODULE_END];

@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -6,10 +10,11 @@
 #include "emu.h"
 #include "memory.h"
 //#include "unzip.h"
-#ifdef BUILD_DUMPER
+#ifdef HAVE_LIBZ
 #include "zlib.h"
 #endif
-#include "stb_zlib.h"
+#include "unzip.h"
+
 #include "video.h"
 #include "transpack.h"
 #include "conf.h"
@@ -1091,7 +1096,7 @@ static int zip_seek_current_file(ZFILE *gz,Uint32 offset) {
 static int read_data_i(ZFILE *gz,ROM_REGION *r,Uint32 dest,Uint32 size) {
 	Uint8 *buf;
 	Uint8 *p=r->p+dest;
-	Uint32 s=4096,c,i;
+	Uint32 s=64*1024,c,i;
 	if (r->p==NULL || r->size<(dest&~0x1)+(size*2)) {
 		printf("Region not allocated or not big enough %08x %08x\n",r->size,dest+(size*2));
 		return -1;

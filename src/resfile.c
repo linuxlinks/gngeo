@@ -1,8 +1,8 @@
 #include "SDL.h"
 #include "roms.h"
 #include "resfile.h"
-//#include "unzip.h"
-#include "stb_zlib.h"
+#include "unzip.h"
+//#include "stb_zlib.h"
 #include "conf.h"
 #include "stb_image.h"
 

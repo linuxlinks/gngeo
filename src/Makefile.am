@@ -66,8 +66,8 @@ gngeo_SOURCES = fileio.c         pd4990a.c        gngeo_icon.h      crypt.h     
 		blitter.h        font.h           memory.h          resfile.c       \
 		timer.c          effect.h         frame_skip.c      messages.c      \
 		screen.c         timer.h          emu.c             frame_skip.h    \
-		messages.h       screen.h                    emu.h           \
-		neocrypt.c       sound.c                     resfile.h       \
+		messages.h       screen.h         unzip.h           emu.h           \
+		neocrypt.c       sound.c          unzip.c           resfile.h       \
 		debug.c          debug.h          neocrypt.h	    state.c         \
 		state.h          video_template.h conf.c            conf.h          \
 		transpack.h      transpack.c      pbar.h            pbar.c          \

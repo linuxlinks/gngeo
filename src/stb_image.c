@@ -65,8 +65,15 @@
              on 'test' only check type, not whether we support this variant
 */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "stb_image.h"
+
+#ifndef HAVE_LIBZ
 #define USE_STBZLIB 1
+#endif
 
 #ifndef STBI_NO_HDR
 #include <math.h>  // ldexp
