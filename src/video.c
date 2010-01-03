@@ -47,7 +47,7 @@ Uint8 *mem_video=NULL;//memory.video;
 //#define TOTAL_GFX_BANK 4096
 Uint32 *mem_bank_usage;
 
-GFX_CACHE gcache;
+//GFX_CACHE gcache;
 
 
 void draw_one_char_arm(int byte1,int byte2,unsigned short *br);
@@ -56,8 +56,8 @@ int draw_tile_arm_norm(unsigned int tileno, int color,unsigned char *bmp,int zy)
 
 #ifdef I386_ASM
 /* global declaration for video_i386.asm */
-Uint8 **mem_gfx=&memory.rom.tiles.p;
-Uint8 *mem_video=memory.video;
+Uint8 **mem_gfx;//=&memory.rom.tiles.p;
+Uint8 *mem_video;//=memory.video;
 
 /* prototype */
 void draw_tile_i386_norm(unsigned int tileno,int sx,int sy,int zx,int zy,
@@ -722,7 +722,7 @@ static __inline__ void draw_tile_full(unsigned int tileno,int sx,int sy,int zx,i
     }
 }
 
-#ifdef GP2X
+#ifdef PROCESSOR_ARM
 static __inline__ void draw_tile_gp2x_norm(unsigned int tileno,int sx,int sy,int zx,int zy,
 			 int color,int xflip,int yflip,unsigned char *bmp) {
 	Uint32 pitch=352/*buffer->pitch>>1*/;
@@ -941,7 +941,7 @@ static __inline__ void draw_fix_char(unsigned char *buf,int start,int end)
 	    if ((byte1>=(memory.rom.game_sfix.size>>5)) || (fix_usage[byte1]==0x00)) continue;
 
             br=(unsigned short*)buf+((y<<3))*buffer->w+(x<<3)+16;
-#ifdef GP2X
+#ifdef PROCESSOR_ARM
 	    draw_one_char_arm(byte1,byte2,br);
 #else
 #ifdef I386_ASM
@@ -1137,7 +1137,7 @@ void draw_screen(void)
 	    
       
             if (sx >= -16 && sx+15 < 336 && sy>=0 && sy+15 <256) {
-#ifdef GP2X
+#ifdef PROCESSOR_ARM
 		    //if (memory.pen_usage[tileno]!=TILE_INVISIBLE)
 		    if (PEN_USAGE(tileno)!=TILE_INVISIBLE)
 			    draw_tile_gp2x_norm(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
@@ -1490,7 +1490,7 @@ void draw_screen_scanline(int start_line, int end_line,int refresh)
 
 void init_video(void) {
 	int i;
-#ifdef GP2X
+#ifdef PROCESSOR_ARM
 	if (!mem_gfx) {
 		mem_gfx=memory.rom.tiles.p;
 	}
@@ -1525,7 +1525,10 @@ void init_video(void) {
 	}
 #endif
 #endif
-
+#ifdef I386_ASM
+	mem_gfx=&memory.rom.tiles.p;
+	mem_video=memory.video;
+#endif
 	fix_value_init();
 
 }

@@ -16,12 +16,13 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
-#ifdef USE_RAZE
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
+#ifdef USE_RAZE
 #include "emu.h"
 #include "memory.h"
 #include "raze/raze.h"

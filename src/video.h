@@ -33,7 +33,7 @@ SDL_Overlay *overlay;
 SDL_Rect ov_rect;
 */
 
-#ifdef GP2X
+#ifdef GP2X_
 #include "unzip.h"
 typedef struct gfx_cache {
 	Uint8 *data;  /* The cache */

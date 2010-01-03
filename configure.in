@@ -1,12 +1,13 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT
+AC_INIT(gngeo,0.7a)
 AC_CONFIG_SRCDIR([src/emu.c])
-AC_CANONICAL_TARGET([])
+AC_CANONICAL_TARGET
 AM_CONFIG_HEADER(config.h)
 
 
-AM_INIT_AUTOMAKE(gngeo,0.7a)
+# AM_INIT_AUTOMAKE(gngeo,0.7a)
+AM_INIT_AUTOMAKE
 # devel version
 #AM_INIT_AUTOMAKE(gngeo,20060711)
 
@@ -26,111 +27,190 @@ AC_PROG_CC
 AC_PROG_RANLIB
 AM_PROG_AS
 
-
-echo $CC
-echo $PATH
+AC_DEFUN([GN_ARG_ENABLE],[
+	AC_ARG_ENABLE($1,[  $2],
+		[case "${enableval}" in
+       	 yes) enable_$1=true ;;
+       	 no)  enable_$1=false ;;
+       	 *) AC_MSG_ERROR([bad value ${enableval} for --enable-$1]) ;;
+     	 esac];$3,
+     	 [enable_$1=false];$4)
+]
+)
 
 CC_VERSION=`$CC -dumpversion`
 CC_MAJOR=`echo $CC_VERSION|sed 's/\..*$//'`
 #echo major $CC_MAJOR major
 
-AC_ARG_ENABLE(gp2x,    [  --enable-gp2x           Enable GP2X build],
-			[enable_gp2x="$enableval"],[enable_gp2x="false"])
+GN_ARG_ENABLE(gp2x,   [--enable-gp2x           Enable GP2X build])
+GN_ARG_ENABLE(wiz,    [--enable-wiz            Enable WIZ build])
+GN_ARG_ENABLE(pandora,[--enable-pandora        Enable PANDORA build])
+GN_ARG_ENABLE(win32,  [--enable-win32          Enable WIN32 build])
+
+
 echo GP2X $enable_gp2x
-if test "$enable_gp2x" = yes ; then
 
-	enable_gp2x=true
-	AC_CHECK_PROG(SDL_CONFIG, arm-open2x-linux-sdl-config,arm-open2x-linux-sdl-config,no)
-	if test "$SDL_CONFIG" = no ; then
-		AC_CHECK_PROG(SDL_CONFIG, sdl-config, sdl-config,no)
-	fi
+SDL_VERSION=1.2.0
+AM_PATH_SDL($SDL_VERSION,,AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!]))
+CFLAGS="$CFLAGS $SDL_CFLAGS"
+LIBS="$LIBS $SDL_LIBS"
 
-	if test "$SDL_CONFIG" != no ; then
-		CFLAGS="$CFLAGS `$SDL_CONFIG  --cflags` ";
-		LIBS="$LIBS `$SDL_CONFIG --libs` -lpthread -static";
-		AC_CHECK_LIB([SDL], [SDL_Init],,AC_MSG_ERROR(can't find gp2x SDL on your system))
-	else 
-		AC_MSG_ERROR(can't find sdl-config on your system);
-	fi
-	CFLAGS="$CFLAGS -DENABLE_940T -DGP2X -mtune=arm920t"
-	#AS=arm-open2x-linux-gcc
-else
-	AC_CHECK_PROG(SDL_CONFIG, sdl-config, yes,no)
-	if test "$SDL_CONFIG" = yes ; then
-		CFLAGS="$CFLAGS `sdl-config --cflags`";
-		LIBS="$LIBS `sdl-config --libs`";
-		AC_CHECK_LIB([SDL], [SDL_Init],,AC_MSG_ERROR(can't find SDL on your system))
-	else 
-		AC_MSG_ERROR(can't find sdl-config on your system);
-	fi
-	enable_gp2x=false
+if test "x$enable_gp2x" = xtrue ; then
+	AC_DEFINE([GP2X],[1],[Define if you build for gp2x])
+	AC_DEFINE([ENABLE_940T],[1],[Define to process audio on the 940t])
+	CFLAGS="$CFLAGS -mtune=arm920t"
+	LIBS="$LIBS -lpthread -static";
 fi
-AC_ARG_ENABLE(win32,    [  --enable-win32          Enable Win32 build],
-			[enable_win32="$enableval"],[enable_win32="false"])
-echo WIN32 $enable_win32
-if test "$enable_win32" = yes ; then
-	CFLAGS="$CFLAGS -DWIN32"
-	enable_win32=true
+if test "x$enable_wiz" = xtrue ; then
+	AC_DEFINE([WIZ],[1],[Define if you build for wiz])
+#	CFLAGS="$CFLAGS -mtune=arm920t"
+#	LIBS="$LIBS -lpthread -static";
+fi
+
+if test "x$enable_win32" = xtrue ; then
+	AC_DEFINE([WIN32],[1],[Define if you build for win32])
 	NASMENV="--prefix_"
 fi
 
 # Checks for libraries.
 #AC_SUBST(LIBOBJS)
 AC_CHECK_LIB([m], [acos])
-#AC_CHECK_LIB([z], [gzopen],,AC_MSG_ERROR(can't find zlib on your system))
 AC_CHECK_LIB([z], [inflate])
-
-AC_CHECK_LIB([jpeg], [jpeg_read_header])
-AC_CHECK_LIB([png], [png_read_info])
-AC_CHECK_LIB([SDL_image], [IMG_Load])
 
 AC_CHECK_FUNCS(getopt_long , , [ AC_LIBOBJ(getopt) AC_LIBOBJ(getopt1) ])
 AC_CHECK_FUNCS(scandir)
 
-have_nasm=false
+#have_nasm=false
 use_starscream=false
 use_raze=false
 use_generator68k=false
 use_cyclone=false
 use_mamez80=false
-choice_68k=ko
-choice_z80=ko
+#choice_68k=ko
+#choice_z80=ko
 
-AC_ARG_ENABLE(starscream,  [  --enable-star           use starscream as 68k emu (need nasm, i386 only)],
-			   [use_starscream=true;choice_68k=ok],
-			   [use_starscream=false])
-AC_ARG_ENABLE(gen68k,      [  --enable-gen68k         use generator68k as 68k emu (portable C)],
-			   [use_generator68k=true;choice_68k=ok],
-			   [use_generator68k=false])
-AC_ARG_ENABLE(cyclone,     [  --enable-cyclone        use cyclone as 68k emu (Arm asm)],
-			   [use_cyclone=true;choice_68k=ok],
-			   [use_cyclone=false])
-
-AC_ARG_ENABLE(raze,        [  --enable-raze           use raze as z80 emu (need nasm, i386 only)],
-			   [use_raze=true;choice_z80=ok],
-			   [use_raze=false])
-AC_ARG_ENABLE(mamez80,     [  --enable-mamez80        use mamez80 as z80 emu (portable C)],
-			   [use_mamez80=true;choice_z80=ok],
-			   [use_mamez80=false])
-AC_ARG_ENABLE(drz80,       [  --enable-drz80          use drz80 as z80 emu (Arm asm)],
-			   [use_drz80=true;choice_z80=ok],
-			   [use_drz80=false])
+# TODO: check mmx support
+AC_ARG_ENABLE(i386asm,     [  --disable-i386asm       disable the use of i386 optimisation],
+                           [case "${enableval}" in
+       						yes) enablei386asm=true ;;
+       						no)  enablei386asm=false ;;
+       						*) AC_MSG_ERROR([bad value ${enableval} for --disable-i386asm]) ;;
+     						esac],
+     						[enablei386asm=true])
 
 
-AC_ARG_ENABLE(gui,     [  --enable-gui            Enable gui support (experimental)],
-			[enable_gui="$enableval"],[enable_gui="false"])
-
-if test "$enable_gui" = yes ; then
-	CFLAGS="$CFLAGS -DUSE_GUI"
-	enable_gui=true
+AC_ARG_WITH(m68kcore,[  --with-m68kcore=[68kcore]     Specify which 68k core to use (cyclone|starscream|gen68k)],
+            m68kcore="$withval", m68kcore="default")
+AC_ARG_WITH(z80core, [  --with-z80core=[z80core]      Specify which z80 core to use (drz80|raze|mamez80)],
+            z80core="$withval", z80core="default")
+echo $m68kcore
+echo $z80core
+case $target_cpu in
+    	i?86) 
+if  test "$enablei386asm" = true ; then
+	AC_CHECK_PROG(have_nasm, nasm, true,false)
+	CFLAGS="$CFLAGS -m32 -DI386_ASM"
+	#Todo: make a 32bit version possible under 64bit host
 else
-	enable_gui=false
+	have_nasm=false
+fi
+;;
+esac
+
+#setup default 68k core
+if test $m68kcore = default ; then
+	case $target_cpu in
+    	i?86) 
+			if test x$have_name=xtrue ; then
+				m68kcore=starscream
+			else
+				m68kcore=gen68k
+			fi   		
+    		;;
+    	arm) m68kcore=cyclone
+    		;;
+    	*)	 m68kcore=gen68k
+    		;;
+    esac
+fi
+#setup default z80 core
+if test $z80core = default ; then
+	case $target_cpu in
+    	i?86) 
+			if test x$have_name=xtrue ; then
+				z80core=raze
+			else
+				z80core=mamez80
+			fi   		
+    		;;
+    	arm) z80core=drz80
+    		;;
+    	*)	 z80core=mamez80
+    		;;
+    esac
 fi
 
-AC_ARG_ENABLE(gl2,     [  --enable-gl2            Use an other opengl blitter (may help some driver)],
-			[enable_gl2="$enableval"],[enable_gl2="false"])
+case "${m68kcore}" in
+	cyclone)     use_cyclone=true
+				 AC_DEFINE([USE_CYCLONE],[1],[Define to enable cyclone])
+				 ;;
+    starscream)  use_starscream=true
+    			 AC_DEFINE([USE_STARSCREAM],[1],[Define to enable starscream])
+    			 ;;
+    gen68k)      use_generator68k=true
+    			 AC_DEFINE([USE_GENERATOR68K],[1],[Define to enable generator68k])
+    			 ;;
+    *) AC_MSG_ERROR([The specified m68k core is invalid]) ;;
+esac
+
+case "${z80core}" in
+	drz80)       use_drz80=true
+				 AC_DEFINE([USE_DRZ80],[1],[Define to enable drz80])
+				 ;;
+    raze)        use_raze=true
+    			 AC_DEFINE([USE_RAZE],[1],[Define to enable raze])
+    			 ;;
+    mamez80)     use_mamez80=true
+    			 AC_DEFINE([USE_MAMEZ80],[1],[Define to enable mamez80])
+    			 ;;
+    *) AC_MSG_ERROR([The specified z80 core is invalid]) ;;
+esac
+
+
+
+#AC_ARG_ENABLE(starscream,  [  --enable-star           use starscream as 68k emu (need nasm, i386 only)],
+#			   [use_starscream=true;choice_68k=ok],
+#			   [use_starscream=false])
+#AC_ARG_ENABLE(gen68k,      [  --enable-gen68k         use generator68k as 68k emu (portable C)],
+#			   [use_generator68k=true;choice_68k=ok],
+#			   [use_generator68k=false])
+#AC_ARG_ENABLE(cyclone,     [  --enable-cyclone        use cyclone as 68k emu (Arm asm)],
+#			   [use_cyclone=true;choice_68k=ok],
+#			   [use_cyclone=false])
+#
+#AC_ARG_ENABLE(raze,        [  --enable-raze           use raze as z80 emu (need nasm, i386 only)],
+#			   [use_raze=true;choice_z80=ok],
+#			   [use_raze=false])
+#AC_ARG_ENABLE(mamez80,     [  --enable-mamez80        use mamez80 as z80 emu (portable C)],
+#			   [use_mamez80=true;choice_z80=ok],
+#			   [use_mamez80=false])
+#AC_ARG_ENABLE(drz80,       [  --enable-drz80          use drz80 as z80 emu (Arm asm)],
+#			   [use_drz80=true;choice_z80=ok],
+#			   [use_drz80=false])
+
+
+#AC_ARG_ENABLE(gui,     [  --enable-gui            Enable gui support (deprecated)],
+#			[enable_gui="$enableval"],[enable_gui="false"])
+#
+#if test "$enable_gui" = yes ; then
+#	CFLAGS="$CFLAGS -DUSE_GUI"
+#	enable_gui=true
+#else
+#	enable_gui=false
+#fi
+GN_ARG_ENABLE(gl2,[--enable-gl2           Use an other opengl blitter (may help some driver)])
 if test "$enable_gl2" = yes ; then
-	CFLAGS="$CFLAGS -DUSE_GL2"
+	AC_DEFINE([USE_GL2],[1],[Define to use alternative opengl blitter])
 fi
 
 #echo "CPU68K STAR    = $use_starscream $choice_68k"
@@ -138,72 +218,65 @@ fi
 #echo "CPUZ80 RAZE    = $use_raze $choice_68k"
 #echo "CPUZ80 MAMEZ80 = $use_mamez80 $choice_68k"
 
-# TODO: check mmx support
-AC_ARG_ENABLE(i386asm,     [  --disable-i386asm       disable the use of i386 optimisation],
-                           [enablei386asm=$enableval],[enablei386asm=yes])
 
-if test "$enablei386asm" = yes ; then
-	AC_CHECK_PROG(NASM, nasm, yes,no)
-	CFLAGS="$CFLAGS -m32"
-else
-	NASM=no
-fi
+# default to starscream and raze if i386 asm optim is enable and nasm found
+# TODO: check by platform
+#if test "$NASM" = yes ; then
+#	CFLAGS="$CFLAGS -DI386_ASM"
+#	have_nasm=true
+#	if test "$choice_68k" = ko ; then
+#		use_starscream=true
+#	fi
+#	if test "$choice_z80" = ko ; then
+#		use_raze=true
+#	fi
+#	echo "Enable i386 optimisation"
+#else
+#	have_nasm=false
+#	if test "$choice_68k" = ko ; then
+#		use_generator68k=true
+#	fi
+#	if test "$choice_z80" = ko ; then
+#		use_mamez80=true
+#	fi
+#	echo "Disable i386 optimisation"
+#fi
 
-if test "$NASM" = yes ; then
-	CFLAGS="$CFLAGS -DI386_ASM"
-	have_nasm=true
-	if test "$choice_68k" = ko ; then
-		use_starscream=true
-	fi
-	if test "$choice_z80" = ko ; then
-		use_raze=true
-	fi
-	echo "Enable i386 optimisation"
-else
-	have_nasm=false
-	if test "$choice_68k" = ko ; then
-		use_generator68k=true
-	fi
-	if test "$choice_z80" = ko ; then
-		use_mamez80=true
-	fi
-	echo "Disable i386 optimisation"
-fi
+#if test "$use_starscream" = true ; then
+#	CFLAGS="$CFLAGS -DUSE_STARSCREAM"
+#	echo "Use Starscream as 68000 core"
+#fi
+#if test "$use_generator68k" = true ; then
+#	CFLAGS="$CFLAGS -DUSE_GENERATOR68K"
+#	echo "Use Generator68k as 68000 core"
+#fi
+#if test "$use_cyclone" = true ; then
+#	CFLAGS="$CFLAGS -DUSE_CYCLONE"
+#	echo "Use Cyclone as 68000 core"
+#fi
+#if test "$use_raze" = true ; then
+#	CFLAGS="$CFLAGS -DUSE_RAZE"
+#	echo "Use Raze as Z80 core"
+#fi
+#if test "$use_mamez80" = true ; then
+#	CFLAGS="$CFLAGS -DUSE_MAMEZ80"
+#	echo "Use MameZ80 as Z80 core"
+#fi
+#if test "$use_drz80" = true ; then
+#	CFLAGS="$CFLAGS -DUSE_DRZ80"
+#	echo "Use DrZ80 as Z80 core"
+#fi
 
-if test "$use_starscream" = true ; then
-	CFLAGS="$CFLAGS -DUSE_STARSCREAM"
-	echo "Use Starscream as 68000 core"
-fi
-if test "$use_generator68k" = true ; then
-	CFLAGS="$CFLAGS -DUSE_GENERATOR68K"
-	echo "Use Generator68k as 68000 core"
-fi
-if test "$use_cyclone" = true ; then
-	CFLAGS="$CFLAGS -DUSE_CYCLONE"
-	echo "Use Cyclone as 68000 core"
-fi
-if test "$use_raze" = true ; then
-	CFLAGS="$CFLAGS -DUSE_RAZE"
-	echo "Use Raze as Z80 core"
-fi
-if test "$use_mamez80" = true ; then
-	CFLAGS="$CFLAGS -DUSE_MAMEZ80"
-	echo "Use MameZ80 as Z80 core"
-fi
-if test "$use_drz80" = true ; then
-	CFLAGS="$CFLAGS -DUSE_DRZ80"
-	echo "Use DrZ80 as Z80 core"
-fi
-
-AM_CONDITIONAL(HAVE_NASM,$have_nasm)
-AM_CONDITIONAL(USE_STARSCREAM,$use_starscream)
-AM_CONDITIONAL(USE_RAZE,$use_raze)
-AM_CONDITIONAL(USE_GENERATOR68K,$use_generator68k)
-AM_CONDITIONAL(USE_CYCLONE,$use_cyclone)
-AM_CONDITIONAL(USE_MAMEZ80,$use_mamez80)
-AM_CONDITIONAL(USE_DRZ80,$use_drz80)
-AM_CONDITIONAL(USE_GUI,$enable_gui)
-AM_CONDITIONAL(USE_GP2X,$enable_gp2x)
+AM_CONDITIONAL(HAVE_NASM,[test x$have_nasm = xtrue])
+AM_CONDITIONAL(USE_STARSCREAM,[test x$use_starscream = xtrue])
+AM_CONDITIONAL(USE_RAZE,[test x$use_raze = xtrue])
+AM_CONDITIONAL(USE_GENERATOR68K,[test x$use_generator68k = xtrue])
+AM_CONDITIONAL(USE_CYCLONE,[test x$use_cyclone = xtrue])
+AM_CONDITIONAL(USE_MAMEZ80,[test x$use_mamez80 = xtrue])
+AM_CONDITIONAL(USE_DRZ80,[test x$use_drz80 = xtrue])
+AM_CONDITIONAL(USE_GUI,[test x$enable_gui = xtrue])
+AM_CONDITIONAL(USE_GP2X,[test x$enable_gp2x = xtrue])
+AM_CONDITIONAL(USE_WIZ,[test x$enable_wiz = xtrue])
 
 # Checks for header files.
 AC_HEADER_DIRENT
@@ -221,11 +294,6 @@ AC_C_BIGENDIAN
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([atexit floor gettimeofday memset mkdir pow strchr strstr strtoul])
 
-# CFLAGS="$CFLAGS -DFULL_GL"
-# LIBS="$LIBS -lGL"
-
-
-#echo target_cpu: $target_cpu
 
 dnl Check for processor.
 
@@ -271,16 +339,12 @@ dnl Check for processor.
                     -ffast-math -fomit-frame-pointer -g"
            ;;
     arm)   AC_MSG_RESULT(Turning on arm processor optimisations)
-           #AC_DEFINE(PROCESSOR_ARM, 1, [Define if you have an ARM processor])
+           AC_DEFINE(PROCESSOR_ARM, 1, [Define if you have an ARM processor])
            ALIGNLONGS=1
 	   CFLAGS="$CFLAGS -O3 -Wall -ftracer -fstrength-reduce -Wno-unused -funroll-loops \
                     -fomit-frame-pointer -fstrict-aliasing -ffast-math \
 	   	    "
-	   #CFLAGS="$CFLAGS -O2 -Wall -ftracer -fstrength-reduce -Wno-unused  \
-           #         -fomit-frame-pointer -fstrict-aliasing -ffast-math \
-	   #	    "
-	   #CFLAGS="$CFLAGS  -pg -g -O2 -fno-omit-frame-pointer -funroll-loops -ffast-math  -Wall -Wno-unused "
-           ;;
+	   	    ;;
     *)     AC_MSG_WARN(Processor type not known - Use generic optimisations)
            ALIGNLONGS=1
            optimum=no
@@ -289,24 +353,14 @@ dnl Check for processor.
            ;;
   esac
   
-  AC_DEFINE(ALIGNLONGS, ALIGNLONGS,
+AC_DEFINE(ALIGNLONGS, ALIGNLONGS,
             [Undefine if your processor can read unaligned 32-bit values])
 
-
-#dnl Arch
-#echo "Target : $target"
-#echo "Build  : $build"
-#echo "Host   : $host"
-
-
-#CFLAGS="$CFLAGS -O3 -Wall -Wno-unused -funroll-loops \
-#                    -ffast-math -malign-functions=4 -malign-jumps=4 \
-#                    -malign-loops=4 -g -pg"
 
 AC_CONFIG_FILES([Makefile
 	 src/Makefile
 	 src/raze/Makefile
-      	 src/star/Makefile
+     src/star/Makefile
 	 src/mamez80/Makefile
 	 src/generator68k/Makefile
 	 src/cyclone/Makefile

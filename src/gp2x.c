@@ -1,4 +1,4 @@
-#ifdef GP2X
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -498,11 +498,11 @@ void gp2x_quit(void) {
 	int i;
 	char *frontend=strdup(CF_STR(cf_get_item_by_name("frontend")));
 	char *fullpath=CF_STR(cf_get_item_by_name("frontend"));
-
+/*
 	for(i=0;i<gcache.total_bank;i++) {
 		printf("BANK %06d %d\n",i,mem_bank_usage[i]);
 	}
-
+*/
 #ifdef ENABLE_940T	
 	sleep(1);
 	print_shared_struct();
@@ -694,4 +694,3 @@ void gp2x_940_loadbin(char *filename) {
 	
 }
 
-#endif

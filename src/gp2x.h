@@ -7,7 +7,7 @@
 //Uint32 gp2x_upmem_base;
 int gp2x_dev_mem;
 int gp2x_gfx_dump;
-unzFile *gp2x_gfx_dump_gz;
+//unzFile *gp2x_gfx_dump_gz;
 int gp2x_mixer;
 
 volatile Uint8 *gp2x_ram;

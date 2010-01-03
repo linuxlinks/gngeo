@@ -2,6 +2,7 @@
 #define STB_ZLIB_H
 
 // ZLIB client - used by PNG, available for other purposes
+#include <stdio.h>
 
 typedef unsigned char uint8;
 typedef unsigned short uint16;

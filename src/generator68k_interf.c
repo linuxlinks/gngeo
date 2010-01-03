@@ -18,11 +18,13 @@
 
 /* genrator68k interface */
 
-#ifdef USE_GENERATOR68K
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#ifdef USE_GENERATOR68K
 #include <stdlib.h>
 
 #include "generator68k/generator.h"

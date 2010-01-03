@@ -2,7 +2,7 @@
 #ifndef _940SHARED_H_
 #define _940SHARED_H_
 
-#define ENABLE_940T
+//#define ENABLE_940T
 
 // max 16 jobs
 enum _940_job_t {

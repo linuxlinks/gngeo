@@ -102,7 +102,7 @@ const int bankoffset_garouo[64] = {
 	0x000000, 0x000000, 0x000000, 0x000000, // 56
 	0x000000, 0x000000, 0x000000, 0x000000, // 60
 };
-const Uint8 scramblecode_garouo={
+const Uint8 scramblecode_garouo[7]={
 	0xC0,4,8,14,2,11,13,
 };
 

@@ -16,6 +16,9 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 
 #include <stdarg.h>
@@ -484,7 +487,7 @@ static int save_state_action(GN_MENU_ITEM *self,void *param) {
 	static Uint32 slot=0;
 	SDL_Rect dstrect={24+75,16+66,304/2,224/2};
 	SDL_Rect dstrect_binding={24+73,16+64,304/2+4,224/2+4};
-	SDL_Surface *tmps,*slot_img;
+	SDL_Surface *tmps,*slot_img=NULL;
 	char slot_str[32];
 	Uint32 nb_slot=how_many_slot(conf.game);
 

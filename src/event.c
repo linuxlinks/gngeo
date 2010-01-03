@@ -1,4 +1,10 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+
 #include "SDL.h"
+#include "screen.h"
 #include "event.h"
 #include "conf.h"
 #include "emu.h"
@@ -127,16 +133,65 @@ int init_event(void) {
 
 	create_joymap_from_string(1,CF_STR(cf_get_item_by_name("p1control")));
 	create_joymap_from_string(2,CF_STR(cf_get_item_by_name("p2control")));
-
+	return SDL_TRUE;
 }
-
+#ifdef GP2X
+int handle_pdep_event(SDL_Event *event) {
+	static int snd_volume=75;
+	char volbuf[21];
+	int i;
+	switch (event->type) {
+	case SDL_JOYBUTTONDOWN:
+		if (event->jbutton.which=0) {
+			if (event->jbutton.button==GP2X_VOL_UP && conf.sound) {
+				if (snd_volume<100) snd_volume+=5; else snd_volume=100;
+				gp2x_sound_volume_set(snd_volume,snd_volume);
+				for (i=0;i<snd_volume/5;i++) volbuf[i]='|';
+				for (i=snd_volume/5;i<20;i++) volbuf[i]='-';
+				volbuf[20]=0;
+				draw_message(volbuf);
+			}
+			if (event->jbutton.button==GP2X_VOL_DOWN && conf.sound) {
+				if (snd_volume>0) snd_volume-=5; else snd_volume=0;
+				gp2x_sound_volume_set(snd_volume,snd_volume);
+				for (i=0;i<snd_volume/5;i++) volbuf[i]='|';
+				for (i=snd_volume/5;i<20;i++) volbuf[i]='-';
+				volbuf[20]=0;
+				draw_message(volbuf);
+			}
+		}
+		break;
+	}
+	return 0;
+}
+#else /* Default */
+int handle_pdep_event(SDL_Event *event) {
+	switch (event->type) {
+	case SDL_KEYDOWN:
+		switch (event->key.keysym.sym) {
+		case SDLK_ESCAPE:
+			return 1;
+			break;
+		case SDLK_F12:
+		    screen_fullscreen();
+		    break;
+		}
+		break;
+	}
+	return 0;
+}
+#endif
 
 int handle_event(void) {
 	SDL_Event event;
 //	int i;
+	int ret;
 	int jaxis_threshold=10000;
 
 	while (SDL_PollEvent(&event)) {
+	    if ((ret=handle_pdep_event(&event))!=0) {
+	    	return ret;
+	    }
 		switch (event.type) {
 		case SDL_KEYUP:
 			//printf("%d\n",jmap->key[event.key.keysym.sym].player);
@@ -337,6 +392,11 @@ int handle_event(void) {
 	if (joy_state[1][GN_D])
 	    memory.intern_p2 &= 0x7F;	// D
 
+#ifdef GP2X
+	if (joy_state[0][GN_HOTKEY1] && joy_state[0][GN_HOTKEY2]
+	&& (joy_state[0][GN_START] || joy_state[0][GN_SELECT_COIN]))
+		return 1;
+#endif
 
 	if(joy_state[0][GN_MENU_KEY]==1)
 		return 1;
@@ -348,7 +408,7 @@ int handle_event(void) {
 int wait_event(void) {
 	SDL_Event event;
 	int rc,i;
-	int last;
+	int last=-1;
 	for(i=0;i<GN_MAX_KEY;i++)
 		if (joy_state[0][i]) last=i;
 	SDL_WaitEvent(&event);

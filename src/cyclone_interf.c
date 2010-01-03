@@ -18,11 +18,14 @@
 
 /* cyclone interface */
 
-#ifdef USE_CYCLONE
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#ifdef USE_CYCLONE
+
 #include <stdlib.h>
 
 #include "cyclone/Cyclone.h"
