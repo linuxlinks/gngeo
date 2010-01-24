@@ -85,7 +85,10 @@ void zread_uint8(ZFILE *gz, Uint8 *c) {
 }
 void zread_uint32le(ZFILE *gz, Uint32 *c) {
 	int rc;
-	rc = gn_unzip_fread(gz, (Uint8*)c, sizeof(Uint32));
+	rc = gn_unzip_fread(gz, (Uint32*)c, sizeof(Uint32));
+#ifdef WORDS_BIGENDIAN
+	*c=SDL_Swap32(*c);
+#endif
 	//printf("H32  %08x %d\n",*c,rc);
 }
 
@@ -163,6 +166,16 @@ SDL_Surface *res_load_stbi(char *bmp) {
 
 	printf("STBILOAD %p %d %d %d %d\n", data, x, y, comp, x * comp);
 	switch (comp) {
+#ifdef WORDS_BIGENDIAN
+	case 3:
+		s = SDL_CreateRGBSurfaceFrom((void*) data, x, y, comp * 8, x * comp,
+				0xFF0000, 0xFF00, 0xFF, 0);
+		break;
+	case 4:
+		s = SDL_CreateRGBSurfaceFrom((void*) data, x, y, comp * 8, x * comp,
+				0xFF000000, 0xFF0000, 0xFF00, 0xFF);
+		break;
+#else
 	case 3:
 		s = SDL_CreateRGBSurfaceFrom((void*) data, x, y, comp * 8, x * comp,
 				0xFF, 0xFF00, 0xFF0000, 0);
@@ -171,6 +184,7 @@ SDL_Surface *res_load_stbi(char *bmp) {
 		s = SDL_CreateRGBSurfaceFrom((void*) data, x, y, comp * 8, x * comp,
 				0xFF, 0xFF00, 0xFF0000, 0xFF000000);
 		break;
+#endif
 	default:
 		printf("RES load STBI: Unhandled bpp surface\n");
 		s = NULL;
