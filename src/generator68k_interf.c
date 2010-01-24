@@ -274,7 +274,7 @@ static void cpu_68k_init_save_state(void) {
     create_state_register(ST_68k,"sr",1,(void *)&sr,sizeof(Uint32),REG_UINT32);
     create_state_register(ST_68k,"bank",1,(void *)&bankaddress,sizeof(Uint32),REG_UINT32);
     create_state_register(ST_68k,"ram",1,(void *)memory.ram,0x10000,REG_UINT8);
-    create_state_register(ST_68k,"kof2003_bksw",1,(void *)memory.kof2003_bksw,0x1000,REG_UINT8);
+ //  create_state_register(ST_68k,"kof2003_bksw",1,(void *)memory.kof2003_bksw,0x1000,REG_UINT8);
     create_state_register(ST_68k,"current_vector",1,(void *)memory.rom.cpu_m68k.p,0x80,REG_UINT8);
     set_post_load_function(ST_68k,cpu_68k_post_load_state);
     set_pre_save_function(ST_68k,cpu_68k_pre_save_state);

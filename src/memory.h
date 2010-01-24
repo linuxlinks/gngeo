@@ -68,21 +68,10 @@
 #  undef READ_WORD_ROM
 #  undef WRITE_BYTE_ROM
 #  undef READ_BYTE_ROM
-/*
-#    define WRITE_WORD_ROM(a,d) (WRITE_WORD(a,SWAP16(d)))
-#    define READ_WORD_ROM(a) (SWAP16(READ_WORD(a)))
-#    define WRITE_BYTE_ROM WRITE_BYTE
-#    define READ_BYTE_ROM READ_BYTE
-*/
 
-//#  define WRITE_WORD_ROM(a,d) (WRITE_WORD(a,SWAP16(d)))
-//#  define READ_WORD_ROM(a) (SWAP16(READ_WORD(a)))
 #  define WRITE_WORD_ROM WRITE_WORD
 #  define READ_WORD_ROM READ_WORD
-//#  define WRITE_WORD_RAM(a,d) (WRITE_WORD(a,SWAP16(d)))
-//#  define READ_WORD_RAM(a) (SWAP16(READ_WORD(a)))
-//#  define WRITE_BYTE_ROM WRITE_BYTE
-//#  define READ_BYTE_ROM READ_BYTE
+
 #  define WRITE_BYTE_ROM(a,d) WRITE_BYTE(SWAP_BYTE_ADDRESS(a),(d))
 #  define READ_BYTE_ROM(a) READ_BYTE(SWAP_BYTE_ADDRESS(a))
 #endif
@@ -91,15 +80,15 @@
 #define GFX_MAPPED 1
 #define GZX_MAPPED 2
 
+
+
 typedef struct neo_mem {
 	GAME_ROMS rom;
-	Uint8 *ram;
+	Uint8 ram[0x10000];
+	VIDEO vid;
 	Uint8 *ng_lo;                           /* TODO: it's also in rom */
 
 	Uint32 nb_of_tiles;
-	Uint8 *video; /* Video Ram */
-	Uint8 *pal1, *pal2;
-	Uint8 *pal_pc1, *pal_pc2;
 
 	Uint8 sram[0x10000];
 
@@ -111,14 +100,14 @@ typedef struct neo_mem {
 	Uint8 game_vector[0x80];
 	/* internal representation of joystick */
 	Uint8 intern_p1, intern_p2, intern_coin, intern_start;
+
 	/* crypted rom bankswitch system */
+
 	Uint32 bksw_handler;
 
 	Uint8 *bksw_unscramble;
 	int *bksw_offset;
 	Uint16 sma_rng_addr;
-
-	Uint8 kof2003_bksw[0x2000];
 	Uint8 memcard[0x800];
 #ifdef GP2X
 	Uint8 gp2x_gfx_mapped;
@@ -129,13 +118,8 @@ typedef struct neo_mem {
 neo_mem memory;
 
 /* video related */
-extern int irq2enable, irq2start, irq2repeat, irq2control;
-extern int lastirq2line;
-extern int irq2repeat_limit;
-int palno, vptr, high_tile, vhigh_tile, vvhigh_tile;
-Sint16 modulo;
+extern int irq2start, irq2control;
 Uint8 *current_pal;
-Uint8 *current_pal_dirty;
 Uint32 *current_pc_pal;
 Uint8 *current_fix;
 Uint8 *fix_usage;

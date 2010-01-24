@@ -43,7 +43,7 @@ extern int neogeo_fix_bank_type;
 #ifdef GP2X
 /* global declaration for video_arm.S */
 Uint8 *mem_gfx=NULL; /*=memory.rom.tiles.p;*/
-Uint8 *mem_video=NULL;//memory.video;
+Uint8 *mem_video=NULL;//memory.vid.ram;
 //#define TOTAL_GFX_BANK 4096
 Uint32 *mem_bank_usage;
 
@@ -57,7 +57,7 @@ int draw_tile_arm_norm(unsigned int tileno, int color,unsigned char *bmp,int zy)
 #ifdef I386_ASM
 /* global declaration for video_i386.asm */
 Uint8 **mem_gfx;//=&memory.rom.tiles.p;
-Uint8 *mem_video;//=memory.video;
+Uint8 *mem_video;//=memory.vid.ram;
 
 /* prototype */
 void draw_tile_i386_norm(unsigned int tileno,int sx,int sy,int zx,int zy,
@@ -207,9 +207,9 @@ static void fix_value_init(void) {
     }
 }
 
-#define fix_add_old(x, y) (0x1000 * (((READ_WORD(&memory.video[fix_addr[x][y-1]]) >> fix_shift[x] * 2) & 3) ^ 3))
+#define fix_add_old(x, y) (0x1000 * (((READ_WORD(&memory.vid.ram[fix_addr[x][y-1]]) >> fix_shift[x] * 2) & 3) ^ 3))
 
-#define fix_add(x, y) (0x1000 * (((memory.video[0x7500 + ((y-1)&31) + 32 * (x/6)] >> (5-(x%6))*2) & 3) ^ 3))
+#define fix_add(x, y) (0x1000 * (((memory.vid.ram[0x7500 + ((y-1)&31) + 32 * (x/6)] >> (5-(x%6))*2) & 3) ^ 3))
 
 void convert_tile(int tileno)
 {
@@ -560,7 +560,7 @@ static __inline__ void draw_tile_full(unsigned int tileno,int sx,int sy,int zx,i
                 for(y=0;y<zy;y++) {
                     gfxdata+=l_y_skip[l]<<1;
                     myword = gfxdata[0];
-                   br[0]=paldata[(myword>>28)&0xf];
+                    br[0]=paldata[(myword>>28)&0xf];
                     br[1]=paldata[(myword>>24)&0xf];
                     br[2]=paldata[(myword>>20)&0xf];
                     br[3]=paldata[(myword>>16)&0xf];
@@ -897,10 +897,10 @@ static __inline__ void draw_fix_char(unsigned char *buf,int start,int end)
 	    
 	    while (y < 32)
 	    {
-		    if (READ_WORD(&memory.video[0xea00+(k<<1)]) == 0x0200 && 
-			(READ_WORD(&memory.video[0xeb00+(k<<1)]) & 0xff00) == 0xff00) {
+		    if (READ_WORD(&memory.vid.ram[0xea00+(k<<1)]) == 0x0200 && 
+			(READ_WORD(&memory.vid.ram[0xeb00+(k<<1)]) & 0xff00) == 0xff00) {
 			    
-			    garoubank = READ_WORD(&memory.video[0xeb00+(k<<1)]) & 3;
+			    garoubank = READ_WORD(&memory.vid.ram[0xeb00+(k<<1)]) & 3;
 			    garouoffsets[y++] = garoubank;
 		    }
 		    garouoffsets[y++] = garoubank;
@@ -919,7 +919,7 @@ static __inline__ void draw_fix_char(unsigned char *buf,int start,int end)
     for(y=ystart;y<yend;y++)
         for(x=0;x<40;x++)
         {
-	    byte1 = (READ_WORD(&memory.video[0xE000 + ((y + (x<<5))<<1)]));
+	    byte1 = (READ_WORD(&memory.vid.ram[0xE000 + ((y + (x<<5))<<1)]));
             byte2 = byte1 >> 12;
             byte1 = byte1 & 0xfff;
 
@@ -932,7 +932,7 @@ static __inline__ void draw_fix_char(unsigned char *buf,int start,int end)
 			break;
 		case 2:
 			byte1 += fix_add(x, y); 
-			/* byte1 += 0x1000 * (((READ_WORD(&memory.video[(0xea00 >> 1) + ((y-1)&31) + 32 * (x/6)])
+			/* byte1 += 0x1000 * (((READ_WORD(&memory.vid.ram[(0xea00 >> 1) + ((y-1)&31) + 32 * (x/6)])
 			   >> (5-(x%6))*2) & 3) ^ 3);*/
 			break;
 		}
@@ -976,7 +976,7 @@ void draw_screen(void)
     unsigned int tileno,tileatr,t1,t2,t3;
     char fullmode=0;
     int ddax=0,dday=0,rzx=15,yskip=0;
-    unsigned char *vidram=memory.video;
+    Uint8 *vidram=memory.vid.ram;
     unsigned char bank[256]={0,};
 
     //    int drawtrans=0;
@@ -990,7 +990,7 @@ void draw_screen(void)
         t1 = READ_WORD( &vidram[0x10400 + count] );
         t2 = READ_WORD( &vidram[0x10800 + count] );
 
-	
+        //printf("%04x %04x %04x\n",t3,t1,t2);
 	/* If this bit is set this new column is placed next to last one */
         if (t1 & 0x40) {
             sx += rzx;            /* new x */
@@ -1078,10 +1078,12 @@ void draw_screen(void)
             tileatr = READ_WORD(&vidram[offs]);
             offs+=2;
 
+
             if (memory.nb_of_tiles>0x10000 && tileatr&0x10) tileno+=0x10000;
             if (memory.nb_of_tiles>0x20000 && tileatr&0x20) tileno+=0x20000;
             if (memory.nb_of_tiles>0x40000 && tileatr&0x40) tileno+=0x40000;
-	    
+
+
 	    /* animation automatique */
 	    /*if (tileatr&0x80) printf("PLOP\n");*/
             if (tileatr&0x8) {
@@ -1093,7 +1095,7 @@ void draw_screen(void)
 	    }
 
 	    if (tileno>memory.nb_of_tiles) {
-		
+	    	printf("Tno %04x Tat %04x %d\n",tileno,tileatr,memory.nb_of_tiles);
 		continue;
 	    }
      
@@ -1230,7 +1232,7 @@ void draw_screen_scanline(int start_line, int end_line,int refresh)
     int offs,count,y;
     int tileno,tileatr;
     int tctl1,tctl2,tctl3;
-    unsigned char *vidram=memory.video;
+    unsigned char *vidram=memory.vid.ram;
     static SDL_Rect clear_rect;
     int yy;
     int otile,tile,yoffs;
@@ -1495,7 +1497,7 @@ void init_video(void) {
 		mem_gfx=memory.rom.tiles.p;
 	}
 	if (!mem_video) {
-		mem_video=memory.video;
+		mem_video=memory.vid.ram;
 	}
 #if 0
 	if (memory.gp2x_gfx_mapped==GZX_MAPPED) {
@@ -1527,7 +1529,7 @@ void init_video(void) {
 #endif
 #ifdef I386_ASM
 	mem_gfx=&memory.rom.tiles.p;
-	mem_video=memory.video;
+	mem_video=memory.vid.ram;
 #endif
 	fix_value_init();
 

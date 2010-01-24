@@ -11,6 +11,7 @@
 #include "memory.h"
 
 static int get_mapid(char *butid) {
+	printf("Get mapid %s\n",butid);
 	if (!strcmp(butid,"A")) return GN_A;
 	if (!strcmp(butid,"B")) return GN_B;
 	if (!strcmp(butid,"C")) return GN_C;
@@ -47,13 +48,13 @@ int create_joymap_from_string(int player,char *jconf) {
 	int jid;
 	int rc;
 	char type;
-
+	//printf("Jconf=%s\n",jconf);
 	if (jconf==NULL) return 0;
 	v=strdup(jconf);
 	v=strtok(v,",");
 	//printf("V1=%s\n",v);
 	while(v) {
-		rc=sscanf(v,"%[A-Z]=%c%d%c%d",butid,&type,&jid,&jevt,&code);
+		rc=sscanf(v,"%[A-Z1-4]=%c%d%c%d",butid,&type,&jid,&jevt,&code);
 		if (rc==3 && type=='K') { /* Keyboard */
 			//printf("%s | keycode %d\n",butid,jid);
 			code=jid;
@@ -142,7 +143,8 @@ int handle_pdep_event(SDL_Event *event) {
 	int i;
 	switch (event->type) {
 	case SDL_JOYBUTTONDOWN:
-		if (event->jbutton.which=0) {
+		//printf("Event %d %d\n",event->jbutton.which,event->jbutton.button);
+		if (event->jbutton.which==0) {
 			if (event->jbutton.button==GP2X_VOL_UP && conf.sound) {
 				if (snd_volume<100) snd_volume+=5; else snd_volume=100;
 				gp2x_sound_volume_set(snd_volume,snd_volume);
@@ -175,8 +177,12 @@ int handle_pdep_event(SDL_Event *event) {
 		case SDLK_F12:
 		    screen_fullscreen();
 		    break;
+		default:
+			break;
 		}
 		break;
+		default:
+			break;
 	}
 	return 0;
 }

@@ -123,10 +123,10 @@ Uint32 joy_numaxes[2];
 
 void debug_loop(void);
 void main_loop(void);
-void init_neo(char *rom_name);
+void init_neo(void);
 void cpu_68k_dpg_step(void);
 
-#ifndef ENABLE_PROFILER
+#ifdef ENABLE_PROFILER
 #define PROFILER_START profiler_start
 #define PROFILER_STOP profiler_stop
 

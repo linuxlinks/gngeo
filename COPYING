@@ -1,3 +1,91 @@
+Gngeo use many different modules. The licences for those modules are:
+
+MAME License:
+ Redistribution and use of the MAME code or any derivative works are 
+ permitted provided that the following conditions are met:
+
+    * Redistributions may not be sold, nor may they be used in a 
+      commercial product or activity.
+    * Redistributions that are modified from the original source 
+      must include the complete source code, including the source 
+      code for all components used by a binary built from the modified 
+      sources. However, as a special exception, the source code distributed 
+      need not include anything that is normally distributed (in either 
+      source or binary form) with the major components (compiler, kernel, 
+      and so on) of the operating system on which the executable runs, 
+      unless that component itself accompanies the executable.
+    * Redistributions must reproduce the above copyright notice, this 
+      list of conditions and the following disclaimer in the documentation 
+      and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
+THE POSSIBILITY OF SUCH DAMAGE. 
+
+Cyclone License:
+// Cyclone 68000 Emulator - Header File
+
+// (c) Copyright 2004 Dave, All rights reserved.
+// (c) 2005-2007 notaz
+// Cyclone 68000 is free for non-commercial use.
+
+// For commercial use, separate licencing terms must be obtained.
+
+Drz80 License:
+/* All code (c) Copyright 2004 Reesy, All rights reserved. */
+/* DrZ80 is free for non-commercial use. */
+
+/* For commercial use, separate licencing terms must be obtained. */
+
+Raze License:
+You may use RAZE in any program you wish, however you are not allowed to sell
+the programs without written permisson from Richard Mitton.
+
+You may freely copy the source code to RAZE, as long as this archive stays
+intact.
+
+This program comes with absolutely NO WARRANTY. Richard Mitton will not be
+held responsible for any problems due to RAZE. While all effort has been made
+to ensure correct operation, use of RAZE is entirely at the user's discretion.
+
+Programs using RAZE must mention it in the documentation, along with the
+text "RAZE Z80 core, by Richard Mitton (richard.mitton@bigfoot.com)"
+
+StarScream License:
+"Starscream" refers to the following files:
+*  STAR.C
+*  STARCPU.H
+*  CPUDEBUG.C
+*  CPUDEBUG.H
+*  STARDOC.TXT
+*  any object file or executable compiled from the above
+*  any source code generated from STAR.C, or object file assembled from such
+   code
+
+Starscream may be distributed freely in unmodified form, as long as this
+documentation is included.
+
+No money, goods, or services may be charged or solicited for Starscream, or
+any emulator or other program which includes Starscream, in whole or in part.
+Using Starscream in a shareware or commercial application is forbidden.
+Contact Neill Corlett (corlett@elwha.nrrc.ncsu.edu) if you'd like to license
+Starscream for commercial use.
+
+Any program which uses Starscream must include the following credit text, in
+its documentation or in the program itself:
+
+"Starscream 680x0 emulation library by Neill Corlett
+ (corlett@elwha.nrrc.ncsu.edu)"
+
+Gngeo License:
 Gngeo is licensed under the terms of the GNU General
 Public License, with this special exception:	
 
@@ -12,8 +100,6 @@ which is not derived from or based on Gngeo. If you modify
 this library, you may extend this exception to your version of the
 library, but you are not obligated to do so.  If you do not wish
 to do so, delete this exception statement from your version.
-
-
 
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991

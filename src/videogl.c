@@ -159,7 +159,7 @@ static __inline__ void fgl_drawstrip(Uint32 offs,FGL_STRIP *strip) {
     int i;
     float y=strip->y;
     int tileno=0,tileatr;
-    unsigned char *vidram=memory.video;
+    unsigned char *vidram=memory.vid.ram;
 
     //printf("Draw Strip %d %d %d %d %d\n",strip->x,strip->y,strip->zx,strip->zy);
     for(i=0;i<strip->nb_tile;i++) {
@@ -208,7 +208,7 @@ void fgl_drawscreen(void) {
     int tileno,tileatr,t1,t2,t3;
     char fullmode=0;
     int ddax=0,dday=0,rzx=15,yskip=0;
-    unsigned char *vidram=memory.video;
+    unsigned char *vidram=memory.vid.ram;
     //    int drawtrans=0;
 
     glClearColor(0, 0, 0, 0);

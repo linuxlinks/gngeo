@@ -18,5 +18,6 @@ TRANS_PACK *tile_trans;
 
 TRANS_PACK* trans_pack_find(Uint32 tile);
 void trans_pack_open(char *filename);
+void trans_pack_free(void);
 
 #endif

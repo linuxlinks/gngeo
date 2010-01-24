@@ -57,7 +57,7 @@ static __inline__ void cyclone68k_store_video_word(Uint32 addr, Uint16 data)
 
 	//if (((vptr<<1)==0x10800+0x8) ) printf("Store to video %08x @pc=%08x\n",vptr<<1,cpu_68k_getpc());
 
-	WRITE_WORD(&memory.video[vptr << 1], data);
+	WRITE_WORD(&memory.vid.ram[vptr << 1], data);
 	vptr = (vptr + modulo) & 0xffff;
 	return;
     }
@@ -97,7 +97,7 @@ static __inline__ void cyclone68k_store_video_word(Uint32 addr, Uint16 data)
 	  ((vptr<<1)==0x10400+0x17e) ||
 	  ((vptr<<1)==0x10800+0x17e) ) printf("Store to video %08x @pc=%08x\n",vptr<<1,cpu_68k_getpc());
 	*/
-	WRITE_WORD(&memory.video[vptr << 1], data);
+	WRITE_WORD(&memory.vid.ram[vptr << 1], data);
 	vptr = (vptr + modulo) & 0xffff;
 	break;
     case 0x4:
@@ -888,7 +888,7 @@ int cpu_68k_run(Uint32 nb_cycle) {
 		CycloneRun(&MyCyclone);
 		return -MyCyclone.cycles;
 	} else {
-#if 0
+#if 1
 		current_line=0;
 		
 		total_cycles=nb_cycle;

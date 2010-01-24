@@ -75,7 +75,7 @@ ROM_DEF *res_load_drvold(char *name) {
 #endif
 void zread_char(ZFILE *gz, char *c, int len) {
 	int rc;
-	rc = gn_unzip_fread(gz, c, len);
+	rc = gn_unzip_fread(gz, (Uint8*)c, len);
 	//printf("HS  %s %d\n",c,rc);
 }
 void zread_uint8(ZFILE *gz, Uint8 *c) {
@@ -85,7 +85,7 @@ void zread_uint8(ZFILE *gz, Uint8 *c) {
 }
 void zread_uint32le(ZFILE *gz, Uint32 *c) {
 	int rc;
-	rc = gn_unzip_fread(gz, c, sizeof(Uint32));
+	rc = gn_unzip_fread(gz, (Uint8*)c, sizeof(Uint32));
 	//printf("H32  %08x %d\n",*c,rc);
 }
 

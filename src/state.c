@@ -404,8 +404,8 @@ static Uint8 st_current_pal,st_current_fix;
 
 static void neogeo_pre_save_state(void) {
 
-    st_current_pal=(current_pal==memory.pal1?0:1);
-    st_current_fix=(current_fix==memory.rom.bios_sfix.p?0:1);
+    //st_current_pal=(current_pal==memory.pal1?0:1);
+    //st_current_fix=(current_fix==memory.rom.bios_sfix.p?0:1);
     //printf("%d %d\n",st_current_pal,st_current_fix);
     
 }
@@ -413,8 +413,8 @@ static void neogeo_pre_save_state(void) {
 static void neogeo_post_load_state(void) {
 	int i;
 	//printf("%d %d\n",st_current_pal,st_current_fix);
-    current_pal=(st_current_pal==0?memory.pal1:memory.pal2);
-    current_pc_pal=(Uint32 *)(st_current_pal==0?memory.pal_pc1:memory.pal_pc2);
+    //current_pal=(st_current_pal==0?memory.pal1:memory.pal2);
+    //current_pc_pal=(Uint32 *)(st_current_pal==0?memory.pal_pc1:memory.pal_pc2);
     current_fix=(st_current_fix==0?memory.rom.bios_sfix.p:memory.rom.game_sfix.p);
     update_all_pal();
  
@@ -451,8 +451,8 @@ void neogeo_init_save_state(void) {
     }
 */
 
-    create_state_register(ST_NEOGEO,"vptr",1,(void *)&vptr,sizeof(Sint32),REG_INT32);
-    create_state_register(ST_NEOGEO,"modulo",1,(void *)&modulo,sizeof(Sint16),REG_INT16);
+    //create_state_register(ST_NEOGEO,"vptr",1,(void *)&vptr,sizeof(Sint32),REG_INT32);
+    //create_state_register(ST_NEOGEO,"modulo",1,(void *)&modulo,sizeof(Sint16),REG_INT16);
     create_state_register(ST_NEOGEO,"current_pal",1,(void *)&st_current_pal,sizeof(Uint8),REG_UINT8);
     create_state_register(ST_NEOGEO,"current_fix",1,(void *)&st_current_fix,sizeof(Uint8),REG_UINT8);
     create_state_register(ST_NEOGEO,"sram_lock",1,(void *)&sram_lock,sizeof(Uint8),REG_UINT8);
@@ -460,14 +460,14 @@ void neogeo_init_save_state(void) {
     create_state_register(ST_NEOGEO,"pending_command",1,(void *)&pending_command,sizeof(Uint8),REG_UINT8);
     create_state_register(ST_NEOGEO,"result_code",1,(void *)&result_code,sizeof(Uint8),REG_UINT8);
     create_state_register(ST_NEOGEO,"sram",1,(void *)memory.sram,0x10000,REG_UINT8);
-    create_state_register(ST_NEOGEO,"pal1",1,(void *)memory.pal1,0x2000,REG_UINT8);
-    create_state_register(ST_NEOGEO,"pal2",1,(void *)memory.pal2,0x2000,REG_UINT8);
-    create_state_register(ST_NEOGEO,"video",1,(void *)memory.video,0x20000,REG_UINT8);
-    create_state_register(ST_NEOGEO,"irq2enable",1,(void *)&irq2enable,sizeof(Uint16),REG_UINT16);
+    //create_state_register(ST_NEOGEO,"pal1",1,(void *)memory.pal1,0x2000,REG_UINT8);
+    //create_state_register(ST_NEOGEO,"pal2",1,(void *)memory.pal2,0x2000,REG_UINT8);
+    create_state_register(ST_NEOGEO,"video",1,(void *)memory.vid.ram,0x20000,REG_UINT8);
+//    create_state_register(ST_NEOGEO,"irq2enable",1,(void *)&irq2enable,sizeof(Uint16),REG_UINT16);
     create_state_register(ST_NEOGEO,"irq2start",1,(void *)&irq2start,sizeof(Uint16),REG_UINT16);
-    create_state_register(ST_NEOGEO,"irq2repeat",1,(void *)&irq2repeat,sizeof(Uint16),REG_UINT16);
+//    create_state_register(ST_NEOGEO,"irq2repeat",1,(void *)&irq2repeat,sizeof(Uint16),REG_UINT16);
     create_state_register(ST_NEOGEO,"irq2control",1,(void *)&irq2control,sizeof(Uint16),REG_UINT16);
-    create_state_register(ST_NEOGEO,"lastirq2line",1,(void *)&lastirq2line,sizeof(Uint16),REG_UINT16);
+//    create_state_register(ST_NEOGEO,"lastirq2line",1,(void *)&lastirq2line,sizeof(Uint16),REG_UINT16);
     create_state_register(ST_NEOGEO,"fc_speed",1,(void *)&neogeo_frame_counter_speed,sizeof(Sint32),REG_INT32);
     create_state_register(ST_NEOGEO,"fc",1,(void *)&neogeo_frame_counter,sizeof(Sint32),REG_INT32);
 

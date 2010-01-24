@@ -5,28 +5,19 @@
 
 #include <SDL.h>
 #include "profiler.h"
+#include "messages.h"
 
 //#ifdef ENABLE_PROFILER
 
 
 
-#ifdef I386_ASM
-Uint64 counter[MAX_BLOCK];
-static __inline__ Uint64 prof_get_tick(void)
-{
-    Uint64 x;
-    __asm__ volatile (".byte 0x0f, 0x31":"=A" (x));
-  /*__asm__ volatile ("RTDSC" : "=A" (x));*/
-    
-    return x;
-}
-#else
+
 Uint32 counter[MAX_BLOCK];
 static __inline__ Uint32 prof_get_tick(void)
 {
         return SDL_GetTicks();
 }
-#endif
+
 void profiler_start(int block)
 {
     counter[block] = prof_get_tick();

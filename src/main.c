@@ -187,27 +187,6 @@ int main(int argc, char *argv[])
 /* GP2X stuff */
 #ifdef GP2X
     gp2x_init();
-/*
-    sdl_set_title(NULL);
-    SDL_textout(screen, 1, 231, "Patching MMU ... ");SDL_Flip(screen);
-
-    //   if (hackpgtable()==0) {
-    if (hack_the_mmu()==0) {
-	    SDL_textout(screen, 1, 231, "Patching MMU ... OK!");SDL_Flip(screen);
-    } else {
-	    SDL_textout(screen, 1, 231, "Patching MMU ... FAILED :(");SDL_Flip(screen);
-	    SDL_Delay(300);
-    }
-#ifdef ENABLE_940T
-    gp2x_init_940();
-    gp2x_set_cpu_speed();    
-#endif
-    //SDL_Delay(200);
-    //benchmark ((void*)screen->pixels);
-
-    gp2x_init_mixer();
-    SDL_FillRect(screen,NULL,0);
-*/
 #endif
     if (gn_init_skin()!=SDL_TRUE) {
 	    printf("Can't load skin...\n");

@@ -275,6 +275,17 @@ void free_game_memory(void) {
 
 }
 
+SDL_bool close_game(void) {
+	if (conf.game==NULL) return SDL_FALSE;
+	save_nvram(conf.game);
+	save_memcard(conf.game);
+
+	dr_free_roms(&memory.rom);
+	trans_pack_free();
+
+	return SDL_TRUE;
+}
+
 SDL_bool init_game(char *rom_name) {
 	char *drconf,*gpath;
 	char *country;
@@ -313,16 +324,15 @@ SDL_bool init_game(char *rom_name) {
 	open_nvram(conf.game);
 	open_memcard(conf.game);
 #ifndef GP2X
-	/* We have allready init it b4 (for progressbar) */
-	//init_sdl();
 	sdl_set_title(conf.game);
 #endif
-	init_neo(conf.game);
+	init_neo();
+	setup_misc_patch(conf.game);
 
 	fix_usage = memory.fix_board_usage;
-	current_pal = memory.pal1;
+	current_pal = memory.vid.pal_neo[0];
 	current_fix = memory.rom.bios_sfix.p;
-	current_pc_pal = (Uint32 *) memory.pal_pc1;
+	current_pc_pal = (Uint32 *) memory.vid.pal_host[0];
 
 
 	//if (conf.sound) 
@@ -331,16 +341,17 @@ SDL_bool init_game(char *rom_name) {
 }
 
 void free_bios_memory(void) {
-    free(memory.ram);memory.ram=NULL;
+    //free(memory.ram);memory.ram=NULL;
     if (!conf.special_bios)
       free(memory.rom.bios_m68k.p);memory.rom.bios_m68k.p=NULL;
     free(memory.ng_lo);memory.ng_lo=NULL;
     free(memory.rom.bios_sfix.p);memory.rom.bios_sfix.p=NULL;
-
+/*
     free(memory.pal1);memory.pal1=NULL;
     free(memory.pal2);memory.pal2=NULL;
     free(memory.pal_pc1);memory.pal_pc1=NULL;
     free(memory.pal_pc2);memory.pal_pc2=NULL;
+    */
 }
 
 void open_bios(void)

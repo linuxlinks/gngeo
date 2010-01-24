@@ -2835,8 +2835,8 @@ void YM2610Init(int clock, int rate,
 	YM2610->OPN.ST.Timer_Handler = TimerHandler;
 	YM2610->OPN.ST.IRQ_Handler   = IRQHandler;
 	/* SSG */
-	SSG->step = ((double)SSG_STEP * rate * 8) / clock;
-	//SSG->step = ((double)SSG_STEP * (rate/2) * 8) / clock;
+	//SSG->step = ((double)SSG_STEP * rate * 8) / clock;
+	SSG->step = ((double)SSG_STEP * (rate/2) * 8) / clock;
 	/* ADPCM-A */
 	pcmbufA = (u8 *)pcmroma;
 	pcmsizeA = pcmsizea;
@@ -3183,7 +3183,7 @@ void YM2610Update_stream(int length)
 #endif
 
 		/* calculate SSG */
-		outn = SSG_CALC(outn);
+		if (i&0x1) outn = SSG_CALC(outn);
 
 		/* deltaT ADPCM */
 

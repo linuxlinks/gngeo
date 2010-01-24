@@ -16,7 +16,7 @@ SECTION .text
 	extern dda_x_skip	; x zoom table
 	extern current_pc_pal	; palette
 	extern mem_gfx		; &memory.gfx
-	extern mem_video	; &memory.video
+	extern mem_video	; &memory.vid.ram
 	extern current_fix
 	extern fix_usage
 

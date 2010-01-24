@@ -18,6 +18,9 @@ extern RGB2YUV rgb2yuv[65536];
 void init_rgb2yuv_table(void);
 
 SDL_Surface *screen;
+SDL_Surface *buffer, *sprbuf, *fps_buf, *scan, *fontbuf;
+//SDL_Surface *triplebuf[2];
+
 SDL_Rect visible_area;
 
 Uint8 interpolation;

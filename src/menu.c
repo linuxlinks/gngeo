@@ -600,9 +600,10 @@ int menu_event_handling(struct GN_MENU *self) {
 	}
 	return -1;
 }
+
 int icasesort(const struct dirent **a, const struct dirent **b) {
-	char *ca=(*a)->d_name;
-	char *cb=(*b)->d_name;
+	const char *ca=(*a)->d_name;
+	const char *cb=(*b)->d_name;
 	return strcasecmp(ca,cb);
 }
 
@@ -613,6 +614,7 @@ void init_rom_browser_menu(void) {
 	char filename[strlen(CF_STR(cf_get_item_by_name("rompath")))+256];
 	struct stat filestat;
 	struct dirent **namelist;
+	ROM_DEF *drv;
 	//char name[32];
 	
 	rbrowser_menu=malloc(sizeof(GN_MENU));
@@ -629,35 +631,20 @@ void init_rom_browser_menu(void) {
 			sprintf(filename, "%s/%s", CF_STR(cf_get_item_by_name("rompath")), namelist[i]->d_name);
 			lstat(filename, &filestat);
 			if (!S_ISDIR(filestat.st_mode)) {
-#if 0
-				DRIVER *dr;
-				if ((dr=get_driver_for_zip(filename))!=NULL) {
-					printf("%8s:%s:%s\n",dr->name,dr->longname,namelist[i]->d_name);
-					if (dr->longname) {
-						/* 
-						if (strlen(dr->longname)>24)
-							sprintf(filename,"%-.27s...",dr->longname);
-						else
-							sprintf(filename,"%-.27s",dr->longname);
-						*/
-						sprintf(filename,"%-.27s",dr->longname);
-						strtok(filename,"/(");
-					} else
-						sprintf(filename,"%s",dr->name);
+				printf("File %s\n",filename);
+				if ((drv=dr_check_zip(filename))!=NULL) {
 					rbrowser_menu->item=list_append(rbrowser_menu->item,
-									(void*)gn_menu_create_item(filename,ACTION,NULL));
+									(void*)gn_menu_create_item(drv->name,ACTION,NULL));
 					rbrowser_menu->nb_elem++;
-
 				}
-#endif
 			}
 		}
 	}
-
+/*
 	rbrowser_menu->item=list_append(rbrowser_menu->item,
 					(void*)gn_menu_create_item("Nothing yet",ACTION,NULL));
 	rbrowser_menu->nb_elem++;
-
+*/
 }
 
 int rom_browser_menu(void) {
@@ -698,10 +685,10 @@ void gn_init_menu(void) {
 	main_menu->draw=draw_menu;
 	main_menu->item=NULL;
 	/* Create item */
-/*
+
 	main_menu->item=list_append(main_menu->item,(void*)gn_menu_create_item("Load game",ACTION,rbrowser_action));
 	main_menu->nb_elem++;
-*/
+
 	main_menu->item=list_append(main_menu->item,(void*)gn_menu_create_item("Load state",ACTION,load_state_action));
 	main_menu->nb_elem++;
 	main_menu->item=list_append(main_menu->item,(void*)gn_menu_create_item("Save state",ACTION,save_state_action));

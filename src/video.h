@@ -26,12 +26,28 @@
 #include "SDL.h"
 
 
-SDL_Surface *buffer, *screen, *sprbuf, *fps_buf, *scan, *fontbuf;
-SDL_Surface *triplebuf[2];
-/*
-SDL_Overlay *overlay;
-SDL_Rect ov_rect;
-*/
+typedef struct VIDEO {
+	/* Video Ram&Pal */
+	Uint8 ram[0x20000];
+	Uint8 pal_neo[2][0x2000];
+	Uint8 pal_host[2][0x4000];
+	Uint8 currentpal;
+
+	/* Auto anim counter */
+	Uint32 fc;
+	Uint32 fc_speed;
+
+	Uint32 vptr;
+	Sint16 modulo;
+
+	Uint32 current_line;
+
+	/* IRQ2 related */
+	Uint32 irq2control;
+	Uint32 irq2taken;
+	Uint32 irq2start;
+	Uint32 irq2pos;
+}VIDEO;
 
 #ifdef GP2X_
 #include "unzip.h"

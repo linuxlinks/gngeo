@@ -5,7 +5,7 @@
 #include "940private.h"
 #include "mvs.h"
 #include "2610intf.h"
-#include "drz80_interf.h"
+//#include "drz80_interf.h"
 
 
 volatile _940_data_t *shared_data = (_940_data_t *)   0x1C00000;

@@ -62,7 +62,9 @@ typedef struct GAME_ROMS {
 	ROM_REGION adpcma;
 	ROM_REGION adpcmb;
 	ROM_REGION spr_usage;
-	ROM_REGION cpu_z80c;
+	ROM_REGION gfix_usage;  /* Game fix char usage */
+	ROM_REGION bfix_usage;  /* Bios fix char usage */
+	ROM_REGION cpu_z80c; /* Crypted z80 program rom */
 }GAME_ROMS;
 
 
@@ -70,5 +72,6 @@ int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name);
 void dr_free_roms(GAME_ROMS *r);
 int dr_save_gno(GAME_ROMS *r,char *filename);
 SDL_bool dr_load_game(char *zip);
+ROM_DEF *dr_check_zip(char *filename);
 
 #endif

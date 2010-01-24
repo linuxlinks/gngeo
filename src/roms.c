@@ -19,6 +19,7 @@
 #include "transpack.h"
 #include "conf.h"
 #include "resfile.h"
+#include "menu.h"
 #ifdef GP2X
 #include "gp2x.h"
 #include "ym2610-940/940shared.h"
@@ -43,14 +44,18 @@ void kof2003_decrypt_68k(GAME_ROMS *r);
 void kof99_neogeo_gfx_decrypt(GAME_ROMS *r, int extra_xor);
 void kof2000_neogeo_gfx_decrypt(GAME_ROMS *r, int extra_xor);
 void cmc50_neogeo_gfx_decrypt(GAME_ROMS *r, int extra_xor);
+void cmc42_neogeo_gfx_decrypt(GAME_ROMS *r, int extra_xor);
+void neogeo_bootleg_cx_decrypt(GAME_ROMS *r);
+void neogeo_bootleg_sx_decrypt(GAME_ROMS *r, int extra_xor);
 void svcpcb_gfx_decrypt(GAME_ROMS *r);
 void svcpcb_s1data_decrypt(GAME_ROMS *r);
 void neo_pcm2_swap(GAME_ROMS *r, int value);
 void neo_pcm2_snk_1999(GAME_ROMS *r, int value);
+void neogeo_cmc50_m1_decrypt(GAME_ROMS *r);
 
 int neogeo_fix_bank_type = 0;
 
-const int bankoffset_kof99[64] = {
+int bankoffset_kof99[64] = {
 	0x000000, 0x100000, 0x200000, 0x300000,
 	0x3cc000, 0x4cc000, 0x3f2000, 0x4f2000,
 	0x407800, 0x507800, 0x40d000, 0x50d000,
@@ -62,10 +67,10 @@ const int bankoffset_kof99[64] = {
 	0x598000,	/* rest not used? */
 };
 /* addr,uncramblecode,.... */
-const Uint8 scramblecode_kof99[7] = {
+Uint8 scramblecode_kof99[7] = {
 	0xF0,14,6,8,10,12,5,
 };
-const int bankoffset_garou[64] = {
+int bankoffset_garou[64] = {
 	0x000000, 0x100000, 0x200000, 0x300000, // 00
 	0x280000, 0x380000, 0x2d0000, 0x3d0000, // 04
 	0x2f0000, 0x3f0000, 0x400000, 0x500000, // 08
@@ -81,10 +86,10 @@ const int bankoffset_garou[64] = {
 	0x5d0000, 0x5d8000, 0x5e0000, 0x5e8000, // 48
 	0x5f0000, 0x5f8000, 0x600000, /* rest not used? */
 };
-const Uint8 scramblecode_garou[7] = {
+Uint8 scramblecode_garou[7] = {
 	0xC0,5,9,7,6,14,12,
 };
-const int bankoffset_garouo[64] = {
+int bankoffset_garouo[64] = {
 	0x000000, 0x100000, 0x200000, 0x300000, // 00
 	0x280000, 0x380000, 0x2d0000, 0x3d0000, // 04
 	0x2c8000, 0x3c8000, 0x400000, 0x500000, // 08
@@ -102,11 +107,11 @@ const int bankoffset_garouo[64] = {
 	0x000000, 0x000000, 0x000000, 0x000000, // 56
 	0x000000, 0x000000, 0x000000, 0x000000, // 60
 };
-const Uint8 scramblecode_garouo[7]={
+Uint8 scramblecode_garouo[7]={
 	0xC0,4,8,14,2,11,13,
 };
 
-const int bankoffset_mslug3[64] = {
+int bankoffset_mslug3[64] = {
 	0x000000, 0x020000, 0x040000, 0x060000, // 00
 	0x070000, 0x090000, 0x0b0000, 0x0d0000, // 04
 	0x0e0000, 0x0f0000, 0x120000, 0x130000, // 08
@@ -121,10 +126,10 @@ const int bankoffset_mslug3[64] = {
 	0x460000, 0x470000, 0x4a0000, 0x4b0000, // 44
 	0x4c0000, /* rest not used? */
 };
-const Uint8 scramblecode_mslug3[7] = {
+Uint8 scramblecode_mslug3[7] = {
 	0xE4,14,12,15,6,3,9,
 };
-const int bankoffset_kof2000[64] = {
+int bankoffset_kof2000[64] = {
 	0x000000, 0x100000, 0x200000, 0x300000, // 00
 	0x3f7800, 0x4f7800, 0x3ff800, 0x4ff800, // 04
 	0x407800, 0x507800, 0x40f800, 0x50f800, // 08
@@ -135,12 +140,12 @@ const int bankoffset_kof2000[64] = {
 	0x52d000, 0x62d000, 0x52e800, 0x62e800, // 28
 	0x618000, 0x619000, 0x61a000, 0x61a800, // 32
 };
-const Uint8 scramblecode_kof2000[7] = {
+Uint8 scramblecode_kof2000[7] = {
 	0xEC,15,14,7,3,10,5,
 };
 
-
-
+#define LOAD_BUF_SIZE (128*1024)
+static Uint8* iloadbuf=NULL;
 
 /* Some utility function  */
 /* Get the file szFileName in the zip.
@@ -1094,34 +1099,34 @@ static int zip_seek_current_file(ZFILE *gz,Uint32 offset) {
 
 }
 static int read_data_i(ZFILE *gz,ROM_REGION *r,Uint32 dest,Uint32 size) {
-	Uint8 *buf;
+	//Uint8 *buf;
 	Uint8 *p=r->p+dest;
-	Uint32 s=64*1024,c,i;
+	Uint32 s=LOAD_BUF_SIZE,c,i;
 	if (r->p==NULL || r->size<(dest&~0x1)+(size*2)) {
 		printf("Region not allocated or not big enough %08x %08x\n",r->size,dest+(size*2));
 		return -1;
 	}
-	buf=malloc(s);
-	if (!buf) return -1;
+	//buf=malloc(s);
+	if (!iloadbuf) return -1;
 
 	while (size) {
 		c = size;
 		if (c > s)
 			c = s;
 
-		c = gn_unzip_fread(gz, buf, c);
+		c = gn_unzip_fread(gz, iloadbuf, c);
 		if (c == 0) {
-			free(buf);
+			//free(buf);
 			return 0;
 		}
 		for (i = 0; i < c; i++) {
 			//printf("%d %d\n",i,c);
-			*p = buf[i];
+			*p = iloadbuf[i];
 			p += 2;
 		}
 		size -= c;
 	}
-	free(buf);
+	//free(buf);
 	return 0;
 }
 static int read_data_p(ZFILE *gz,ROM_REGION *r,Uint32 dest,Uint32 size) {
@@ -1320,6 +1325,20 @@ int dr_load_bios(GAME_ROMS *r) {
 	return 0;
 }
 
+ROM_DEF *dr_check_zip(char *filename) {
+	char *game=strdup(basename(filename));
+	char *z;
+	ROM_DEF *drv;
+	printf("Game=%s\n",game);
+	if (game==NULL) return NULL;
+	z=strstr(game,".zip");
+	printf("z=%s\n",game);
+	if (z==NULL) return NULL;
+	z[0]=0;
+	drv=res_load_drv(game);
+	return drv;
+}
+
 int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 	//unzFile *gz,*gzp=NULL,*rdefz;
 	PKZIP *gz,*gzp=NULL;
@@ -1390,6 +1409,8 @@ int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 		allocate_region(&r->bios_sfix,drv->romsize[REGION_FIXED_LAYER_BIOS],REGION_FIXED_LAYER_BIOS);
 	}
 
+	iloadbuf=malloc(LOAD_BUF_SIZE);
+
 	/* Now, load the roms */
 	gn_init_pbar("Loading");
 	for(i=0;i<drv->nb_romfile;i++) {
@@ -1446,6 +1467,7 @@ int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name) {
 	memset(memory.pen_usage, 0, (r->tiles.size >> 11) * sizeof(Uint32));
 	memory.nb_of_tiles = r->tiles.size >> 7;
 
+	free(iloadbuf);
 
 	/* Init rom and bios */
 	init_roms(r);

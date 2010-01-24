@@ -287,6 +287,7 @@ void cf_print_help(void) {
 		printf("      --");
 	    switch (cf->type) {
 	    case CFT_ARRAY:
+	    case CFT_STR_ARRAY:
 	    case CFT_STRING:
 	    case CFT_ACTION_ARG:
 	    case CFT_INT:
@@ -455,7 +456,7 @@ void cf_init(void)
 #endif
 #ifdef GP2X
     cf_create_string_item("p1control","Player1 control configutation","...",0,
-			  "UP=J0B0,DOWN=J0B4,LEFT=J0B2,RIGHT=J0B6,A=J0B14,B=J0B13,C=J0B12,D=J0B15,COIN=J0B9,START=J0B8");
+			  "UP=J0B0,DOWN=J0B4,LEFT=J0B2,RIGHT=J0B6,A=J0B14,B=J0B13,C=J0B12,D=J0B15,COIN=J0B9,START=J0B8,HOTKEY1=J0B10,HOTKEY2=J0B11");
     cf_create_string_item("p2control","Player2 control configutation","...",0,"");
 #else
     /* TODO: Make Querty default instead of azerty */
@@ -582,6 +583,9 @@ SDL_bool cf_save_file(char *filename,int flags) {
 			case CFT_ACTION:
 			case CFT_ACTION_ARG:
 				break;
+			case CFT_STR_ARRAY:
+				printf("TODO: Save CFT_STR_ARRAY\n");
+				break;
 			}
 		} else
 			fprintf(f_dst,"%s\n",buf);	
@@ -616,6 +620,9 @@ SDL_bool cf_save_file(char *filename,int flags) {
 		    case CFT_ACTION_ARG:
 			    /* action are not available in the conf file */
 			    break;
+			case CFT_STR_ARRAY:
+				printf("TODO: Save CFT_STR_ARRAY\n");
+				break;
 		    }
 	}
     }
@@ -754,6 +761,7 @@ void cf_init_cmd_line(void) {
 
 	    switch(cf->type) {
 	    case CFT_ARRAY:
+	    case CFT_STR_ARRAY:
 	    case CFT_STRING:
 	    case CFT_INT:
 	    case CFT_ACTION_ARG:
@@ -816,6 +824,9 @@ char* cf_parse_cmd_line(int argc, char *argv[]) {
 					if (cf->action) {
 						exit(cf->action(cf));
 					}
+					break;
+				case CFT_STR_ARRAY:
+					/* TODO */
 					break;
 				}
 			}

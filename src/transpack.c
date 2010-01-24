@@ -50,6 +50,17 @@ TRANS_PACK* trans_pack_find(Uint32 tile)
     return NULL;
 }
 
+void trans_pack_free(void) {
+    TRANS_PACK *t=tile_trans;
+    TRANS_PACK *p;
+    while(t!=NULL) {
+    	p=t;
+    	t=t->next;
+    	free(p);
+    }
+    tile_trans=NULL;
+}
+
 /* Open a Nebula Transparency pack */
 void trans_pack_open(char *filename)
 {

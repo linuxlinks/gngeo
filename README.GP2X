@@ -2,8 +2,10 @@
 Here is the port of gngeo to the GP2X.
 
 Compilation from source:
-# ./configure --build=i386 --host=arm-linux --target=arm-linux --enable-gp2x=yes --disable-i386asm --enable-cyclone --enable-drz80
+# ./configure --host=open2x-linux --enable-gp2x=yes --with-sdl-prefix=[Path to your gp2x SDL] --disable-sdltest
 # make
+
+TODO: Almost everything bellow this line is outdated.
 
 Instalation:
 - Just unzip the dist in a dir call gngeo or whatever

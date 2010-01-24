@@ -3209,7 +3209,7 @@ void YM2610Update_stream(int length)
 }
 
 
-void YM2610Update(int p)
+void YM2610Update(int *p)
 {
 	int i;
 	s16 *buffer = (s16 *)p;
