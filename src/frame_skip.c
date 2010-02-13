@@ -112,7 +112,6 @@ int frame_skip(int init)
     static unsigned int nbFrame_moy = 0;
     static int nbFrame_min = 1000;
     static int nbFrame_max = 0;
-    static unsigned int totalFrame = 0;
     static int skpFrm = 0;
     static int count = 0;
     static int moy=60;

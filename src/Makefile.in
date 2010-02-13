@@ -189,7 +189,7 @@ bin_PROGRAMS = gngeo
 gngeo_SOURCES = fileio.c         pd4990a.c        gngeo_icon.h      crypt.h         \
 		sound.h          video.c          fileio.h          profiler.c      \
 		main.c           pd4990a.h        video.h           list.c          \
-		memory.c         profiler.h       ioapi.h           list.h          \
+		memory.c         profiler.h                list.h          \
 		blitter.h        font.h           memory.h          resfile.c       \
 		timer.c          effect.h         frame_skip.c      messages.c      \
 		screen.c         timer.h          emu.c             frame_skip.h    \
@@ -197,8 +197,8 @@ gngeo_SOURCES = fileio.c         pd4990a.c        gngeo_icon.h      crypt.h     
 		neocrypt.c       sound.c          unzip.c           resfile.h       \
 		debug.c          debug.h          neocrypt.h	    state.c         \
 		state.h          video_template.h conf.c            conf.h          \
-		transpack.h      transpack.c      pbar.h            pbar.c          \
-		menu.c           menu.h           ioapi.c                      \
+		transpack.h      transpack.c              \
+		menu.c           menu.h           \
 			         roms.h           roms.c            mame_layer.h    \
 		mame_layer.c     neoboot.c        event.h           event.c         \
 		stb_image.c      stb_image.h      stb_zlib.c		stb_zlib.h       \
@@ -221,17 +221,16 @@ PROGRAMS = $(bin_PROGRAMS)
 
 am__gngeo_SOURCES_DIST = fileio.c pd4990a.c gngeo_icon.h crypt.h sound.h \
 	video.c fileio.h profiler.c main.c pd4990a.h video.h list.c \
-	memory.c profiler.h ioapi.h list.h blitter.h font.h memory.h \
-	resfile.c timer.c effect.h frame_skip.c messages.c screen.c \
-	timer.h emu.c frame_skip.h messages.h screen.h unzip.h emu.h \
-	neocrypt.c sound.c unzip.c resfile.h debug.c debug.h neocrypt.h \
-	state.c state.h video_template.h conf.c conf.h transpack.h \
-	transpack.c pbar.h pbar.c menu.c menu.h ioapi.c roms.h roms.c \
-	mame_layer.h mame_layer.c neoboot.c event.h event.c stb_image.c \
-	stb_image.h stb_zlib.c stb_zlib.h video_arm.s memcpy.S gp2x.h \
-	gp2x.c gui_interf.c gui_interf.h cyclone_interf.c star_interf.c \
-	generator68k_interf.c drz80_interf.c raze_interf.c \
-	mamez80_interf.c
+	memory.c profiler.h list.h blitter.h font.h memory.h resfile.c \
+	timer.c effect.h frame_skip.c messages.c screen.c timer.h emu.c \
+	frame_skip.h messages.h screen.h unzip.h emu.h neocrypt.c \
+	sound.c unzip.c resfile.h debug.c debug.h neocrypt.h state.c \
+	state.h video_template.h conf.c conf.h transpack.h transpack.c \
+	menu.c menu.h roms.h roms.c mame_layer.h mame_layer.c neoboot.c \
+	event.h event.c stb_image.c stb_image.h stb_zlib.c stb_zlib.h \
+	video_arm.s memcpy.S gp2x.h gp2x.c gui_interf.c gui_interf.h \
+	cyclone_interf.c star_interf.c generator68k_interf.c \
+	drz80_interf.c raze_interf.c mamez80_interf.c
 @HAVE_NASM_FALSE@@USE_GP2X_TRUE@am__objects_1 = video_arm.$(OBJEXT) \
 @HAVE_NASM_FALSE@@USE_GP2X_TRUE@	memcpy.$(OBJEXT) gp2x.$(OBJEXT)
 @USE_GUI_TRUE@am__objects_2 = gui_interf.$(OBJEXT)
@@ -251,11 +250,10 @@ am_gngeo_OBJECTS = fileio.$(OBJEXT) pd4990a.$(OBJEXT) video.$(OBJEXT) \
 	frame_skip.$(OBJEXT) messages.$(OBJEXT) screen.$(OBJEXT) \
 	emu.$(OBJEXT) neocrypt.$(OBJEXT) sound.$(OBJEXT) \
 	unzip.$(OBJEXT) debug.$(OBJEXT) state.$(OBJEXT) conf.$(OBJEXT) \
-	transpack.$(OBJEXT) pbar.$(OBJEXT) menu.$(OBJEXT) \
-	ioapi.$(OBJEXT) roms.$(OBJEXT) mame_layer.$(OBJEXT) \
-	neoboot.$(OBJEXT) event.$(OBJEXT) stb_image.$(OBJEXT) \
-	stb_zlib.$(OBJEXT) $(am__objects_1) $(am__objects_2) \
-	$(am__objects_3) $(am__objects_4)
+	transpack.$(OBJEXT) menu.$(OBJEXT) roms.$(OBJEXT) \
+	mame_layer.$(OBJEXT) neoboot.$(OBJEXT) event.$(OBJEXT) \
+	stb_image.$(OBJEXT) stb_zlib.$(OBJEXT) $(am__objects_1) \
+	$(am__objects_2) $(am__objects_3) $(am__objects_4)
 gngeo_OBJECTS = $(am_gngeo_OBJECTS)
 @HAVE_NASM_FALSE@@USE_CYCLONE_FALSE@@USE_DRZ80_FALSE@@USE_GENERATOR68K_FALSE@@USE_GP2X_FALSE@@USE_GUI_FALSE@@USE_MAMEZ80_FALSE@@USE_RAZE_FALSE@@USE_STARSCREAM_TRUE@gngeo_DEPENDENCIES = \
 @HAVE_NASM_FALSE@@USE_CYCLONE_FALSE@@USE_DRZ80_FALSE@@USE_GENERATOR68K_FALSE@@USE_GP2X_FALSE@@USE_GUI_FALSE@@USE_MAMEZ80_FALSE@@USE_RAZE_FALSE@@USE_STARSCREAM_TRUE@	effect/libeffect.a \
@@ -2861,19 +2859,19 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/frame_skip.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/generator68k_interf.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/gp2x.Po ./$(DEPDIR)/gui_interf.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ioapi.Po ./$(DEPDIR)/list.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/main.Po ./$(DEPDIR)/mame_layer.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/list.Po ./$(DEPDIR)/main.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mame_layer.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mamez80_interf.Po ./$(DEPDIR)/memory.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/menu.Po ./$(DEPDIR)/messages.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/neoboot.Po ./$(DEPDIR)/neocrypt.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/pbar.Po ./$(DEPDIR)/pd4990a.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/profiler.Po ./$(DEPDIR)/raze_interf.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/resfile.Po ./$(DEPDIR)/roms.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/screen.Po ./$(DEPDIR)/sound.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/star_interf.Po ./$(DEPDIR)/state.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/stb_image.Po ./$(DEPDIR)/stb_zlib.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/timer.Po ./$(DEPDIR)/transpack.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/unzip.Po ./$(DEPDIR)/video.Po
+@AMDEP_TRUE@	./$(DEPDIR)/pd4990a.Po ./$(DEPDIR)/profiler.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/raze_interf.Po ./$(DEPDIR)/resfile.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/roms.Po ./$(DEPDIR)/screen.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/sound.Po ./$(DEPDIR)/star_interf.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/state.Po ./$(DEPDIR)/stb_image.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/stb_zlib.Po ./$(DEPDIR)/timer.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/transpack.Po ./$(DEPDIR)/unzip.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/video.Po
 CCASCOMPILE = $(CCAS) $(AM_CCASFLAGS) $(CCASFLAGS)
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -2945,7 +2943,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/generator68k_interf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gp2x.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gui_interf.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ioapi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/list.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mame_layer.Po@am__quote@
@@ -2955,7 +2952,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/messages.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/neoboot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/neocrypt.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pbar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pd4990a.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/profiler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/raze_interf.Po@am__quote@

@@ -23,8 +23,8 @@
 #include <config.h>
 #endif
 
-#include <SDL.h>
-#include <SDL_endian.h>
+#include "SDL.h"
+#include "SDL_endian.h"
 #include "video.h"
 #include "ym2610/2610intf.h"
 #include "state.h"
@@ -86,7 +86,7 @@ typedef struct neo_mem {
 	GAME_ROMS rom;
 	Uint8 ram[0x10000];
 	VIDEO vid;
-	Uint8 *ng_lo;                           /* TODO: it's also in rom */
+	Uint8 *ng_lo;                          /* Put it in memory.vid? use zoom table in rom */
 
 	Uint32 nb_of_tiles;
 
@@ -118,7 +118,7 @@ typedef struct neo_mem {
 neo_mem memory;
 
 /* video related */
-extern int irq2start, irq2control;
+//extern int irq2start, irq2control;
 Uint8 *current_pal;
 Uint32 *current_pc_pal;
 Uint8 *current_fix;
@@ -174,6 +174,7 @@ void cpu_z80_fill_state(Z80_STATE *st);
 
 /* memory handler prototype */
 void neogeo_sound_irq(int irq);
+
 
 #define LONG_FETCH(fetchname) Uint32 fetchname ## _long(Uint32 addr) { \
       return (fetchname ## _word(addr) << 16) |	fetchname ## _word(addr+2); \

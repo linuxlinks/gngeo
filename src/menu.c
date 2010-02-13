@@ -59,8 +59,7 @@ static SDL_Surface *back;
 static GNFONT *sfont;
 static GNFONT *mfont;
 static SDL_Surface *gngeo_logo;
-static SDL_Surface *pbar;
-static SDL_Surface *pbar_back;
+
 static SDL_Surface *arrow_l,*arrow_r;
 static int interp;
 
@@ -92,7 +91,6 @@ GNFONT *load_font(char *file) {
 	int i;
 	int x=0;
 	Uint32 *b;
-	Uint32 fpix;
 	if (!ft) return NULL;
 
 	ft->bmp=res_load_stbi(file);
@@ -203,7 +201,6 @@ void draw_string(SDL_Surface *dst,GNFONT *f,int x,int y,char *str) {
 
 static void draw_back(void) {
 	SDL_Rect dst_r={24,16,304,224};
-	static SDL_Rect buf_rect    =	{24, 16, 304, 224};
 	static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
 	if (back) {
 		//SDL_BlitSurface(buffer,NULL,menu_buf,NULL);
@@ -335,7 +332,6 @@ int gn_popup_question(char *name,char *fmt,...) {
 	char buf[512];
 	va_list pvar;
 	va_start(pvar,fmt);
-	int rc;
 
 	draw_back();
 
@@ -361,7 +357,6 @@ int gn_popup_question(char *name,char *fmt,...) {
 //#define NB_ITEM_2 4
 
 static void draw_menu(GN_MENU *m) {
-	SDL_Event event;
 	int start,end,i;
 	int nb_item;
 	GNFONT *fnt;
@@ -545,11 +540,7 @@ static int save_state_action(GN_MENU_ITEM *self,void *param) {
 }
 
 
-static int old_save_state_action(GN_MENU_ITEM *self,void *param) {
-	save_state(conf.game,0);
-	printf("Save state!!\n");
-	return 0;
-}
+
 static int exit_action(GN_MENU_ITEM *self,void *param) {
 	//exit(0);
 	return 2;
@@ -607,9 +598,19 @@ int icasesort(const struct dirent **a, const struct dirent **b) {
 	return strcasecmp(ca,cb);
 }
 
+static int loadrom_action(GN_MENU_ITEM *self,void *param) {
+	printf("Loading %s\n",self->name);
+	close_game();
+    if (init_game(self->name)!=SDL_TRUE) {
+	    printf("Can't init %s...\n",self->name);
+            return 2;
+    }
+    neogeo_reset();
+	return 1;
+}
 
 void init_rom_browser_menu(void) {
-	int i; char buf[35];
+	int i;
 	int nbf;
 	char filename[strlen(CF_STR(cf_get_item_by_name("rompath")))+256];
 	struct stat filestat;
@@ -634,7 +635,7 @@ void init_rom_browser_menu(void) {
 				printf("File %s\n",filename);
 				if ((drv=dr_check_zip(filename))!=NULL) {
 					rbrowser_menu->item=list_append(rbrowser_menu->item,
-									(void*)gn_menu_create_item(drv->name,ACTION,NULL));
+									(void*)gn_menu_create_item(drv->name,ACTION,loadrom_action));
 					rbrowser_menu->nb_elem++;
 				}
 			}
@@ -674,7 +675,6 @@ static int rbrowser_action(GN_MENU_ITEM *self,void *param) {
 }
 
 void gn_init_menu(void) {
-	int i; char buf[24];
 
 	main_menu=malloc(sizeof(GN_MENU));
 	main_menu->title="Gngeo";

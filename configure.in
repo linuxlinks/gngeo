@@ -208,10 +208,10 @@ esac
 #else
 #	enable_gui=false
 #fi
-GN_ARG_ENABLE(gl2,[--enable-gl2           Use an other opengl blitter (may help some driver)])
-if test "$enable_gl2" = yes ; then
+#GN_ARG_ENABLE(gl_old,[--enable-gl_old        Use the old opengl blitter])
+#if test "$enable_gl_old" = no ; then
 	AC_DEFINE([USE_GL2],[1],[Define to use alternative opengl blitter])
-fi
+#fi
 
 #echo "CPU68K STAR    = $use_starscream $choice_68k"
 #echo "CPU68K GEN68K  = $use_generator68k $choice_68k"
@@ -318,7 +318,7 @@ dnl Check for processor.
            AC_DEFINE(PROCESSOR_ADM64, 1, [Define if you have an x86_64 processor])
            ALIGNLONGS=0
 	   if test $CC_MAJOR -ge 3 ; then
-		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -Wno-unused -funroll-loops \
+		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -funroll-loops \
                     -ffast-math  -fexpensive-optimizations \
                      -malign-double -fomit-frame-pointer -g \
 		    -fno-strict-aliasing -pipe -DCPU=$target_cpu"

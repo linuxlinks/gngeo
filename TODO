@@ -19,3 +19,59 @@ Effect doesn't work with Hardware surface
 Gowcaizer is slow with raster
 OverTop freeze with raster
 ...
+
+
+
+
+TODO For ng (With generator68k, mamez80, sp-s2.sp1 bios)
+3countb: reset after neogeo logo
+aodk: crash just after loading. RESET @ 9000
+bjourney: crash just after loading. RESET @ 991c
+crsword: crash just after loading. RESET  @ b3be
+ct2k3sa: Graphical and sound glitch
+ct2k3sp: Crash after bios: Invalid instruction @ 0006002F [028B]
+cthd2003: idem
+diggerma: don't crash but: 
+mem68k_store_setting_word USED????
+	Invalid write w 0 10 
+	Invalid write w 2 f300 
+	Invalid write w 80 c0 
+	Invalid write w 82 402 
+	Invalid write w 100 c0 
+	Invalid write w 102 408 
+	Invalid write w 4 c0 
+	Invalid write w 6 40e 
+	Invalid write w 84 c0 
+	Invalid write w 86 414 
+	Invalid write w 104 0 
+	Invalid write w 106 34c 
+	Invalid write w 8 0 
+	Invalid write w a 34e 
+	Invalid write w 88 0 
+	Invalid write w 8a 34e 
+	Invalid write w 108 c0 
+	Invalid write w 10a 41a 
+	Invalid write w 0 10 
+	Invalid write w 2 f300 
+	Invalid write w 80 c0 
+	Invalid write w 82 402 
+	Invalid write w 100 c0 
+	Invalid write w 102 408 
+	Invalid write w 4 c0 
+	Invalid write w 6 40e 
+	Invalid write w 84 c0 
+	Invalid write w 86 414 
+	Invalid write w 104 0 
+	Invalid write w 106 34c 
+	Invalid write w 8 0 
+	Invalid write w a 34e 
+	Invalid write w 88 0 
+	Invalid write w 8a 34e 
+	Invalid write w 108 c0 
+	Invalid write w 10a 41a 
+fatfury2: Lot of bankswitch_b, normal ?...
+fatfury3: issue with watchdog protection. ok with unibios
+En cours: flipshot
+
+
+

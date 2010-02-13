@@ -65,13 +65,16 @@ static struct {
 /*
 static int default_key1[] = { 119, 120, 113, 115, 38, 34, 273, 274, 276, 275 };
 static int default_key2[] = { 108, 109, 111, 112, 233, 39, 264, 261, 260, 262 };
-*/
-/* Now the default conf is for qwerty keyboard */
+
 static int default_key1[] = { 122, 120, 97 , 115, 49, 51, 273, 274, 276, 275, -1, -1, -1, -1 };
 static int default_key2[] = { 108, 59 , 111, 112, 50, 52, 264, 261, 260, 262, -1, -1, -1, -1 };
 static int default_joy1[] = { 2, 3, 0, 1, 5, 4, 0, 1, 1, 1, -1, -1, -1, -1 };
 static int default_joy2[] = { 1, 0, 3, 2, 7, 6, 0, 1, 1, 1, -1, -1, -1, -1 };
+*/
+#ifdef GP2X
 static int default_tvoffset[] = {0,0};
+#endif
+
 static int default_p1hotkey0[] = { 0,0,0,0 };
 static int default_p1hotkey1[] = { 0,0,0,0 };
 static int default_p1hotkey2[] = { 0,0,0,0 };
@@ -405,7 +408,6 @@ static int dump_sprite(CONF_ITEM *self) {
 
 void cf_init(void)
 {
-    CONF_ITEM *t;
 
     cf_create_action_item("help","Print this help and exit",'h',print_help);
     cf_create_action_item("listgame","Show all the game available in the romrc",'l',show_all_game);
@@ -789,7 +791,7 @@ void cf_init_cmd_line(void) {
 }
 
 char* cf_parse_cmd_line(int argc, char *argv[]) {
-	int i,j,c;
+	int c;
 	CONF_ITEM *cf;
  
 

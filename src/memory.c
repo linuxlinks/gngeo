@@ -34,8 +34,8 @@
 //int irq2enable, irq2start, irq2repeat = 1000, irq2control, irq2taken;
 //int lastirq2line = 1000;
 //int irq2repeat_limit;
-int irq2start, irq2control, irq2taken;
-Uint32 irq2pos_value;
+//int irq2start, irq2control, irq2taken;
+//Uint32 irq2pos_value;
 Uint32 bankaddress = 0;
 
 //int neogeo_irq2type = 0;
@@ -159,9 +159,7 @@ void neogeo_sound_irq(int irq) {
 }
 
 static __inline__ Uint16 read_neo_control(void) {
-	int irq_bit;
-	unsigned int scan, bm_pos;
-	//static int cycles;
+	unsigned int scan;
 
 	if (!conf.raster) {
 
@@ -199,15 +197,15 @@ static __inline__ Uint16 read_neo_control(void) {
 
 __inline__ void write_neo_control(Uint16 data) {
 	neogeo_frame_counter_speed = (((data >> 8) & 0xff) + 1);
-	irq2control = data & 0xff;
+	memory.vid.irq2control = data & 0xff;
 	return;
 }
 
 __inline__ void write_irq2pos(Uint32 data) {
-	irq2pos_value = data;
-	if (irq2control & 0x20) {
-		int line = (irq2pos_value + 0x3b) / 0x180; /* turfmast goes as low as 0x145 */
-		irq2start = line + current_line;
+	memory.vid.irq2pos = data;
+	if (memory.vid.irq2control & 0x20) {
+		int line = (memory.vid.irq2pos + 0x3b) / 0x180; /* turfmast goes as low as 0x145 */
+		memory.vid.irq2start = line + current_line;
 	}
 }
 
@@ -422,7 +420,6 @@ LONG_FETCH(mem68k_fetch_video)
 
 /**** CONTROLLER ****/
 Uint8 mem68k_fetch_ctl1_byte(Uint32 addr) {
-	Uint8 a;
 	addr &= 0xFFFF;
 	if (addr == 0x00)
 		return memory.intern_p1;
@@ -483,7 +480,6 @@ Uint32 mem68k_fetch_ctl3_long(Uint32 addr) {
 }
 
 Uint8 mem68k_fetch_coin_byte(Uint32 addr) {
-	int a;
 	addr &= 0xFFFF;
 	if (addr == 0x1) {
 		int coinflip = read_4990_testbit();
@@ -712,7 +708,7 @@ void mem68k_store_video_word(Uint32 addr, Uint16 data) {
 	case 0x2:
 		//printf("Store %04x to video %08x @pc=%08x\n",data,vptr<<1,cpu_68k_getpc());
 		WRITE_WORD(&memory.vid.ram[memory.vid.vptr << 1], data);
-		memory.vid.vptr = (memory.vid.vptr & 0x10000) + ((memory.vid.vptr
+		memory.vid.vptr = /*(memory.vid.vptr & 0x10000) +*/ ((memory.vid.vptr
 				+ memory.vid.modulo) & 0xffff);
 		break;
 	case 0x4:
@@ -722,10 +718,10 @@ void mem68k_store_video_word(Uint32 addr, Uint16 data) {
 		write_neo_control(data);
 		break;
 	case 0x8:
-		write_irq2pos((irq2pos_value & 0xffff) | ((Uint32) data << 16));
+		write_irq2pos((memory.vid.irq2pos & 0xffff) | ((Uint32) data << 16));
 		break;
 	case 0xa:
-		write_irq2pos((irq2pos_value & 0xffff0000) | (Uint32) data);
+		write_irq2pos((memory.vid.irq2pos & 0xffff0000) | (Uint32) data);
 		break;
 	case 0xc:
 		/* games write 7 or 4 at 0x3c000c at every frame */
@@ -980,7 +976,7 @@ static void bankswitch(Uint32 address, Uint8 data) {
 
 void mem68k_store_bk_normal_byte(Uint32 addr, Uint8 data) {
 	//if (addr<0x2FFFF0)
-	printf("bankswitch_b %x %x\n", addr, data);
+	//printf("bankswitch_b %x %x\n", addr, data);
 	bankswitch(addr, data);
 }
 

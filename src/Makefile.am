@@ -62,7 +62,7 @@ bin_PROGRAMS = gngeo
 gngeo_SOURCES = fileio.c         pd4990a.c        gngeo_icon.h      crypt.h         \
 		sound.h          video.c          fileio.h          profiler.c      \
 		main.c           pd4990a.h        video.h           list.c          \
-		memory.c         profiler.h       ioapi.h           list.h          \
+		memory.c         profiler.h                list.h          \
 		blitter.h        font.h           memory.h          resfile.c       \
 		timer.c          effect.h         frame_skip.c      messages.c      \
 		screen.c         timer.h          emu.c             frame_skip.h    \
@@ -70,8 +70,8 @@ gngeo_SOURCES = fileio.c         pd4990a.c        gngeo_icon.h      crypt.h     
 		neocrypt.c       sound.c          unzip.c           resfile.h       \
 		debug.c          debug.h          neocrypt.h	    state.c         \
 		state.h          video_template.h conf.c            conf.h          \
-		transpack.h      transpack.c      pbar.h            pbar.c          \
-		menu.c           menu.h           ioapi.c                      \
+		transpack.h      transpack.c              \
+		menu.c           menu.h           \
 			         roms.h           roms.c            mame_layer.h    \
 		mame_layer.c     neoboot.c        event.h           event.c         \
 		stb_image.c      stb_image.h      stb_zlib.c		stb_zlib.h       \

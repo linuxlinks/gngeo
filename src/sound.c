@@ -53,7 +53,9 @@ Uint16 play_buffer[BUFFER_LEN];
 
 void update_sdl_stream(void *userdata, Uint8 * stream, int len)
 {
+#ifdef ENABLE_940T
 	static Uint32 play_buffer_pos;
+#endif
 	//printf("sdl %d\n", len);
 	PROFILER_START(PROF_SOUND);
 	//streamupdate(len);

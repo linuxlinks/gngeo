@@ -37,14 +37,8 @@ void profiler_show_stat(void)
 
     Uint32 all = prof_get_tick() - counter[PROF_ALL];
 
-    static Uint32 video=0, sound, blit, z80, m68k;
-/*
-    video = (video + (counter[PROF_VIDEO] * 100) / (float) all) / 2.0;
-    sound = (sound + (counter[PROF_SOUND] * 100) / (float) all) / 2.0;
-    blit = (blit + (counter[PROF_SDLBLIT] * 100) / (float) all) / 2.0;
-    z80 = (z80 + (counter[PROF_Z80] * 100) / (float) all) / 2.0;
-    m68k = (m68k + (counter[PROF_68K] * 100) / (float) all) / 2.0;
-*/
+    static Uint32 video=0;
+
     if (counter[PROF_VIDEO]>video) video=counter[PROF_VIDEO];
     
     //sprintf(buffer, "V: %02d A: %02d M: %02d Z:%02d", video, sound, z80, m68k);

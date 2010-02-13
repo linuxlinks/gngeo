@@ -85,7 +85,6 @@ void YM2610UpdateRequest(void)
 
 int YM2610_sh_start(void)
 {
-    int j;
     int rate = conf.sample_rate;
     //char buf[YM2610_NUMBUF][40];
     void *pcmbufa, *pcmbufb;

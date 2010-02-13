@@ -88,11 +88,7 @@ void sdl_set_title(char *name) {
     }
 }
 
-void init_sdl(void /*char *rom_name*/)
-{
-    Uint32 sdl_flag = 0;
-    //char title[32] = "Gngeo : ";
-    int i;
+void init_sdl(void /*char *rom_name*/) {
     int surface_type = (CF_BOOL(cf_get_item_by_name("hwsurface"))? SDL_HWSURFACE : SDL_SWSURFACE);
 
 
@@ -137,11 +133,8 @@ void init_sdl(void /*char *rom_name*/)
 int main(int argc, char *argv[])
 {
     char *rom_name;
-    int nopt;
     char *drconf,*gpath;
-    Uint8 gui_res,gngeo_quit=0;
-    char *country;
-    char *system;
+
 
 #ifdef __AMIGA__
     BPTR file_lock = GetProgramDir();
@@ -206,9 +199,10 @@ int main(int argc, char *argv[])
     else
 	    main_loop();
 
-
+    close_game();
+    /*
     save_nvram(conf.game);
     save_memcard(conf.game);
-
+*/
     return 0;
 }

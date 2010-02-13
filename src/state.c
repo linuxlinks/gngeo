@@ -464,9 +464,9 @@ void neogeo_init_save_state(void) {
     //create_state_register(ST_NEOGEO,"pal2",1,(void *)memory.pal2,0x2000,REG_UINT8);
     create_state_register(ST_NEOGEO,"video",1,(void *)memory.vid.ram,0x20000,REG_UINT8);
 //    create_state_register(ST_NEOGEO,"irq2enable",1,(void *)&irq2enable,sizeof(Uint16),REG_UINT16);
-    create_state_register(ST_NEOGEO,"irq2start",1,(void *)&irq2start,sizeof(Uint16),REG_UINT16);
+//    create_state_register(ST_NEOGEO,"irq2start",1,(void *)&irq2start,sizeof(Uint16),REG_UINT16);
 //    create_state_register(ST_NEOGEO,"irq2repeat",1,(void *)&irq2repeat,sizeof(Uint16),REG_UINT16);
-    create_state_register(ST_NEOGEO,"irq2control",1,(void *)&irq2control,sizeof(Uint16),REG_UINT16);
+//    create_state_register(ST_NEOGEO,"irq2control",1,(void *)&irq2control,sizeof(Uint16),REG_UINT16);
 //    create_state_register(ST_NEOGEO,"lastirq2line",1,(void *)&lastirq2line,sizeof(Uint16),REG_UINT16);
     create_state_register(ST_NEOGEO,"fc_speed",1,(void *)&neogeo_frame_counter_speed,sizeof(Sint32),REG_INT32);
     create_state_register(ST_NEOGEO,"fc",1,(void *)&neogeo_frame_counter,sizeof(Sint32),REG_INT32);

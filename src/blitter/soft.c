@@ -209,7 +209,6 @@ int threaded_blit(void *buf)
 void
 blitter_soft_update()
 {
-    int i;
 #ifdef GP2X
     SDL_BlitSurface(buffer, &visible_area, screen, &screen_rect);
     SDL_Flip(screen);

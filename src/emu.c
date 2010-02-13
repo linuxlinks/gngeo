@@ -157,7 +157,7 @@ void setup_misc_patch(char *name) {
 
 }
 
-void neogeo_init(void) {
+void neogeo_reset(void) {
 	memory.vid.modulo = 1; /* TODO: Move to init_video */
 	sram_lock = 0;
 	sound_code = 0;
@@ -172,39 +172,18 @@ void neogeo_init(void) {
 		cpu_68k_bankswitch(0x100000);
 	else
 		cpu_68k_bankswitch(0);
-
-	neogeo_init_save_state();
+	cpu_68k_reset();
 }
 
 void init_neo(void) {
 #ifdef ENABLE_940T
 	int z80_overclk = CF_VAL(cf_get_item_by_name("z80clock"));
 #endif
-	/* allocation de la ram */
-	//memory.ram = (Uint8 *) malloc(0x10000);
-	//CHECK_ALLOC(memory.ram);
-	//memset(memory.ram, 0, 0x10000);
 
-
-	/* partie video */
-	/*
-	memory.pal1 = (Uint8 *) malloc(0x2000);
-	memory.pal2 = (Uint8 *) malloc(0x2000);
-	CHECK_ALLOC(memory.pal1);
-	CHECK_ALLOC(memory.pal2);
-
-	memory.pal_pc1 = (Uint8 *) malloc(0x4000);
-	memory.pal_pc2 = (Uint8 *) malloc(0x4000);
-	CHECK_ALLOC(memory.pal_pc1);
-	CHECK_ALLOC(memory.pal_pc2);
-	*/
-
-//	memory.vid.ram = (Uint8 *) malloc(0x20000);
-//	CHECK_ALLOC(memory.vid.ram);
-//	memset(memory.vid.ram, 0, 0x20000);
+	neogeo_init_save_state();
 
 	cpu_68k_init();
-	neogeo_init();
+//	neogeo_reset();
 	pd4990a_init();
 //	setup_misc_patch(rom_name);
 
@@ -228,7 +207,7 @@ void init_neo(void) {
 		conf.snd_st_reg_create = 1;
 	}
 
-	cpu_68k_reset();
+	neogeo_reset();
 }
 
 static void take_screenshot(void) {
@@ -274,7 +253,7 @@ static inline int neo_interrupt(void) {
 
 	pd4990a_addretrace();
 	// printf("neogeo_frame_counter_speed %d\n",neogeo_frame_counter_speed);
-	if (!(irq2control & 0x8)) {
+	if (!(memory.vid.irq2control & 0x8)) {
 		if (fc >= neogeo_frame_counter_speed) {
 			fc = 0;
 			neogeo_frame_counter++;
@@ -297,10 +276,10 @@ static inline int neo_interrupt(void) {
 
 static inline void update_screen(void) {
 
-	if (irq2control & 0x40)
-		irq2start = (irq2pos_value + 3) / 0x180; /* ridhero gives 0x17d */
+	if (memory.vid.irq2control & 0x40)
+		memory.vid.irq2start = (memory.vid.irq2pos + 3) / 0x180; /* ridhero gives 0x17d */
 	else
-		irq2start = 1000;
+		memory.vid.irq2start = 1000;
 
 	if (!skip_this_frame) {
 		if (last_line < 21) { /* there was no IRQ2 while the beam was in the visible area
@@ -327,19 +306,18 @@ static inline void update_screen(void) {
 }
 
 static inline int update_scanline(void) {
-	int i;
-	irq2taken = 0;
+	memory.vid.irq2taken = 0;
 
-	if (irq2control & 0x10) {
+	if (memory.vid.irq2control & 0x10) {
 
-		if (current_line == irq2start) {
-			if (irq2control & 0x80)
-				irq2start += (irq2pos_value + 3) / 0x180;
-			irq2taken = 1;
+		if (current_line == memory.vid.irq2start) {
+			if (memory.vid.irq2control & 0x80)
+				memory.vid.irq2start += (memory.vid.irq2pos + 3) / 0x180;
+			memory.vid.irq2taken = 1;
 		}
 	}
 
-	if (irq2taken) {
+	if (memory.vid.irq2taken) {
 		if (!skip_this_frame) {
 			if (last_line < 21)
 				last_line = 21;
@@ -351,357 +329,9 @@ static inline int update_scanline(void) {
 		last_line = current_line;
 	}
 	current_line++;
-	return irq2taken;
-}
-#ifdef GP2X
-void update_p1_key(void) {
-	int i;
-	int macrokey;
-	memory.intern_p1 = 0xFF;
-
-	if (joy_button[0][GP2X_X])
-		memory.intern_p1 &= 0xEF; // A
-	if (joy_button[0][GP2X_B])
-		memory.intern_p1 &= 0xDF; // B
-	if (joy_button[0][GP2X_A])
-		memory.intern_p1 &= 0xBF; // C
-	if (joy_button[0][GP2X_Y])
-		memory.intern_p1 &= 0x7F; // D
-
-	/* hotkey macros. 2 macro only on the GP2X L & R */
-	if (joy_button[0][GP2X_L]) {
-		if (conf.p1_hotkey[0] & HOTKEY_MASK_A)
-			memory.intern_p1 &= 0xEF;
-		if (conf.p1_hotkey[0] & HOTKEY_MASK_B)
-			memory.intern_p1 &= 0xDF;
-		if (conf.p1_hotkey[0] & HOTKEY_MASK_C)
-			memory.intern_p1 &= 0xBF;
-		if (conf.p1_hotkey[0] & HOTKEY_MASK_D)
-			memory.intern_p1 &= 0x7F;
-	}
-	if (joy_button[0][GP2X_R]) {
-		if (conf.p1_hotkey[1] & HOTKEY_MASK_A)
-			memory.intern_p1 &= 0xEF;
-		if (conf.p1_hotkey[1] & HOTKEY_MASK_B)
-			memory.intern_p1 &= 0xDF;
-		if (conf.p1_hotkey[1] & HOTKEY_MASK_C)
-			memory.intern_p1 &= 0xBF;
-		if (conf.p1_hotkey[1] & HOTKEY_MASK_D)
-			memory.intern_p1 &= 0x7F;
-	}
-
-	if (joy_button[0][GP2X_UP])
-		memory.intern_p1 &= 0xFE;
-	if (joy_button[0][GP2X_DOWN])
-		memory.intern_p1 &= 0xFD;
-	if (joy_button[0][GP2X_LEFT])
-		memory.intern_p1 &= 0xFB;
-	if (joy_button[0][GP2X_RIGHT])
-		memory.intern_p1 &= 0xF7;
-
-	//DIAGONAL. Use them only if no ordinal has been pressed (to avoid diagonal bias)
-	if ((memory.intern_p1 & 0xF) == 0xF) {
-		if (joy_button[0][GP2X_UP_LEFT]) {
-			memory.intern_p1 &= 0xFA;
-		}
-		if (joy_button[0][GP2X_DOWN_LEFT]) {
-			memory.intern_p1 &= 0xF9;
-		}
-		if (joy_button[0][GP2X_UP_RIGHT]) {
-			memory.intern_p1 &= 0xF6;
-		}
-		if (joy_button[0][GP2X_DOWN_RIGHT]) {
-			memory.intern_p1 &= 0xF5;
-		}
-	}
-	//printf("nb_joy %d\n",conf.nb_joy);
-	if (conf.nb_joy > 1) {
-		if (joy_axe[1][conf.p1_joy[AXE_Y]] * conf.p1_joy[AXE_Y_DIR] < -5000)
-			memory.intern_p1 &= 0xFE;
-		if (joy_axe[1][conf.p1_joy[AXE_Y]] * conf.p1_joy[AXE_Y_DIR] > 5000)
-			memory.intern_p1 &= 0xFD;
-		if (joy_axe[1][conf.p1_joy[AXE_X]] * conf.p1_joy[AXE_X_DIR] < -5000)
-			memory.intern_p1 &= 0xFB;
-		if (joy_axe[1][conf.p1_joy[AXE_X]] * conf.p1_joy[AXE_X_DIR] > 5000)
-			memory.intern_p1 &= 0xF7;
-		if (joy_button[1][conf.p1_joy[BUT_A]])
-			memory.intern_p1 &= 0xEF; // A
-		if (joy_button[1][conf.p1_joy[BUT_B]])
-			memory.intern_p1 &= 0xDF; // B
-		if (joy_button[1][conf.p1_joy[BUT_C]])
-			memory.intern_p1 &= 0xBF; // C
-		if (joy_button[1][conf.p1_joy[BUT_D]])
-			memory.intern_p1 &= 0x7F; // D
-
-		/* handle hotkey macros... */
-		for (i = 0; i < BUT_HOTKEY3 - BUT_HOTKEY0 + 1; i++) {
-			if ((conf.p1_joy[BUT_HOTKEY0 + i] >= 0
-					&& joy_button[1][conf.p1_joy[BUT_HOTKEY0 + i]])) {
-				if (conf.p1_hotkey[i] & HOTKEY_MASK_A)
-					memory.intern_p1 &= 0xEF;
-				if (conf.p1_hotkey[i] & HOTKEY_MASK_B)
-					memory.intern_p1 &= 0xDF;
-				if (conf.p1_hotkey[i] & HOTKEY_MASK_C)
-					memory.intern_p1 &= 0xBF;
-				if (conf.p1_hotkey[i] & HOTKEY_MASK_D)
-					memory.intern_p1 &= 0x7F;
-			}
-		}
-	}
-}
-void update_p2_key(void) {
-	int i;
-	int macrokey;
-	memory.intern_p2 = 0xFF;
-	if (conf.nb_joy > 2) {
-		if (joy_axe[2][conf.p2_joy[AXE_Y]] * conf.p2_joy[AXE_Y_DIR] < -5000)
-			memory.intern_p2 &= 0xFE;
-		if (joy_axe[2][conf.p2_joy[AXE_Y]] * conf.p2_joy[AXE_Y_DIR] > 5000)
-			memory.intern_p2 &= 0xFD;
-		if (joy_axe[2][conf.p2_joy[AXE_X]] * conf.p2_joy[AXE_X_DIR] < -5000)
-			memory.intern_p2 &= 0xFB;
-		if (joy_axe[2][conf.p2_joy[AXE_X]] * conf.p2_joy[AXE_X_DIR] > 5000)
-			memory.intern_p2 &= 0xF7;
-		if (joy_button[2][conf.p2_joy[BUT_A]])
-			memory.intern_p2 &= 0xEF; // A
-		if (joy_button[2][conf.p2_joy[BUT_B]])
-			memory.intern_p2 &= 0xDF; // B
-		if (joy_button[2][conf.p2_joy[BUT_C]])
-			memory.intern_p2 &= 0xBF; // C
-		if (joy_button[2][conf.p2_joy[BUT_D]])
-			memory.intern_p2 &= 0x7F; // D
-
-		/* handle hotkey macros... */
-		for (i = 0; i < BUT_HOTKEY3 - BUT_HOTKEY0 + 1; i++) {
-			if ((conf.p2_joy[BUT_HOTKEY0 + i] >= 0
-					&& joy_button[2][conf.p2_joy[BUT_HOTKEY0 + i]])) {
-				if (conf.p2_hotkey[i] & HOTKEY_MASK_A)
-					memory.intern_p2 &= 0xEF;
-				if (conf.p2_hotkey[i] & HOTKEY_MASK_B)
-					memory.intern_p2 &= 0xDF;
-				if (conf.p2_hotkey[i] & HOTKEY_MASK_C)
-					memory.intern_p2 &= 0xBF;
-				if (conf.p2_hotkey[i] & HOTKEY_MASK_D)
-					memory.intern_p2 &= 0x7F;
-			}
-		}
-	}
-
-}
-void update_start(void) {
-	memory.intern_start = 0x8F;
-	if (joy_button[0][GP2X_START])
-		memory.intern_start &= 0xFE;
-	if (!arcade) { /* Select */
-		if (joy_button[0][GP2X_SELECT])
-			memory.intern_start &= 0xFD;
-	}
-}
-void update_coin(void) {
-	memory.intern_coin = 0x7;
-
-	if (joy_button[0][GP2X_SELECT])
-		memory.intern_coin &= 0x6;
-}
-#else
-void update_p1_key(void)
-{
-	int i;
-
-	memory.intern_p1 = 0xFF;
-	if (conf.nb_joy >= 1) {
-		if (key[conf.p1_key[KB_UP]]
-				|| joy_axe[0][conf.p1_joy[AXE_Y]]*conf.p1_joy[AXE_Y_DIR] < -5000)
-		memory.intern_p1 &= 0xFE;
-		if (key[conf.p1_key[KB_DOWN]]
-				|| joy_axe[0][conf.p1_joy[AXE_Y]]*conf.p1_joy[AXE_Y_DIR] > 5000)
-		memory.intern_p1 &= 0xFD;
-		if (key[conf.p1_key[KB_LEFT]]
-				|| joy_axe[0][conf.p1_joy[AXE_X]]*conf.p1_joy[AXE_X_DIR] < -5000)
-		memory.intern_p1 &= 0xFB;
-		if (key[conf.p1_key[KB_RIGHT]]
-				|| joy_axe[0][conf.p1_joy[AXE_X]]*conf.p1_joy[AXE_X_DIR] > 5000)
-		memory.intern_p1 &= 0xF7;
-		if (key[conf.p1_key[BUT_A]] || joy_button[0][conf.p1_joy[BUT_A]])
-		memory.intern_p1 &= 0xEF; // A
-		if (key[conf.p1_key[BUT_B]] || joy_button[0][conf.p1_joy[BUT_B]])
-		memory.intern_p1 &= 0xDF; // B
-		if (key[conf.p1_key[BUT_C]] || joy_button[0][conf.p1_joy[BUT_C]])
-		memory.intern_p1 &= 0xBF; // C
-		if (key[conf.p1_key[BUT_D]] || joy_button[0][conf.p1_joy[BUT_D]])
-		memory.intern_p1 &= 0x7F; // D
-
-		/* handle hotkey macros... */
-		for ( i = 0; i < BUT_HOTKEY3 - BUT_HOTKEY0 + 1; i++ ) {
-			if ( (conf.p1_key[BUT_HOTKEY0+i] >= 0 && key[conf.p1_key[BUT_HOTKEY0+i]]) ||
-					(conf.p1_joy[BUT_HOTKEY0+i] >= 0 && joy_button[0][conf.p1_joy[BUT_HOTKEY0+i]] ) ) {
-				if ( conf.p1_hotkey[i] & HOTKEY_MASK_A ) memory.intern_p1 &= 0xEF;
-				if ( conf.p1_hotkey[i] & HOTKEY_MASK_B ) memory.intern_p1 &= 0xDF;
-				if ( conf.p1_hotkey[i] & HOTKEY_MASK_C ) memory.intern_p1 &= 0xBF;
-				if ( conf.p1_hotkey[i] & HOTKEY_MASK_D ) memory.intern_p1 &= 0x7F;
-			}
-		}
-	} else {
-		if (key[conf.p1_key[KB_UP]])
-		memory.intern_p1 &= 0xFE;
-		if (key[conf.p1_key[KB_DOWN]])
-		memory.intern_p1 &= 0xFD;
-		if (key[conf.p1_key[KB_LEFT]])
-		memory.intern_p1 &= 0xFB;
-		if (key[conf.p1_key[KB_RIGHT]])
-		memory.intern_p1 &= 0xF7;
-		if (key[conf.p1_key[BUT_A]])
-		memory.intern_p1 &= 0xEF; // A
-		if (key[conf.p1_key[BUT_B]])
-		memory.intern_p1 &= 0xDF; // B
-		if (key[conf.p1_key[BUT_C]])
-		memory.intern_p1 &= 0xBF; // C
-		if (key[conf.p1_key[BUT_D]])
-		memory.intern_p1 &= 0x7F; // D
-
-		/* hotkey macros */
-		for ( i = 0; i < BUT_HOTKEY3 - BUT_HOTKEY0 + 1; i++ ) {
-			if ( conf.p1_key[BUT_HOTKEY0+i] >= 0 && key[conf.p1_key[BUT_HOTKEY0+i]] ) {
-				if ( conf.p1_hotkey[i] & HOTKEY_MASK_A ) memory.intern_p1 &= 0xEF;
-				if ( conf.p1_hotkey[i] & HOTKEY_MASK_B ) memory.intern_p1 &= 0xDF;
-				if ( conf.p1_hotkey[i] & HOTKEY_MASK_C ) memory.intern_p1 &= 0xBF;
-				if ( conf.p1_hotkey[i] & HOTKEY_MASK_D ) memory.intern_p1 &= 0x7F;
-			}
-		}
-
-	}
+	return memory.vid.irq2taken;
 }
 
-void update_p2_key(void)
-{
-	int i;
-
-	memory.intern_p2 = 0xFF;
-	if (conf.nb_joy == 2) {
-		if (key[conf.p2_key[KB_UP]]
-				|| joy_axe[1][conf.p2_joy[AXE_Y]]*conf.p2_joy[AXE_Y_DIR] < -5000)
-		memory.intern_p2 &= 0xFE;
-		if (key[conf.p2_key[KB_DOWN]]
-				|| joy_axe[1][conf.p2_joy[AXE_Y]]*conf.p2_joy[AXE_Y_DIR] > 5000)
-		memory.intern_p2 &= 0xFD;
-		if (key[conf.p2_key[KB_LEFT]]
-				|| joy_axe[1][conf.p2_joy[AXE_X]]*conf.p2_joy[AXE_X_DIR] < -5000)
-		memory.intern_p2 &= 0xFB;
-		if (key[conf.p2_key[KB_RIGHT]]
-				|| joy_axe[1][conf.p2_joy[AXE_X]]*conf.p2_joy[AXE_X_DIR] > 5000)
-		memory.intern_p2 &= 0xF7;
-		if (key[conf.p2_key[BUT_A]] || joy_button[1][conf.p2_joy[BUT_A]])
-		memory.intern_p2 &= 0xEF; // A
-		if (key[conf.p2_key[BUT_B]] || joy_button[1][conf.p2_joy[BUT_B]])
-		memory.intern_p2 &= 0xDF; // B
-		if (key[conf.p2_key[BUT_C]] || joy_button[1][conf.p2_joy[BUT_C]])
-		memory.intern_p2 &= 0xBF; // C
-		if (key[conf.p2_key[BUT_D]] || joy_button[1][conf.p2_joy[BUT_D]])
-		memory.intern_p2 &= 0x7F; // D
-
-		/* handle hotkey macros */
-		for ( i = 0; i < BUT_HOTKEY3 - BUT_HOTKEY0 + 1; i++ ) {
-			if ( (conf.p2_key[BUT_HOTKEY0+i] >= 0 && key[conf.p2_key[BUT_HOTKEY0+i]]) ||
-					(conf.p2_joy[BUT_HOTKEY0+i] >= 0 && joy_button[1][conf.p2_joy[BUT_HOTKEY0+i]] )) {
-				if ( conf.p2_hotkey[i] & HOTKEY_MASK_A ) memory.intern_p2 &= 0xEF;
-				if ( conf.p2_hotkey[i] & HOTKEY_MASK_B ) memory.intern_p2 &= 0xDF;
-				if ( conf.p2_hotkey[i] & HOTKEY_MASK_C ) memory.intern_p2 &= 0xBF;
-				if ( conf.p2_hotkey[i] & HOTKEY_MASK_D ) memory.intern_p2 &= 0x7F;
-			}
-		}
-	} else {
-		if (key[conf.p2_key[KB_UP]])
-		memory.intern_p2 &= 0xFE;
-		if (key[conf.p2_key[KB_DOWN]])
-		memory.intern_p2 &= 0xFD;
-		if (key[conf.p2_key[KB_LEFT]])
-		memory.intern_p2 &= 0xFB;
-		if (key[conf.p2_key[KB_RIGHT]])
-		memory.intern_p2 &= 0xF7;
-		if (key[conf.p2_key[BUT_A]])
-		memory.intern_p2 &= 0xEF; // A
-		if (key[conf.p2_key[BUT_B]])
-		memory.intern_p2 &= 0xDF; // B
-		if (key[conf.p2_key[BUT_C]])
-		memory.intern_p2 &= 0xBF; // C
-		if (key[conf.p2_key[BUT_D]])
-		memory.intern_p2 &= 0x7F; // D
-
-		/* handle hotkey macros... */
-		for ( i = 0; i < BUT_HOTKEY3 - BUT_HOTKEY0 + 1; i++ ) {
-			if ( conf.p2_key[BUT_HOTKEY0+i] >= 0 && key[conf.p2_key[BUT_HOTKEY0+i]] ) {
-				if ( conf.p2_hotkey[i] & HOTKEY_MASK_A ) memory.intern_p2 &= 0xEF;
-				if ( conf.p2_hotkey[i] & HOTKEY_MASK_B ) memory.intern_p2 &= 0xDF;
-				if ( conf.p2_hotkey[i] & HOTKEY_MASK_C ) memory.intern_p2 &= 0xBF;
-				if ( conf.p2_hotkey[i] & HOTKEY_MASK_D ) memory.intern_p2 &= 0x7F;
-			}
-		}
-	}
-}
-
-void update_start(void)
-{
-	memory.intern_start = 0x8F;
-	if (conf.nb_joy >= 1) {
-		if (key[conf.p1_key[BUT_START]]
-				|| joy_button[0][conf.p1_joy[BUT_START]])
-		memory.intern_start &= 0xFE;
-	} else {
-		if (key[conf.p1_key[BUT_START]])
-		memory.intern_start &= 0xFE;
-	}
-	if (conf.nb_joy == 2) {
-		if (key[conf.p2_key[BUT_START]]
-				|| joy_button[1][conf.p2_joy[BUT_START]])
-		memory.intern_start &= 0xFB;
-	} else {
-		if (key[conf.p2_key[BUT_START]])
-		memory.intern_start &= 0xFB;
-	}
-
-	if (!arcade) { /* Select */
-		if (conf.nb_joy >= 1) {
-			if (key[conf.p1_key[BUT_COIN]]
-					|| joy_button[0][conf.p1_joy[BUT_COIN]])
-			memory.intern_start &= 0xFD;
-		} else {
-			if (key[conf.p1_key[BUT_COIN]])
-			memory.intern_start &= 0xFD;
-		}
-		if (conf.nb_joy == 2) {
-			if (key[conf.p2_key[BUT_COIN]]
-					|| joy_button[1][conf.p2_joy[BUT_COIN]])
-			memory.intern_start &= 0xF7;
-		} else {
-			if (key[conf.p2_key[BUT_COIN]])
-			memory.intern_start &= 0xF7;
-		}
-	}
-}
-
-void update_coin(void)
-{
-	memory.intern_coin = 0x7;
-
-	if (conf.nb_joy >= 1) {
-		if (key[conf.p1_key[BUT_COIN]]
-				|| joy_button[0][conf.p1_joy[BUT_COIN]])
-		memory.intern_coin &= 0x6;
-	} else {
-		if (key[conf.p1_key[BUT_COIN]])
-		memory.intern_coin &= 0x6;
-	}
-	if (conf.nb_joy == 2) {
-		if (key[conf.p2_key[BUT_COIN]]
-				|| joy_button[1][conf.p2_joy[BUT_COIN]])
-		memory.intern_coin &= 0x5;
-	} else {
-		if (key[conf.p2_key[BUT_COIN]])
-		memory.intern_coin &= 0x5;
-	}
-
-}
-#endif
 static Uint16 pending_save_state = 0, pending_load_state = 0;
 static int slow_motion = 0;
 
@@ -725,7 +355,8 @@ void main_loop(void) {
 	int neo_emu_done = 0;
 	int m68k_overclk = CF_VAL(cf_get_item_by_name("68kclock"));
 	int z80_overclk = CF_VAL(cf_get_item_by_name("z80clock"));
-	int nb_frames = 0;
+	//int nb_frames = 0;
+	int a,i;
 #ifdef GP2X
 	//int snd_volume=gp2x_sound_volume_get();
 	int snd_volume = 60;
@@ -747,12 +378,6 @@ void main_loop(void) {
 
 	Uint32 cpu_z80_timeslice_interlace = cpu_z80_timeslice
 			/ (float) nb_interlace;
-	char ksym_code[5];
-	SDL_Event event;
-	Uint16 scancode, i, a;
-	char input_buf[20];
-	Uint8 show_keysym = 0;
-	int invert_joy = CF_BOOL(cf_get_item_by_name("invertjoy"));
 
 #ifdef GP2X
 	gp2x_sound_volume_set(snd_volume, snd_volume);

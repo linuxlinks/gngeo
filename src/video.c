@@ -29,7 +29,6 @@
 #include "screen.h"
 #include "frame_skip.h"
 #include "transpack.h"
-#include "pbar.h"
 //#include "driver.h"
 //#include "unzip.h"
 /*
@@ -387,7 +386,6 @@ void convert_mgd2_tiles(unsigned char *buf,int len)
     }
     if (len==2) {
 	mgd2_tile_pos+=2;
-	if ((mgd2_tile_pos&0x3f)==0)  update_progress_bar(mgd2_tile_pos,memory.rom.tiles.size);
     }
     convert_mgd2_tiles(buf,len);
     convert_mgd2_tiles(buf + len,len);
@@ -977,7 +975,6 @@ void draw_screen(void)
     char fullmode=0;
     int ddax=0,dday=0,rzx=15,yskip=0;
     Uint8 *vidram=memory.vid.ram;
-    unsigned char bank[256]={0,};
 
     //    int drawtrans=0;
 
@@ -1491,7 +1488,6 @@ void draw_screen_scanline(int start_line, int end_line,int refresh)
 
 
 void init_video(void) {
-	int i;
 #ifdef PROCESSOR_ARM
 	if (!mem_gfx) {
 		mem_gfx=memory.rom.tiles.p;
@@ -1499,33 +1495,6 @@ void init_video(void) {
 	if (!mem_video) {
 		mem_video=memory.vid.ram;
 	}
-#if 0
-	if (memory.gp2x_gfx_mapped==GZX_MAPPED) {
-		/* Create our video cache */
-
-		gcache.total_bank=memory.rom.tiles.size/gcache.slot_size;
-		gcache.ptr=malloc(gcache.total_bank*sizeof(Uint8*));
-		gcache.z_pos=malloc(gcache.total_bank*sizeof(unz_file_pos ));
-		memset(gcache.ptr,0,gcache.total_bank*sizeof(Uint8*));
-		
-		gcache.size=0x1000000;
-		do {
-			gcache.data=malloc(gcache.size);
-			if (!gcache.data) gcache.size-=0x100000;
-		} while (!gcache.data && gcache.size>200000);
-		if (!gcache.data) {
-			printf("Out of memory\n");
-			exit(1);
-		}
-		//gcache.max_slot=((float)gcache.size/0x4000000)*TOTAL_GFX_BANK;
-		gcache.max_slot=((float)gcache.size/memory.rom.tiles.size)*gcache.total_bank;
-		//gcache.slot_size=0x4000000/TOTAL_GFX_BANK;
-		printf("Allocating %08x for gfx cache (%d %d slot)\n",gcache.size,gcache.max_slot,gcache.slot_size);
-		gcache.usage=malloc(gcache.max_slot*sizeof(int));
-		for (i=0;i<gcache.max_slot;i++)
-			gcache.usage[i]=-1;
-	}
-#endif
 #endif
 #ifdef I386_ASM
 	mem_gfx=&memory.rom.tiles.p;

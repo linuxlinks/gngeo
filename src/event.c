@@ -413,7 +413,7 @@ int handle_event(void) {
 
 int wait_event(void) {
 	SDL_Event event;
-	int rc,i;
+	int i;
 	int last=-1;
 	for(i=0;i<GN_MAX_KEY;i++)
 		if (joy_state[0][i]) last=i;

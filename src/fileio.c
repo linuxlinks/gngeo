@@ -124,7 +124,6 @@ char *get_gngeo_dir(void) {
 #else
     int len = strlen(getenv("HOME")) + strlen("/.gngeo/") + 1;
 #endif
-    int i;
     if (!filename) {
 	filename=malloc(len*sizeof(char));
 	CHECK_ALLOC(filename);
@@ -287,12 +286,9 @@ SDL_bool close_game(void) {
 }
 
 SDL_bool init_game(char *rom_name) {
-	char *drconf,*gpath;
-	char *country;
-	char *system;
 
-	open_bios();
-
+	//open_bios();
+/*
 	if (conf.game!=NULL) {
 		save_nvram(conf.game);
 		save_memcard(conf.game);
@@ -305,7 +301,7 @@ SDL_bool init_game(char *rom_name) {
 		}
 		free_game_memory();
 	}
-
+*/
 	/* open transpack if need */
 	trans_pack_open(CF_STR(cf_get_item_by_name("transpack")));
 

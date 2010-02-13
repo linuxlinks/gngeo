@@ -136,9 +136,7 @@ static int search_central_dir(PKZIP *zf) {
 	int i = 0;
 	unsigned char sig_cde[4] = { 0x50, 0x4b, 0x05, 0x06 };
 	unsigned char sig_cd[4] = { 0x50, 0x4b, 0x01, 0x02 };
-	int pos;
-	unsigned char a;
-	uint16_t nbdsk, cd_nb_item;
+	uint16_t nbdsk;
 
 	if (!zf || !zf->file)
 		return -1;
@@ -220,7 +218,6 @@ static int unzip_locate_file(PKZIP *zf, char *filename, uint32_t file_crc) {
 ZFILE *gn_unzip_fopen(PKZIP *zf, char *filename, uint32_t file_crc) {
 	ZFILE *z;
 	uint32_t sig;
-	char *fname = NULL;
 	int cmeth, xf_len, fname_len;
 	int csize, uncsize;
 
@@ -324,7 +321,6 @@ uint8_t *gn_unzip_file_malloc(PKZIP *zf, char *filename, uint32_t file_crc,
 		int *outlen) {
 	ZFILE *z = gn_unzip_fopen(zf, filename, file_crc);
 	int readed;
-	int ret;
 	if (!z)
 		return NULL;
 	uint8_t *data = malloc(z->uncsize);
