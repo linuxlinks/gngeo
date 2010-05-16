@@ -39,7 +39,7 @@
 extern int neogeo_fix_bank_type;
 
 
-#ifdef GP2X
+#ifdef PROCESSOR_ARM
 /* global declaration for video_arm.S */
 Uint8 *mem_gfx=NULL; /*=memory.rom.tiles.p;*/
 Uint8 *mem_video=NULL;//memory.vid.ram;

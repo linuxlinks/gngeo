@@ -88,7 +88,7 @@ static __inline__ void cyclone68k_store_video_word(Uint32 addr, Uint16 data)
     addr &= 0xFFFF;
     switch (addr) {
     case 0x0:
-	vptr = data & 0xffff;
+    	memory.vid.vptr = data & 0xffff;
 	break;
     case 0x2:	
 	//if (((vptr<<1)==0x10800+0x8) ) printf("Store to video %08x @pc=%08x\n",vptr<<1,cpu_68k_getpc());
@@ -97,20 +97,20 @@ static __inline__ void cyclone68k_store_video_word(Uint32 addr, Uint16 data)
 	  ((vptr<<1)==0x10400+0x17e) ||
 	  ((vptr<<1)==0x10800+0x17e) ) printf("Store to video %08x @pc=%08x\n",vptr<<1,cpu_68k_getpc());
 	*/
-	WRITE_WORD(&memory.vid.ram[vptr << 1], data);
-	vptr = (vptr + modulo) & 0xffff;
+	WRITE_WORD(&memory.vid.ram[memory.vid.vptr << 1], data);
+	memory.vid.vptr = (memory.vid.vptr + memory.vid.modulo) & 0xffff;
 	break;
     case 0x4:
-	modulo = (int) data;
+    	memory.vid.modulo = (int) data;
 	break;
     case 0x6:
 	write_neo_control(data);
 	break;
     case 0x8:
-	write_irq2pos((irq2pos_value & 0xffff) | ((Uint32) data << 16));
+	write_irq2pos((memory.vid.irq2pos & 0xffff) | ((Uint32) data << 16));
 	break;
     case 0xa:
-	write_irq2pos((irq2pos_value & 0xffff0000) | (Uint32) data);
+	write_irq2pos((memory.vid.irq2pos & 0xffff0000) | (Uint32) data);
 	break;
     case 0xc:
 	/* games write 7 or 4 at 0x3c000c at every frame */
@@ -807,7 +807,7 @@ static void cpu_68k_init_save_state(void) {
 	create_state_register(ST_68k,"pc",1,(void *)&cyclone_pc,sizeof(Uint32),REG_UINT32);
 	create_state_register(ST_68k,"bank",1,(void *)&bankaddress,sizeof(Uint32),REG_UINT32);
 	create_state_register(ST_68k,"ram",1,(void *)memory.ram,0x10000,REG_UINT8);
-	create_state_register(ST_68k,"kof2003_bksw",1,(void *)memory.kof2003_bksw,0x1000,REG_UINT8);
+	//create_state_register(ST_68k,"kof2003_bksw",1,(void *)memory.kof2003_bksw,0x1000,REG_UINT8);
 	create_state_register(ST_68k,"current_vector",1,(void *)memory.rom.cpu_m68k.p,0x80,REG_UINT8);
 	set_post_load_function(ST_68k,cpu_68k_post_load_state);
 	set_pre_save_function(ST_68k,cpu_68k_pre_save_state);

@@ -24,7 +24,7 @@
 #include <libgen.h>
 #include <stdio.h>
 
-
+#include "screen.h"
 #include "gp2x.h"
 #include "menu.h"
 #include "video.h"
@@ -669,7 +669,7 @@ void gp2x_init(void) {
 
 
     sdl_set_title(NULL);
-    SDL_textout(screen, 1, 231, "Patching MMU ... ");SDL_Flip(screen);
+    //SDL_textout(screen, 1, 231, "Patching MMU ... ");SDL_Flip(screen);
 
     //   if (hackpgtable()==0) {
     if (hack_the_mmu()==0) {

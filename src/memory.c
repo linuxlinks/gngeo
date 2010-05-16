@@ -393,22 +393,39 @@ LONG_FETCH(mem68k_fetch_pal)
 
 /**** VIDEO ****/
 Uint8 mem68k_fetch_video_byte(Uint32 addr) {
-	//printf("mem68k_fetch_video_byte %08x\n",addr);
-	addr &= 0xFFFF;
-	if (addr == 0xe)
-		return 0xff;
-	return 0;
+	printf("mem6k_fetch_video_byte %08x\n",addr);
+	if (!(addr&0x1))
+			return mem68k_fetch_video_word(addr)>>8;
+	else {
+		Uint32 lpc=cpu_68k_getpc()+2;
+		switch((lpc&0xF00000)>>20) {
+		case 0x0:
+			return READ_WORD(&memory.rom.cpu_m68k.p+(lpc&0xFFFFF));
+			break;
+		case 0x2:
+			return READ_WORD(&memory.rom.cpu_m68k.p+bankaddress+(lpc&0xFFFFF));
+			break;
+		case 0xC:
+			if (lpc<=0xc1FFff)
+				return READ_WORD(&memory.rom.bios_m68k.p+(lpc&0xFFFFF));
+			break;
+		}
+	}
+//	addr &= 0xFFFF;
+//	if (addr == 0xe)
+//		return 0xff;
+	return 0xFF;
 }
 
 Uint16 mem68k_fetch_video_word(Uint32 addr) {
 	//printf("mem68k_fetch_video_word %08x\n",addr);
-	addr &= 0xFFFF;
+	addr &= 0x7;
 	/*
 	 if (addr==0x00)
 	 return vptr;
 	 */
 	if (addr == 0x00 || addr == 0x02 || addr == 0x0a)
-		return READ_WORD(&memory.vid.ram[memory.vid.vptr << 1]);
+		return memory.vid.rbuf;//READ_WORD(&memory.vid.ram[memory.vid.vptr << 1]);
 	if (addr == 0x04)
 		return memory.vid.modulo;
 	if (addr == 0x06)
@@ -657,61 +674,32 @@ void mem68k_store_video_byte(Uint32 addr, Uint8 data) {
 	/* garou write at 3c001f, 3c000f, 3c0015 */
 	/* wjammers write, and fetch at 3c0000 .... */
 	//  printf("mem68k_store_video_byte %x %x @pc=%08x\n",addr,data,cpu_68k_getpc());
+	if (!(addr&0x1)) {
+		mem68k_store_video_word(addr,(data<<8)|data);
+	}
 }
 
 void mem68k_store_video_word(Uint32 addr, Uint16 data) {
-	//SDL_Swap16(data);
-	//printf("mem68k_store_video_word %08x %04x\n",addr,data);
-#if 0
-	addr &= 0xFFFF;
-	if (addr == 0x0) {
-		vptr = data & 0xffff;
-		return;
-	}
-	if (addr == 0x2) {
 
-		//if (((vptr<<1)==0x10800+0x8) ) printf("Store to video %08x @pc=%08x\n",vptr<<1,cpu_68k_getpc());
-
-		WRITE_WORD(&memory.vid.ram[vptr << 1], data);
-		vptr = (vptr + modulo) & 0xffff;
-		return;
-	}
-	if (addr == 0x4) {
-		modulo = (int) data;
-		return;
-	}
-	if (addr == 0x6) {
-		write_neo_control(data);
-		return;
-	}
-
-	if (addr == 0x8) {
-		write_irq2pos((irq2pos_value & 0xffff) | ((Uint32) data << 16));
-		return;
-	}
-	if (addr == 0xa) {
-		write_irq2pos((irq2pos_value & 0xffff0000) | (Uint32) data);
-		return;
-	}
-	if (addr == 0xc) {
-		/* games write 7 or 4 at 0x3c000c at every frame */
-		/* IRQ acknowledge */
-		return;
-	}
-	//  printf("mem68k_store_video_word %x %x (line=%d) @pc=%08x\n",addr,data,current_line,cpu_68k_getpc());
-#else
-	addr &= 0xFFFF;
+	addr &= 0xF;
 	switch (addr) {
 	case 0x0:
 		memory.vid.vptr = data & 0xffff;
+		memory.vid.rbuf = READ_WORD(&memory.vid.ram[memory.vid.vptr << 1]);
 		break;
 	case 0x2:
 		//printf("Store %04x to video %08x @pc=%08x\n",data,vptr<<1,cpu_68k_getpc());
 		WRITE_WORD(&memory.vid.ram[memory.vid.vptr << 1], data);
-		memory.vid.vptr = /*(memory.vid.vptr & 0x10000) +*/ ((memory.vid.vptr
-				+ memory.vid.modulo) & 0xffff);
+		memory.vid.vptr = (memory.vid.vptr & 0x8000) + ((memory.vid.vptr
+				+ memory.vid.modulo) & 0x7fff);
+		memory.vid.rbuf = READ_WORD(&memory.vid.ram[memory.vid.vptr << 1]);
 		break;
 	case 0x4:
+		if (data&0x4000)
+			data|=0x8000;
+		else
+			data&=0x7FFF;
+
 		memory.vid.modulo = (int) data;
 		break;
 	case 0x6:
@@ -729,17 +717,10 @@ void mem68k_store_video_word(Uint32 addr, Uint16 data) {
 		break;
 	}
 
-#endif
 }
 LONG_STORE(mem68k_store_video)
 ;
-/*
- void mem68k_store_video_long(Uint32 addr, Uint32 data) {
- //printf("mem68k_store_video_long %08x %08X\n",addr,data);
- mem68k_store_video_word(addr,data>>16);
- mem68k_store_video_word(addr+2,data & 0xffff);
- }
- */
+
 
 /**** PD4990 ****/
 void mem68k_store_pd4990_byte(Uint32 addr, Uint8 data) {
@@ -759,7 +740,7 @@ void mem68k_store_z80_byte(Uint32 addr, Uint8 data) {
 	if (addr == 0x320000) {
 		sound_code = data & 0xff;
 		pending_command = 1;
-		//printf("B Pending command. Sound_code=%02x\n",sound_code);
+		printf("B Pending command. Sound_code=%02x\n",sound_code);
 		if (conf.sound) {
 #ifdef ENABLE_940T
 			//printf("%d\n",shared_ctl->pending_command);
@@ -822,10 +803,12 @@ void mem68k_store_setting_byte(Uint32 addr, Uint8 data) {
 	//printf("mem68k_store_setting_byte %08x\n",addr);
 	addr &= 0xFFFF;
 	if (addr == 0x0003) {
+		printf("Selecting Bios Vector\n");
 		memcpy(memory.rom.cpu_m68k.p, memory.rom.bios_m68k.p, 0x80);
 	}
 
 	if (addr == 0x0013) {
+		printf("Selecting Game Vector\n");
 		memcpy(memory.rom.cpu_m68k.p, memory.game_vector, 0x80);
 	}
 
@@ -863,8 +846,10 @@ void mem68k_store_setting_byte(Uint32 addr, Uint8 data) {
 }
 
 void mem68k_store_setting_word(Uint32 addr, Uint16 data) {
-	/* TODO: check if this is used */
-	printf("mem68k_store_setting_word USED????\n");
+	/* TODO: Some game use it */
+	// printf("mem68k_store_setting_word USED????\n");
+	mem68k_store_setting_byte(addr,data);
+	return;
 	addr &= 0xFFFFFe;
 	if (addr == 0x3a0002) {
 		memcpy(memory.rom.cpu_m68k.p, memory.rom.bios_m68k.p, 0x80);
@@ -908,7 +893,6 @@ void mem68k_store_setting_long(Uint32 addr, Uint32 data) {
 }
 
 /**** MEMCARD ****/
-/* TODO: mem card */
 void mem68k_store_memcrd_byte(Uint32 addr, Uint8 data) {
 	addr &= 0xFFF;
 	memory.memcard[addr >> 1] = data;
@@ -999,76 +983,3 @@ void mem68k_store_bk_normal_word(Uint32 addr, Uint16 data) {
 
 LONG_STORE(mem68k_store_bk_normal)
 ;
-
-#if 0
-/* Scramble bankswitcher */
-void scramble_bankswitch(Uint32 address, Uint8 data) {
-	if (address == memory.bksw_handler) {
-		data =
-		(((data >> memory.bksw_unscramble[0]) & 1) << 0) +
-		(((data >> memory.bksw_unscramble[1]) & 1) << 1) +
-		(((data >> memory.bksw_unscramble[2]) & 1) << 2) +
-		(((data >> memory.bksw_unscramble[3]) & 1) << 3) +
-		(((data >> memory.bksw_unscramble[4]) & 1) << 4) +
-		(((data >> memory.bksw_unscramble[5]) & 1) << 5);
-		bankaddress = 0x100000 + memory.bksw_offset[data];
-	} else
-	return;
-	if (bankaddress >= memory.rom.cpu_m68k.size)
-	bankaddress = 0x100000;
-	cpu_68k_bankswitch(bankaddress);
-}
-
-/* Kof2003 bankswitcher */
-Uint8 mem68k_fetch_bk_kof2003_byte(Uint32 addr)
-{
-	if (addr<0x2fe000) {
-		addr &= 0xFFFFF;
-		return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
-	} else {
-		return (READ_BYTE_ROM(memory.kof2003_bksw + addr - 0x2fe000));
-	}
-}
-
-Uint16 mem68k_fetch_bk_kof2003_word(Uint32 addr)
-{
-	if (addr<0x2fe000) {
-		addr &= 0xFFFFF;
-		return (READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
-	} else {
-		return (READ_WORD_ROM(memory.kof2003_bksw + addr - 0x2fe000));
-	}
-}
-
-LONG_FETCH(mem68k_fetch_bk_kof2003);
-
-void bankswitch_kof2003(Uint32 offset, Uint16 mem_mask, Uint16 data) {
-	Uint32 bankaddress;
-	WRITE_WORD_ROM(memory.kof2003_bksw+offset, (READ_WORD_ROM(memory.kof2003_bksw+offset)&mem_mask)|((~mem_mask)&data));
-	if(offset!=0x1ff2 && offset!=0x1ff0) return;
-	bankaddress=((READ_BYTE_ROM(memory.kof2003_bksw+0x1ff0))|(READ_WORD_ROM(memory.kof2003_bksw+0x1ff2)<<8))+0x100000;
-	WRITE_BYTE_ROM(memory.kof2003_bksw+0x1ff1,0xa0);
-	WRITE_BYTE_ROM(memory.kof2003_bksw+0x1ff0,READ_BYTE_ROM(memory.kof2003_bksw+0x1ff0)&0xfe);
-	WRITE_BYTE_ROM(memory.kof2003_bksw+0x1ff2,READ_BYTE_ROM(memory.kof2003_bksw+0x1ff2)&0x7f);
-	cpu_68k_bankswitch(bankaddress);
-	WRITE_BYTE_ROM(memory.rom.cpu_m68k.p+0x58197,READ_BYTE_ROM(memory.kof2003_bksw + 0x1ff3));
-}
-
-void mem68k_store_bk_kof2003_byte(Uint32 addr, Uint8 data) {
-	Uint32 offset=(addr-0x2fe000);
-	if (addr<0x2fe000) return;
-	if (addr & 1) {
-		offset^=1;
-		bankswitch_kof2003(offset,0xff00,((Uint16)data));
-	} else {
-		bankswitch_kof2003(offset,0x00ff,((Uint16)data)<<8);
-	}
-}
-void mem68k_store_bk_kof2003_word(Uint32 addr, Uint16 data) {
-	Uint32 offset=(addr-0x2fe000);
-	if (addr<0x2fe000) return;
-	bankswitch_kof2003(offset,0x0,data);
-}
-
-LONG_STORE(mem68k_store_bk_kof2003);
-#endif

@@ -193,6 +193,7 @@ int handle_event(void) {
 //	int i;
 	int ret;
 	int jaxis_threshold=10000;
+	//int jaxis_threshold=2;
 
 	while (SDL_PollEvent(&event)) {
 	    if ((ret=handle_pdep_event(&event))!=0) {
@@ -249,8 +250,8 @@ int handle_event(void) {
 
 			}
 			
-			//printf("SDL_JOYHATMOTION  %d %d %d\n",event.jhat.which,
-			//event.jhat.hat,event.jhat.value);
+			printf("SDL_JOYHATMOTION  %d %d %d\n",event.jhat.which,
+			event.jhat.hat,event.jhat.value);
 		}
 		break;
 		case SDL_JOYAXISMOTION:
@@ -300,8 +301,10 @@ int handle_event(void) {
 				
 				
 			}
-			//printf("SDL_JOYAXISMOTION %d %d %d %d\n",event.jaxis.which,
-			//event.jaxis.axis,value,jmap->jaxe[event.jaxis.which][event.jaxis.axis].dir);
+
+			if (abs(event.jaxis.value)>jaxis_threshold)
+				printf("SDL_JOYAXISMOTION %d %d %d %d\n",event.jaxis.which,
+						event.jaxis.axis,value,jmap->jaxe[event.jaxis.which][event.jaxis.axis].dir);
 		}
 			break;
 		case SDL_JOYBUTTONDOWN: 
@@ -314,7 +317,7 @@ int handle_event(void) {
 				joy_state[player][map]=1;
 			}
 			
-			//printf("SDL_JOYBUTTONDOWN %d %d\n",event.jbutton.which,event.jbutton.button);
+			printf("SDL_JOYBUTTONDOWN %d %d\n",event.jbutton.which,event.jbutton.button);
 		}
 			break;
 		case SDL_JOYBUTTONUP:

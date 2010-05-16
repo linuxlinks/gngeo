@@ -1534,6 +1534,7 @@ SDL_bool dr_load_game(char *name) {
 	set_bankswitchers(0);
 
 	memcpy(memory.game_vector, memory.rom.cpu_m68k.p, 0x80);
+	memcpy(memory.rom.cpu_m68k.p, memory.rom.bios_m68k.p, 0x80);
 
 	convert_all_char(memory.rom.game_sfix.p, memory.rom.game_sfix.size,
 			memory.fix_game_usage);
