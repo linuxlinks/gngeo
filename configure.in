@@ -344,6 +344,7 @@ dnl Check for processor.
 	   CFLAGS="$CFLAGS -O3 -Wall -ftracer -fstrength-reduce -Wno-unused -funroll-loops \
                     -fomit-frame-pointer -fstrict-aliasing -ffast-math \
 	   	    "
+           AM_CONDITIONAL(PROCESSOR_ARM,[true])
 	   	    ;;
     *)     AC_MSG_WARN(Processor type not known - Use generic optimisations)
            ALIGNLONGS=1

@@ -43,9 +43,13 @@ endif
 if HAVE_NASM
 asm_lib = screen_i386.o video_i386.o
 else
-if USE_GP2X
+if PROCESSOR_ARM
 asm_lib = video_arm.o memcpy.o
+if USE_GP2X
 pdep_src = video_arm.s memcpy.S gp2x.h gp2x.c
+else
+pdep_src = video_arm.s memcpy.S
+endif
 else
 asm_lib = 
 endif
