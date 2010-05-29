@@ -114,6 +114,9 @@
 /* Define to 1 if you have the `vprintf' function. */
 #undef HAVE_VPRINTF
 
+/* Define to 1 if you have the <"GL/gl.h"> header file. */
+#undef HAVE__GL_GL_H_
+
 /* Name of package */
 #undef PACKAGE
 

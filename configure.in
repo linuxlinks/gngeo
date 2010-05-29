@@ -210,6 +210,8 @@ esac
 #fi
 #GN_ARG_ENABLE(gl_old,[--enable-gl_old        Use the old opengl blitter])
 #if test "$enable_gl_old" = no ; then
+
+AC_CHECK_HEADERS("GL/gl.h")
 	AC_DEFINE([USE_GL2],[1],[Define to use alternative opengl blitter])
 #fi
 

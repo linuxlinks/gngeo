@@ -85,8 +85,6 @@ am_gngeo_OBJECTS = fileio.$(OBJEXT) pd4990a.$(OBJEXT) video.$(OBJEXT) \
 	stb_image.$(OBJEXT) stb_zlib.$(OBJEXT) $(am__objects_1) \
 	$(am__objects_2) $(am__objects_3) $(am__objects_4)
 gngeo_OBJECTS = $(am_gngeo_OBJECTS)
-@HAVE_NASM_FALSE@@PROCESSOR_ARM_TRUE@am__DEPENDENCIES_1 = video_arm.o \
-@HAVE_NASM_FALSE@@PROCESSOR_ARM_TRUE@	memcpy.o
 @HAVE_NASM_TRUE@am__DEPENDENCIES_1 = screen_i386.o video_i386.o
 @USE_GP2X_FALSE@gngeo_DEPENDENCIES = effect/libeffect.a \
 @USE_GP2X_FALSE@	blitter/libblitter.a ym2610/libym2610.a \
@@ -277,9 +275,9 @@ top_srcdir = @top_srcdir@
 @USE_GUI_TRUE@gui_subdir = gui
 @USE_GUI_TRUE@gui_src = gui_interf.c gui_interf.h
 @HAVE_NASM_FALSE@@PROCESSOR_ARM_FALSE@asm_lib = 
-@HAVE_NASM_FALSE@@PROCESSOR_ARM_TRUE@asm_lib = video_arm.o memcpy.o
 @HAVE_NASM_TRUE@asm_lib = screen_i386.o video_i386.o
 @HAVE_NASM_FALSE@@PROCESSOR_ARM_TRUE@@USE_GP2X_FALSE@pdep_src = video_arm.s memcpy.S
+#asm_lib = video_arm.o memcpy.o
 @HAVE_NASM_FALSE@@PROCESSOR_ARM_TRUE@@USE_GP2X_TRUE@pdep_src = video_arm.s memcpy.S gp2x.h gp2x.c
 INCLUDES = -DDATA_DIRECTORY='"${pkgdatadir}"'
 SUBDIRS = effect blitter ym2610 $(m68k_subdir) $(z80_subdir) $(gui_subdir)

@@ -1,7 +1,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-
+#ifdef HAVE__GL_GL_H_
 #ifndef GP2X
 
 #include "SDL.h"
@@ -368,4 +368,5 @@ blitter_opengl_fullscreen()
 	SDL_WM_ToggleFullScreen(video_opengl);
 }
 
+#endif
 #endif

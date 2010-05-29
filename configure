@@ -596,9 +596,6 @@ am__EXEEXT_TRUE
 LTLIBOBJS
 PROCESSOR_ARM_FALSE
 PROCESSOR_ARM_TRUE
-EGREP
-GREP
-CPP
 USE_WIZ_FALSE
 USE_WIZ_TRUE
 USE_GP2X_FALSE
@@ -619,6 +616,9 @@ USE_STARSCREAM_FALSE
 USE_STARSCREAM_TRUE
 HAVE_NASM_FALSE
 HAVE_NASM_TRUE
+EGREP
+GREP
+CPP
 have_nasm
 LIBOBJS
 SDL_LIBS
@@ -4687,305 +4687,6 @@ esac
 #GN_ARG_ENABLE(gl_old,[--enable-gl_old        Use the old opengl blitter])
 #if test "$enable_gl_old" = no ; then
 
-$as_echo "#define USE_GL2 1" >>confdefs.h
-
-#fi
-
-#echo "CPU68K STAR    = $use_starscream $choice_68k"
-#echo "CPU68K GEN68K  = $use_generator68k $choice_68k"
-#echo "CPUZ80 RAZE    = $use_raze $choice_68k"
-#echo "CPUZ80 MAMEZ80 = $use_mamez80 $choice_68k"
-
-
-# default to starscream and raze if i386 asm optim is enable and nasm found
-# TODO: check by platform
-#if test "$NASM" = yes ; then
-#	CFLAGS="$CFLAGS -DI386_ASM"
-#	have_nasm=true
-#	if test "$choice_68k" = ko ; then
-#		use_starscream=true
-#	fi
-#	if test "$choice_z80" = ko ; then
-#		use_raze=true
-#	fi
-#	echo "Enable i386 optimisation"
-#else
-#	have_nasm=false
-#	if test "$choice_68k" = ko ; then
-#		use_generator68k=true
-#	fi
-#	if test "$choice_z80" = ko ; then
-#		use_mamez80=true
-#	fi
-#	echo "Disable i386 optimisation"
-#fi
-
-#if test "$use_starscream" = true ; then
-#	CFLAGS="$CFLAGS -DUSE_STARSCREAM"
-#	echo "Use Starscream as 68000 core"
-#fi
-#if test "$use_generator68k" = true ; then
-#	CFLAGS="$CFLAGS -DUSE_GENERATOR68K"
-#	echo "Use Generator68k as 68000 core"
-#fi
-#if test "$use_cyclone" = true ; then
-#	CFLAGS="$CFLAGS -DUSE_CYCLONE"
-#	echo "Use Cyclone as 68000 core"
-#fi
-#if test "$use_raze" = true ; then
-#	CFLAGS="$CFLAGS -DUSE_RAZE"
-#	echo "Use Raze as Z80 core"
-#fi
-#if test "$use_mamez80" = true ; then
-#	CFLAGS="$CFLAGS -DUSE_MAMEZ80"
-#	echo "Use MameZ80 as Z80 core"
-#fi
-#if test "$use_drz80" = true ; then
-#	CFLAGS="$CFLAGS -DUSE_DRZ80"
-#	echo "Use DrZ80 as Z80 core"
-#fi
-
- if test x$have_nasm = xtrue; then
-  HAVE_NASM_TRUE=
-  HAVE_NASM_FALSE='#'
-else
-  HAVE_NASM_TRUE='#'
-  HAVE_NASM_FALSE=
-fi
-
- if test x$use_starscream = xtrue; then
-  USE_STARSCREAM_TRUE=
-  USE_STARSCREAM_FALSE='#'
-else
-  USE_STARSCREAM_TRUE='#'
-  USE_STARSCREAM_FALSE=
-fi
-
- if test x$use_raze = xtrue; then
-  USE_RAZE_TRUE=
-  USE_RAZE_FALSE='#'
-else
-  USE_RAZE_TRUE='#'
-  USE_RAZE_FALSE=
-fi
-
- if test x$use_generator68k = xtrue; then
-  USE_GENERATOR68K_TRUE=
-  USE_GENERATOR68K_FALSE='#'
-else
-  USE_GENERATOR68K_TRUE='#'
-  USE_GENERATOR68K_FALSE=
-fi
-
- if test x$use_cyclone = xtrue; then
-  USE_CYCLONE_TRUE=
-  USE_CYCLONE_FALSE='#'
-else
-  USE_CYCLONE_TRUE='#'
-  USE_CYCLONE_FALSE=
-fi
-
- if test x$use_mamez80 = xtrue; then
-  USE_MAMEZ80_TRUE=
-  USE_MAMEZ80_FALSE='#'
-else
-  USE_MAMEZ80_TRUE='#'
-  USE_MAMEZ80_FALSE=
-fi
-
- if test x$use_drz80 = xtrue; then
-  USE_DRZ80_TRUE=
-  USE_DRZ80_FALSE='#'
-else
-  USE_DRZ80_TRUE='#'
-  USE_DRZ80_FALSE=
-fi
-
- if test x$enable_gui = xtrue; then
-  USE_GUI_TRUE=
-  USE_GUI_FALSE='#'
-else
-  USE_GUI_TRUE='#'
-  USE_GUI_FALSE=
-fi
-
- if test x$enable_gp2x = xtrue; then
-  USE_GP2X_TRUE=
-  USE_GP2X_FALSE='#'
-else
-  USE_GP2X_TRUE='#'
-  USE_GP2X_FALSE=
-fi
-
- if test x$enable_wiz = xtrue; then
-  USE_WIZ_TRUE=
-  USE_WIZ_FALSE='#'
-else
-  USE_WIZ_TRUE='#'
-  USE_WIZ_FALSE=
-fi
-
-
-# Checks for header files.
-ac_header_dirent=no
-for ac_hdr in dirent.h sys/ndir.h sys/dir.h ndir.h; do
-  as_ac_Header=`$as_echo "ac_cv_header_dirent_$ac_hdr" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_hdr that defines DIR" >&5
-$as_echo_n "checking for $ac_hdr that defines DIR... " >&6; }
-if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <sys/types.h>
-#include <$ac_hdr>
-
-int
-main ()
-{
-if ((DIR *) 0)
-return 0;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  eval "$as_ac_Header=yes"
-else
-  eval "$as_ac_Header=no"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-eval ac_res=\$$as_ac_Header
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-eval as_val=\$$as_ac_Header
-   if test "x$as_val" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_hdr" | $as_tr_cpp` 1
-_ACEOF
-
-ac_header_dirent=$ac_hdr; break
-fi
-
-done
-# Two versions of opendir et al. are in -ldir and -lx on SCO Xenix.
-if test $ac_header_dirent = dirent.h; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing opendir" >&5
-$as_echo_n "checking for library containing opendir... " >&6; }
-if test "${ac_cv_search_opendir+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char opendir ();
-int
-main ()
-{
-return opendir ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' dir; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_opendir=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if test "${ac_cv_search_opendir+set}" = set; then :
-  break
-fi
-done
-if test "${ac_cv_search_opendir+set}" = set; then :
-
-else
-  ac_cv_search_opendir=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_opendir" >&5
-$as_echo "$ac_cv_search_opendir" >&6; }
-ac_res=$ac_cv_search_opendir
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-fi
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing opendir" >&5
-$as_echo_n "checking for library containing opendir... " >&6; }
-if test "${ac_cv_search_opendir+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char opendir ();
-int
-main ()
-{
-return opendir ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' x; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_opendir=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if test "${ac_cv_search_opendir+set}" = set; then :
-  break
-fi
-done
-if test "${ac_cv_search_opendir+set}" = set; then :
-
-else
-  ac_cv_search_opendir=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_opendir" >&5
-$as_echo "$ac_cv_search_opendir" >&6; }
-ac_res=$ac_cv_search_opendir
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-fi
-
-fi
-
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -5383,6 +5084,432 @@ fi
 
 done
 
+
+for ac_header in "GL/gl.h"
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+eval as_val=\$$as_ac_Header
+   if test "x$as_val" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+
+done
+
+
+$as_echo "#define USE_GL2 1" >>confdefs.h
+
+#fi
+
+#echo "CPU68K STAR    = $use_starscream $choice_68k"
+#echo "CPU68K GEN68K  = $use_generator68k $choice_68k"
+#echo "CPUZ80 RAZE    = $use_raze $choice_68k"
+#echo "CPUZ80 MAMEZ80 = $use_mamez80 $choice_68k"
+
+
+# default to starscream and raze if i386 asm optim is enable and nasm found
+# TODO: check by platform
+#if test "$NASM" = yes ; then
+#	CFLAGS="$CFLAGS -DI386_ASM"
+#	have_nasm=true
+#	if test "$choice_68k" = ko ; then
+#		use_starscream=true
+#	fi
+#	if test "$choice_z80" = ko ; then
+#		use_raze=true
+#	fi
+#	echo "Enable i386 optimisation"
+#else
+#	have_nasm=false
+#	if test "$choice_68k" = ko ; then
+#		use_generator68k=true
+#	fi
+#	if test "$choice_z80" = ko ; then
+#		use_mamez80=true
+#	fi
+#	echo "Disable i386 optimisation"
+#fi
+
+#if test "$use_starscream" = true ; then
+#	CFLAGS="$CFLAGS -DUSE_STARSCREAM"
+#	echo "Use Starscream as 68000 core"
+#fi
+#if test "$use_generator68k" = true ; then
+#	CFLAGS="$CFLAGS -DUSE_GENERATOR68K"
+#	echo "Use Generator68k as 68000 core"
+#fi
+#if test "$use_cyclone" = true ; then
+#	CFLAGS="$CFLAGS -DUSE_CYCLONE"
+#	echo "Use Cyclone as 68000 core"
+#fi
+#if test "$use_raze" = true ; then
+#	CFLAGS="$CFLAGS -DUSE_RAZE"
+#	echo "Use Raze as Z80 core"
+#fi
+#if test "$use_mamez80" = true ; then
+#	CFLAGS="$CFLAGS -DUSE_MAMEZ80"
+#	echo "Use MameZ80 as Z80 core"
+#fi
+#if test "$use_drz80" = true ; then
+#	CFLAGS="$CFLAGS -DUSE_DRZ80"
+#	echo "Use DrZ80 as Z80 core"
+#fi
+
+ if test x$have_nasm = xtrue; then
+  HAVE_NASM_TRUE=
+  HAVE_NASM_FALSE='#'
+else
+  HAVE_NASM_TRUE='#'
+  HAVE_NASM_FALSE=
+fi
+
+ if test x$use_starscream = xtrue; then
+  USE_STARSCREAM_TRUE=
+  USE_STARSCREAM_FALSE='#'
+else
+  USE_STARSCREAM_TRUE='#'
+  USE_STARSCREAM_FALSE=
+fi
+
+ if test x$use_raze = xtrue; then
+  USE_RAZE_TRUE=
+  USE_RAZE_FALSE='#'
+else
+  USE_RAZE_TRUE='#'
+  USE_RAZE_FALSE=
+fi
+
+ if test x$use_generator68k = xtrue; then
+  USE_GENERATOR68K_TRUE=
+  USE_GENERATOR68K_FALSE='#'
+else
+  USE_GENERATOR68K_TRUE='#'
+  USE_GENERATOR68K_FALSE=
+fi
+
+ if test x$use_cyclone = xtrue; then
+  USE_CYCLONE_TRUE=
+  USE_CYCLONE_FALSE='#'
+else
+  USE_CYCLONE_TRUE='#'
+  USE_CYCLONE_FALSE=
+fi
+
+ if test x$use_mamez80 = xtrue; then
+  USE_MAMEZ80_TRUE=
+  USE_MAMEZ80_FALSE='#'
+else
+  USE_MAMEZ80_TRUE='#'
+  USE_MAMEZ80_FALSE=
+fi
+
+ if test x$use_drz80 = xtrue; then
+  USE_DRZ80_TRUE=
+  USE_DRZ80_FALSE='#'
+else
+  USE_DRZ80_TRUE='#'
+  USE_DRZ80_FALSE=
+fi
+
+ if test x$enable_gui = xtrue; then
+  USE_GUI_TRUE=
+  USE_GUI_FALSE='#'
+else
+  USE_GUI_TRUE='#'
+  USE_GUI_FALSE=
+fi
+
+ if test x$enable_gp2x = xtrue; then
+  USE_GP2X_TRUE=
+  USE_GP2X_FALSE='#'
+else
+  USE_GP2X_TRUE='#'
+  USE_GP2X_FALSE=
+fi
+
+ if test x$enable_wiz = xtrue; then
+  USE_WIZ_TRUE=
+  USE_WIZ_FALSE='#'
+else
+  USE_WIZ_TRUE='#'
+  USE_WIZ_FALSE=
+fi
+
+
+# Checks for header files.
+ac_header_dirent=no
+for ac_hdr in dirent.h sys/ndir.h sys/dir.h ndir.h; do
+  as_ac_Header=`$as_echo "ac_cv_header_dirent_$ac_hdr" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_hdr that defines DIR" >&5
+$as_echo_n "checking for $ac_hdr that defines DIR... " >&6; }
+if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+#include <$ac_hdr>
+
+int
+main ()
+{
+if ((DIR *) 0)
+return 0;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  eval "$as_ac_Header=yes"
+else
+  eval "$as_ac_Header=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+eval ac_res=\$$as_ac_Header
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+eval as_val=\$$as_ac_Header
+   if test "x$as_val" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_hdr" | $as_tr_cpp` 1
+_ACEOF
+
+ac_header_dirent=$ac_hdr; break
+fi
+
+done
+# Two versions of opendir et al. are in -ldir and -lx on SCO Xenix.
+if test $ac_header_dirent = dirent.h; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing opendir" >&5
+$as_echo_n "checking for library containing opendir... " >&6; }
+if test "${ac_cv_search_opendir+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char opendir ();
+int
+main ()
+{
+return opendir ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' dir; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_opendir=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if test "${ac_cv_search_opendir+set}" = set; then :
+  break
+fi
+done
+if test "${ac_cv_search_opendir+set}" = set; then :
+
+else
+  ac_cv_search_opendir=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_opendir" >&5
+$as_echo "$ac_cv_search_opendir" >&6; }
+ac_res=$ac_cv_search_opendir
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+fi
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing opendir" >&5
+$as_echo_n "checking for library containing opendir... " >&6; }
+if test "${ac_cv_search_opendir+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char opendir ();
+int
+main ()
+{
+return opendir ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' x; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_opendir=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if test "${ac_cv_search_opendir+set}" = set; then :
+  break
+fi
+done
+if test "${ac_cv_search_opendir+set}" = set; then :
+
+else
+  ac_cv_search_opendir=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_opendir" >&5
+$as_echo "$ac_cv_search_opendir" >&6; }
+ac_res=$ac_cv_search_opendir
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+fi
+
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ANSI C header files" >&5
+$as_echo_n "checking for ANSI C header files... " >&6; }
+if test "${ac_cv_header_stdc+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include <float.h>
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_header_stdc=yes
+else
+  ac_cv_header_stdc=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+if test $ac_cv_header_stdc = yes; then
+  # SunOS 4.x string.h does not declare mem*, contrary to ANSI.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <string.h>
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "memchr" >/dev/null 2>&1; then :
+
+else
+  ac_cv_header_stdc=no
+fi
+rm -f conftest*
+
+fi
+
+if test $ac_cv_header_stdc = yes; then
+  # ISC 2.0.2 stdlib.h does not declare free, contrary to ANSI.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stdlib.h>
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "free" >/dev/null 2>&1; then :
+
+else
+  ac_cv_header_stdc=no
+fi
+rm -f conftest*
+
+fi
+
+if test $ac_cv_header_stdc = yes; then
+  # /bin/cc in Irix-4.0.5 gets non-ANSI ctype macros unless using -ansi.
+  if test "$cross_compiling" = yes; then :
+  :
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <ctype.h>
+#include <stdlib.h>
+#if ((' ' & 0x0FF) == 0x020)
+# define ISLOWER(c) ('a' <= (c) && (c) <= 'z')
+# define TOUPPER(c) (ISLOWER(c) ? 'A' + ((c) - 'a') : (c))
+#else
+# define ISLOWER(c) \
+		   (('a' <= (c) && (c) <= 'i') \
+		     || ('j' <= (c) && (c) <= 'r') \
+		     || ('s' <= (c) && (c) <= 'z'))
+# define TOUPPER(c) (ISLOWER(c) ? ((c) | 0x40) : (c))
+#endif
+
+#define XOR(e, f) (((e) && !(f)) || (!(e) && (f)))
+int
+main ()
+{
+  int i;
+  for (i = 0; i < 256; i++)
+    if (XOR (islower (i), ISLOWER (i))
+	|| toupper (i) != TOUPPER (i))
+      return 2;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+
+else
+  ac_cv_header_stdc=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_header_stdc" >&5
+$as_echo "$ac_cv_header_stdc" >&6; }
+if test $ac_cv_header_stdc = yes; then
+
+$as_echo "#define STDC_HEADERS 1" >>confdefs.h
+
+fi
 
 for ac_header in errno.h limits.h malloc.h stddef.h stdlib.h string.h sys/time.h unistd.h
 do :

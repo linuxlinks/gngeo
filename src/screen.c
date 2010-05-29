@@ -28,9 +28,10 @@ blitter_func blitter[] = {
     {"soft","Software blitter",blitter_soft_init, NULL, blitter_soft_update, blitter_soft_fullscreen,
      blitter_soft_close},
 #ifndef GP2X
+#ifdef HAVE__GL_GL_H_
     {"opengl","Opengl blitter",blitter_opengl_init, blitter_opengl_resize, blitter_opengl_update,
      blitter_opengl_fullscreen, blitter_opengl_close},
-
+#endif
     {"yuv","YUV blitter (YV12)",blitter_overlay_init, blitter_overlay_resize, blitter_overlay_update,
      blitter_overlay_fullscreen, blitter_overlay_close},
 #endif
