@@ -1,15 +1,13 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT(gngeo,0.7a)
+AC_INIT(gngeo,0.8)
 AC_CONFIG_SRCDIR([src/emu.c])
 AC_CANONICAL_TARGET
 AM_CONFIG_HEADER(config.h)
 
 
-# AM_INIT_AUTOMAKE(gngeo,0.7a)
 AM_INIT_AUTOMAKE
-# devel version
-#AM_INIT_AUTOMAKE(gngeo,20060711)
+
 
 # it's not optimal, but at least, it work
 if test -z "$CC_FOR_BUILD"; then
@@ -151,123 +149,35 @@ if test $z80core = default ; then
 fi
 
 case "${m68kcore}" in
-	cyclone)     use_cyclone=true
-				 AC_DEFINE([USE_CYCLONE],[1],[Define to enable cyclone])
-				 ;;
-    starscream)  use_starscream=true
-    			 AC_DEFINE([USE_STARSCREAM],[1],[Define to enable starscream])
-    			 ;;
-    gen68k)      use_generator68k=true
-    			 AC_DEFINE([USE_GENERATOR68K],[1],[Define to enable generator68k])
-    			 ;;
-    *) AC_MSG_ERROR([The specified m68k core is invalid]) ;;
+     	cyclone)	use_cyclone=true
+		   	AC_DEFINE([USE_CYCLONE],[1],[Define to enable cyclone])
+		   	;;
+	starscream)	use_starscream=true
+    			AC_DEFINE([USE_STARSCREAM],[1],[Define to enable starscream])
+    			;;
+	gen68k)      	use_generator68k=true
+    			AC_DEFINE([USE_GENERATOR68K],[1],[Define to enable generator68k])
+    			;;
+	*) AC_MSG_ERROR([The specified m68k core is invalid]) ;;
 esac
 
 case "${z80core}" in
 	drz80)       use_drz80=true
 				 AC_DEFINE([USE_DRZ80],[1],[Define to enable drz80])
 				 ;;
-    raze)        use_raze=true
+	raze)        use_raze=true
     			 AC_DEFINE([USE_RAZE],[1],[Define to enable raze])
     			 ;;
-    mamez80)     use_mamez80=true
+	mamez80)     use_mamez80=true
     			 AC_DEFINE([USE_MAMEZ80],[1],[Define to enable mamez80])
     			 ;;
-    *) AC_MSG_ERROR([The specified z80 core is invalid]) ;;
+	*) AC_MSG_ERROR([The specified z80 core is invalid]) ;;
 esac
 
 
 
-#AC_ARG_ENABLE(starscream,  [  --enable-star           use starscream as 68k emu (need nasm, i386 only)],
-#			   [use_starscream=true;choice_68k=ok],
-#			   [use_starscream=false])
-#AC_ARG_ENABLE(gen68k,      [  --enable-gen68k         use generator68k as 68k emu (portable C)],
-#			   [use_generator68k=true;choice_68k=ok],
-#			   [use_generator68k=false])
-#AC_ARG_ENABLE(cyclone,     [  --enable-cyclone        use cyclone as 68k emu (Arm asm)],
-#			   [use_cyclone=true;choice_68k=ok],
-#			   [use_cyclone=false])
-#
-#AC_ARG_ENABLE(raze,        [  --enable-raze           use raze as z80 emu (need nasm, i386 only)],
-#			   [use_raze=true;choice_z80=ok],
-#			   [use_raze=false])
-#AC_ARG_ENABLE(mamez80,     [  --enable-mamez80        use mamez80 as z80 emu (portable C)],
-#			   [use_mamez80=true;choice_z80=ok],
-#			   [use_mamez80=false])
-#AC_ARG_ENABLE(drz80,       [  --enable-drz80          use drz80 as z80 emu (Arm asm)],
-#			   [use_drz80=true;choice_z80=ok],
-#			   [use_drz80=false])
-
-
-#AC_ARG_ENABLE(gui,     [  --enable-gui            Enable gui support (deprecated)],
-#			[enable_gui="$enableval"],[enable_gui="false"])
-#
-#if test "$enable_gui" = yes ; then
-#	CFLAGS="$CFLAGS -DUSE_GUI"
-#	enable_gui=true
-#else
-#	enable_gui=false
-#fi
-#GN_ARG_ENABLE(gl_old,[--enable-gl_old        Use the old opengl blitter])
-#if test "$enable_gl_old" = no ; then
-
 AC_CHECK_HEADERS("GL/gl.h")
-	AC_DEFINE([USE_GL2],[1],[Define to use alternative opengl blitter])
-#fi
-
-#echo "CPU68K STAR    = $use_starscream $choice_68k"
-#echo "CPU68K GEN68K  = $use_generator68k $choice_68k"
-#echo "CPUZ80 RAZE    = $use_raze $choice_68k"
-#echo "CPUZ80 MAMEZ80 = $use_mamez80 $choice_68k"
-
-
-# default to starscream and raze if i386 asm optim is enable and nasm found
-# TODO: check by platform
-#if test "$NASM" = yes ; then
-#	CFLAGS="$CFLAGS -DI386_ASM"
-#	have_nasm=true
-#	if test "$choice_68k" = ko ; then
-#		use_starscream=true
-#	fi
-#	if test "$choice_z80" = ko ; then
-#		use_raze=true
-#	fi
-#	echo "Enable i386 optimisation"
-#else
-#	have_nasm=false
-#	if test "$choice_68k" = ko ; then
-#		use_generator68k=true
-#	fi
-#	if test "$choice_z80" = ko ; then
-#		use_mamez80=true
-#	fi
-#	echo "Disable i386 optimisation"
-#fi
-
-#if test "$use_starscream" = true ; then
-#	CFLAGS="$CFLAGS -DUSE_STARSCREAM"
-#	echo "Use Starscream as 68000 core"
-#fi
-#if test "$use_generator68k" = true ; then
-#	CFLAGS="$CFLAGS -DUSE_GENERATOR68K"
-#	echo "Use Generator68k as 68000 core"
-#fi
-#if test "$use_cyclone" = true ; then
-#	CFLAGS="$CFLAGS -DUSE_CYCLONE"
-#	echo "Use Cyclone as 68000 core"
-#fi
-#if test "$use_raze" = true ; then
-#	CFLAGS="$CFLAGS -DUSE_RAZE"
-#	echo "Use Raze as Z80 core"
-#fi
-#if test "$use_mamez80" = true ; then
-#	CFLAGS="$CFLAGS -DUSE_MAMEZ80"
-#	echo "Use MameZ80 as Z80 core"
-#fi
-#if test "$use_drz80" = true ; then
-#	CFLAGS="$CFLAGS -DUSE_DRZ80"
-#	echo "Use DrZ80 as Z80 core"
-#fi
+AC_DEFINE([USE_GL2],[1],[Define to use alternative opengl blitter])
 
 AM_CONDITIONAL(HAVE_NASM,[test x$have_nasm = xtrue])
 AM_CONDITIONAL(USE_STARSCREAM,[test x$use_starscream = xtrue])
@@ -303,6 +213,7 @@ dnl Check for processor.
     i?86)  AC_MSG_RESULT(Turning on x86 processor optimisations)
            AC_DEFINE(PROCESSOR_INTEL, 1, [Define if you have an x86 processor])
            ALIGNLONGS=0
+	   proc_i386=true
 	   if test $CC_MAJOR -ge 3 ; then
 		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -Wno-unused -funroll-loops \
                     -ffast-math -falign-functions=2 -falign-jumps=2 -fexpensive-optimizations \
@@ -319,6 +230,7 @@ dnl Check for processor.
 	   AC_MSG_RESULT(Turning on x86_64 processor optimisations)
            AC_DEFINE(PROCESSOR_ADM64, 1, [Define if you have an x86_64 processor])
            ALIGNLONGS=0
+	   proc_x64=true
 	   if test $CC_MAJOR -ge 3 ; then
 		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -funroll-loops \
                     -ffast-math  -fexpensive-optimizations \
@@ -334,6 +246,7 @@ dnl Check for processor.
     sparc*) AC_MSG_RESULT(Turning on sparc processor optimisations)
            AC_DEFINE(PROCESSOR_SPARC, 1, [Define if you have a sparc processor])
 	   ALIGNLONGS=1
+	   proc_sparc=true
 	   if test $target_cpu = sparc64 && test $CC_MAJOR -ge 3 ; then
 		CFLAGS="$CFLAGS -mcpu=v9"
 	   fi
@@ -343,10 +256,11 @@ dnl Check for processor.
     arm)   AC_MSG_RESULT(Turning on arm processor optimisations)
            AC_DEFINE(PROCESSOR_ARM, 1, [Define if you have an ARM processor])
            ALIGNLONGS=1
+	   proc_arm=true
 	   CFLAGS="$CFLAGS -O3 -Wall -ftracer -fstrength-reduce -Wno-unused -funroll-loops \
                     -fomit-frame-pointer -fstrict-aliasing -ffast-math \
 	   	    "
-           AM_CONDITIONAL(PROCESSOR_ARM,[true])
+
 	   	    ;;
     *)     AC_MSG_WARN(Processor type not known - Use generic optimisations)
            ALIGNLONGS=1
@@ -355,6 +269,8 @@ dnl Check for processor.
                     -ffast-math -g"
            ;;
   esac
+
+AM_CONDITIONAL(PROCESSOR_ARM,[test x$proc_arm = xtrue])
   
 AC_DEFINE(ALIGNLONGS, ALIGNLONGS,
             [Undefine if your processor can read unaligned 32-bit values])

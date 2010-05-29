@@ -20,11 +20,10 @@ Licence:
 	directly from it (the ym2610 for example). As you may know, the Mame
 	licence forbid commercial use, and as a conscequence, commercial use
 	of gngeo (as a whole) is also forbided. This is the same with Cyclone,
-	Drz80, Raze	and Starscream.	  
+	Drz80, Raze and Starscream.	  
 
 REQUIREMENT : 
 	SDL-1.2.x and the libz
-	Opengl headers
 	optional: nasm 0.98 for i386 asm optimisation
 	You will also need a neogeo BIOS
 
@@ -49,7 +48,12 @@ INSTALLATION :
 	To disable completly i386 assembler on x86
 	 --disable-i386
 
-	After this, you can start a game with the folowing command:
+CROSSCOMPILATION :
+	To build gngeo in a crosscompilation environement, use the folowing
+	./configure --build=i686-pc-linux-gnu --host=[HOST] --with-sdl-prefix=[Path to your corsscompiled SDL] CFLAGS=-I[PATH to the default include dir of your crosscompil env]
+
+USAGE :
+	You can start a game with the folowing command:
 	# gngeo game
 	where game is the mame name of the rom, for example mslug for Metal Slug
 

@@ -2,8 +2,11 @@
 Here is the port of gngeo to the GP2X.
 
 Compilation from source:
-# ./configure --host=open2x-linux --enable-gp2x=yes --with-sdl-prefix=[Path to your gp2x SDL] --disable-sdltest
+# ./configure --host=arm-open2x-linux --enable-gp2x=yes --with-sdl-prefix=[Path to your gp2x SDL] --disable-sdltest
 # make
+
+With open2x, I build gngeo with the folowing commande line
+# ./configure --build=i686-pc-linux-gnu --host=arm-open2x-linux --enable-gp2x=yes --with-sdl-prefix=/opt/open2x/gcc-4.1.1-glibc-2.3.6 CFLAGS=-I/opt/open2x/gcc-4.1.1-glibc-2.3.6/include
 
 TODO: Almost everything bellow this line is outdated.
 
