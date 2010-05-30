@@ -530,10 +530,10 @@ def68k.o gen68k.o tab68k2.o : %.o : %.c
 	$(CC_FOR_BUILD) -c $< -o $@ -I .. -I ../.. -I . `sdl-config --cflags`
 
 def68k : def68k.o tab68k2.o
-	$(CC_FOR_BUILD) def68k.o tab68k.o -o $@ 
+	$(CC_FOR_BUILD) def68k.o tab68k2.o -o $@ 
 
 gen68k : gen68k.o tab68k2.o 
-	$(CC_FOR_BUILD) gen68k.o tab68k.o -o $@
+	$(CC_FOR_BUILD) gen68k.o tab68k2.o -o $@
 
 $(CPU_SOURCE) : gen68k
 	./gen68k
