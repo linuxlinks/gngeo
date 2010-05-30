@@ -34,6 +34,9 @@
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
 
+/* Define to 1 if you have the <GL/gl.h> header file. */
+#undef HAVE_GL_GL_H
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
@@ -114,9 +117,6 @@
 /* Define to 1 if you have the `vprintf' function. */
 #undef HAVE_VPRINTF
 
-/* Define to 1 if you have the <"GL/gl.h"> header file. */
-#undef HAVE__GL_GL_H_
-
 /* Name of package */
 #undef PACKAGE
 
@@ -182,6 +182,9 @@
 
 /* Version number of package */
 #undef VERSION
+
+/* Define if you build for wii */
+#undef WII
 
 /* Define if you build for win32 */
 #undef WIN32

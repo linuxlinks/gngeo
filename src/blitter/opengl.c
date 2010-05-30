@@ -1,7 +1,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-#ifdef HAVE__GL_GL_H_
+#ifdef HAVE_GL_GL_H
 #ifndef GP2X
 
 #include "SDL.h"

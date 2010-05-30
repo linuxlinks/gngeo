@@ -726,6 +726,7 @@ enable_option_checking
 enable_dependency_tracking
 enable_gp2x
 enable_wiz
+enable_wii
 enable_pandora
 enable_win32
 with_sdl_prefix
@@ -1370,6 +1371,7 @@ Optional Features:
   --enable-dependency-tracking   do not reject slow dependency extractors
   --enable-gp2x           Enable GP2X build
   --enable-wiz            Enable WIZ build
+  --enable-wii            Enable WII build
   --enable-pandora        Enable PANDORA build
   --enable-win32          Enable WIN32 build
   --disable-sdltest       Do not try to compile and run a test SDL program
@@ -2797,10 +2799,6 @@ if test -z "$CC_FOR_BUILD"; then
 fi
 
 
-# Humm is this a good idea?
-# CFLAGS=""
-
- #echo $CC
 
 # Checks for programs.
 ac_ext=c
@@ -4010,10 +4008,6 @@ fi
 
 
 
-CC_VERSION=`$CC -dumpversion`
-CC_MAJOR=`echo $CC_VERSION|sed 's/\..*$//'`
-#echo major $CC_MAJOR major
-
 
 	# Check whether --enable-gp2x was given.
 if test "${enable_gp2x+set}" = set; then :
@@ -4038,6 +4032,20 @@ if test "${enable_wiz+set}" = set; then :
      	 esac;
 else
   enable_wiz=false;
+fi
+
+
+
+
+	# Check whether --enable-wii was given.
+if test "${enable_wii+set}" = set; then :
+  enableval=$enable_wii; case "${enableval}" in
+       	 yes) enable_wii=true ;;
+       	 no)  enable_wii=false ;;
+       	 *) as_fn_error "bad value ${enableval} for --enable-wii" "$LINENO" 5 ;;
+     	 esac;
+else
+  enable_wii=false;
 fi
 
 
@@ -4072,7 +4080,7 @@ fi
 
 
 
-echo GP2X $enable_gp2x
+#echo GP2X $enable_gp2x
 
 SDL_VERSION=1.2.0
 
@@ -4351,6 +4359,13 @@ $as_echo "#define WIZ 1" >>confdefs.h
 #	CFLAGS="$CFLAGS -mtune=arm920t"
 #	LIBS="$LIBS -lpthread -static";
 fi
+if test "x$enable_wii" = xtrue ; then
+
+$as_echo "#define WII 1" >>confdefs.h
+
+	CFLAGS="$CFLAGS -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float -MMD -MP"
+	LIBS="$LIBS -lSDL -lfat -lwiiuse -lbte -logc -lm -lwiikeyboard";
+fi
 
 if test "x$enable_win32" = xtrue ; then
 
@@ -4528,8 +4543,8 @@ else
   z80core="default"
 fi
 
-echo $m68kcore
-echo $z80core
+#echo $m68kcore
+#echo $z80core
 case $target_cpu in
     	i?86)
 if  test "$enablei386asm" = true ; then
@@ -5050,14 +5065,12 @@ fi
 done
 
 
-for ac_header in "GL/gl.h"
+for ac_header in GL/gl.h
 do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-eval as_val=\$$as_ac_Header
-   if test "x$as_val" = x""yes; then :
+  ac_fn_c_check_header_mongrel "$LINENO" "GL/gl.h" "ac_cv_header_GL_gl_h" "$ac_includes_default"
+if test "x$ac_cv_header_GL_gl_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+#define HAVE_GL_GL_H 1
 _ACEOF
 
 fi
@@ -5898,17 +5911,10 @@ $as_echo "#define PROCESSOR_INTEL 1" >>confdefs.h
 
            ALIGNLONGS=0
 	   proc_i386=true
-	   if test $CC_MAJOR -ge 3 ; then
 		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -Wno-unused -funroll-loops \
                     -ffast-math -falign-functions=2 -falign-jumps=2 -fexpensive-optimizations \
                     -falign-loops=2 -fschedule-insns2 -malign-double -fomit-frame-pointer -g \
 		    -fno-strict-aliasing -pipe -mtune=$target_cpu -DCPU=$target_cpu"
-	   else
-		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -Wno-unused -funroll-loops \
-                    -ffast-math -malign-functions=2 -malign-jumps=2 -fexpensive-optimizations \
-                    -malign-loops=2 -fschedule-insns2 -malign-double -fomit-frame-pointer -g \
-		    -fno-strict-aliasing -pipe -mcpu=$target_cpu -DCPU=$target_cpu"
-           fi
            ;;
      x86_64)
 	   { $as_echo "$as_me:${as_lineno-$LINENO}: result: Turning on x86_64 processor optimisations" >&5
@@ -5918,17 +5924,10 @@ $as_echo "#define PROCESSOR_ADM64 1" >>confdefs.h
 
            ALIGNLONGS=0
 	   proc_x64=true
-	   if test $CC_MAJOR -ge 3 ; then
 		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -funroll-loops \
                     -ffast-math  -fexpensive-optimizations \
                      -malign-double -fomit-frame-pointer -g \
 		    -fno-strict-aliasing -pipe -DCPU=$target_cpu"
-	   else
-		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -Wno-unused -funroll-loops \
-                    -ffast-math -fexpensive-optimizations \
-                    -fomit-frame-pointer -g \
-		    -fno-strict-aliasing -pipe -mcpu=$target_cpu -DCPU=$target_cpu"
-           fi
            ;;
     sparc*) { $as_echo "$as_me:${as_lineno-$LINENO}: result: Turning on sparc processor optimisations" >&5
 $as_echo "Turning on sparc processor optimisations" >&6; }
@@ -5955,8 +5954,8 @@ $as_echo "#define PROCESSOR_ARM 1" >>confdefs.h
 	   	    "
 
 	   	    ;;
-    *)     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Processor type not known - Use generic optimisations" >&5
-$as_echo "$as_me: WARNING: Processor type not known - Use generic optimisations" >&2;}
+    *)     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Processor type unknown - Use generic optimisations" >&5
+$as_echo "$as_me: WARNING: Processor type unknown - Use generic optimisations" >&2;}
            ALIGNLONGS=1
            optimum=no
 	   CFLAGS="$CFLAGS -O3 -Wall -Wno-unused -funroll-loops \

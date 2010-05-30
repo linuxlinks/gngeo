@@ -58,7 +58,7 @@ PROGRAMS = $(noinst_PROGRAMS)
 def68k_SOURCES = def68k.c
 def68k_OBJECTS = def68k.$(OBJEXT)
 def68k_LDADD = $(LDADD)
-am_gen68k_OBJECTS = gen68k.$(OBJEXT) tab68k.$(OBJEXT)
+am_gen68k_OBJECTS = gen68k.$(OBJEXT) tab68k2.$(OBJEXT)
 gen68k_OBJECTS = $(am_gen68k_OBJECTS)
 gen68k_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -190,7 +190,7 @@ BUILT_SOURCES = def68k-iibs.h def68k-funcs.h def68k-proto.h \
 
 #def68k_SOURCES = def68k.c tab68k.c
 INCLUDES = -I../ -I.
-gen68k_SOURCES = gen68k.c tab68k.c
+gen68k_SOURCES = gen68k.c tab68k2.c
 gen68k_DEPENDENCIES = def68k-iibs.h def68k
 noinst_LIBRARIES = libgenerator68k.a
 libgenerator68k_a_SOURCES = cpu68k.c reg68k.c registers.h diss68k.c \
@@ -284,6 +284,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gen68k.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/reg68k.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tab68k.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tab68k2.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -525,13 +526,13 @@ cpu68k.c : def68k-proto.h
 
 #def68k : def68k.c
 #	gcc def68k.c tab68k.c -o def68k -I .. -I ../.. -I . `sdl-config --cflags`
-def68k.o gen68k.o: %.o : %.c
+def68k.o gen68k.o tab68k2.o : %.o : %.c
 	$(CC_FOR_BUILD) -c $< -o $@ -I .. -I ../.. -I . `sdl-config --cflags`
 
-def68k : def68k.o tab68k.o
+def68k : def68k.o tab68k2.o
 	$(CC_FOR_BUILD) def68k.o tab68k.o -o $@ 
 
-gen68k : gen68k.o tab68k.o 
+gen68k : gen68k.o tab68k2.o 
 	$(CC_FOR_BUILD) gen68k.o tab68k.o -o $@
 
 $(CPU_SOURCE) : gen68k

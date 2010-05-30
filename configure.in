@@ -15,10 +15,6 @@ if test -z "$CC_FOR_BUILD"; then
 fi
 AC_SUBST(CC_FOR_BUILD)
 
-# Humm is this a good idea?
-# CFLAGS=""
-
- #echo $CC
 
 # Checks for programs.
 AC_PROG_CC
@@ -36,17 +32,14 @@ AC_DEFUN([GN_ARG_ENABLE],[
 ]
 )
 
-CC_VERSION=`$CC -dumpversion`
-CC_MAJOR=`echo $CC_VERSION|sed 's/\..*$//'`
-#echo major $CC_MAJOR major
-
 GN_ARG_ENABLE(gp2x,   [--enable-gp2x           Enable GP2X build])
 GN_ARG_ENABLE(wiz,    [--enable-wiz            Enable WIZ build])
+GN_ARG_ENABLE(wii,    [--enable-wii            Enable WII build])
 GN_ARG_ENABLE(pandora,[--enable-pandora        Enable PANDORA build])
 GN_ARG_ENABLE(win32,  [--enable-win32          Enable WIN32 build])
 
 
-echo GP2X $enable_gp2x
+#echo GP2X $enable_gp2x
 
 SDL_VERSION=1.2.0
 AM_PATH_SDL($SDL_VERSION,,AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!]))
@@ -63,6 +56,11 @@ if test "x$enable_wiz" = xtrue ; then
 	AC_DEFINE([WIZ],[1],[Define if you build for wiz])
 #	CFLAGS="$CFLAGS -mtune=arm920t"
 #	LIBS="$LIBS -lpthread -static";
+fi
+if test "x$enable_wii" = xtrue ; then
+	AC_DEFINE([WII],[1],[Define if you build for wii])
+	CFLAGS="$CFLAGS -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float -MMD -MP"
+	LIBS="$LIBS -lSDL -lfat -lwiiuse -lbte -logc -lm -lwiikeyboard";
 fi
 
 if test "x$enable_win32" = xtrue ; then
@@ -101,8 +99,8 @@ AC_ARG_WITH(m68kcore,[  --with-m68kcore=[68kcore]     Specify which 68k core to 
             m68kcore="$withval", m68kcore="default")
 AC_ARG_WITH(z80core, [  --with-z80core=[z80core]      Specify which z80 core to use (drz80|raze|mamez80)],
             z80core="$withval", z80core="default")
-echo $m68kcore
-echo $z80core
+#echo $m68kcore
+#echo $z80core
 case $target_cpu in
     	i?86) 
 if  test "$enablei386asm" = true ; then
@@ -176,7 +174,7 @@ esac
 
 
 
-AC_CHECK_HEADERS("GL/gl.h")
+AC_CHECK_HEADERS(GL/gl.h)
 AC_DEFINE([USE_GL2],[1],[Define to use alternative opengl blitter])
 
 AM_CONDITIONAL(HAVE_NASM,[test x$have_nasm = xtrue])
@@ -214,34 +212,20 @@ dnl Check for processor.
            AC_DEFINE(PROCESSOR_INTEL, 1, [Define if you have an x86 processor])
            ALIGNLONGS=0
 	   proc_i386=true
-	   if test $CC_MAJOR -ge 3 ; then
 		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -Wno-unused -funroll-loops \
                     -ffast-math -falign-functions=2 -falign-jumps=2 -fexpensive-optimizations \
                     -falign-loops=2 -fschedule-insns2 -malign-double -fomit-frame-pointer -g \
 		    -fno-strict-aliasing -pipe -mtune=$target_cpu -DCPU=$target_cpu"
-	   else
-		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -Wno-unused -funroll-loops \
-                    -ffast-math -malign-functions=2 -malign-jumps=2 -fexpensive-optimizations \
-                    -malign-loops=2 -fschedule-insns2 -malign-double -fomit-frame-pointer -g \
-		    -fno-strict-aliasing -pipe -mcpu=$target_cpu -DCPU=$target_cpu"
-           fi
            ;;
      x86_64)
 	   AC_MSG_RESULT(Turning on x86_64 processor optimisations)
            AC_DEFINE(PROCESSOR_ADM64, 1, [Define if you have an x86_64 processor])
            ALIGNLONGS=0
 	   proc_x64=true
-	   if test $CC_MAJOR -ge 3 ; then
 		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -funroll-loops \
                     -ffast-math  -fexpensive-optimizations \
                      -malign-double -fomit-frame-pointer -g \
 		    -fno-strict-aliasing -pipe -DCPU=$target_cpu"
-	   else
-		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -Wno-unused -funroll-loops \
-                    -ffast-math -fexpensive-optimizations \
-                    -fomit-frame-pointer -g \
-		    -fno-strict-aliasing -pipe -mcpu=$target_cpu -DCPU=$target_cpu"
-           fi
            ;;
     sparc*) AC_MSG_RESULT(Turning on sparc processor optimisations)
            AC_DEFINE(PROCESSOR_SPARC, 1, [Define if you have a sparc processor])
@@ -262,7 +246,7 @@ dnl Check for processor.
 	   	    "
 
 	   	    ;;
-    *)     AC_MSG_WARN(Processor type not known - Use generic optimisations)
+    *)     AC_MSG_WARN(Processor type unknown - Use generic optimisations)
            ALIGNLONGS=1
            optimum=no
 	   CFLAGS="$CFLAGS -O3 -Wall -Wno-unused -funroll-loops \
@@ -279,7 +263,7 @@ AC_DEFINE(ALIGNLONGS, ALIGNLONGS,
 AC_CONFIG_FILES([Makefile
 	 src/Makefile
 	 src/raze/Makefile
-     src/star/Makefile
+         src/star/Makefile
 	 src/mamez80/Makefile
 	 src/generator68k/Makefile
 	 src/cyclone/Makefile

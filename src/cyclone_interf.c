@@ -47,44 +47,7 @@ static __inline__ void cyclone68k_store_video_word(Uint32 addr, Uint16 data)
 {
 	//SDL_Swap16(data);
 	//printf("mem68k_store_video_word %08x %04x\n",addr,data);
-#if 0
-    addr &= 0xFFFF;
-    if (addr == 0x0) {
-	vptr = data & 0xffff;
-	return;
-    }
-    if (addr == 0x2) {
 
-	//if (((vptr<<1)==0x10800+0x8) ) printf("Store to video %08x @pc=%08x\n",vptr<<1,cpu_68k_getpc());
-
-	WRITE_WORD(&memory.vid.ram[vptr << 1], data);
-	vptr = (vptr + modulo) & 0xffff;
-	return;
-    }
-    if (addr == 0x4) {
-	modulo = (int) data;
-	return;
-    }
-    if (addr == 0x6) {
-	write_neo_control(data);
-	return;
-    }
-
-    if (addr == 0x8) {
-	write_irq2pos((irq2pos_value & 0xffff) | ((Uint32) data << 16));
-	return;
-    }
-    if (addr == 0xa) {
-	write_irq2pos((irq2pos_value & 0xffff0000) | (Uint32) data);
-	return;
-    }
-    if (addr == 0xc) {
-	/* games write 7 or 4 at 0x3c000c at every frame */
-	/* IRQ acknowledge */
-	return;
-    }
-    //  printf("mem68k_store_video_word %x %x (line=%d) @pc=%08x\n",addr,data,current_line,cpu_68k_getpc());
-#else
     addr &= 0xFFFF;
     switch (addr) {
     case 0x0:
@@ -119,7 +82,6 @@ static __inline__ void cyclone68k_store_video_word(Uint32 addr, Uint16 data)
     }
        
 
-#endif
 }
 
 static void print_one_reg(Uint32 r) {

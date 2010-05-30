@@ -318,7 +318,7 @@ int gn_unzip_fread(ZFILE *z, uint8_t *data, int size) {
 }
 
 uint8_t *gn_unzip_file_malloc(PKZIP *zf, char *filename, uint32_t file_crc,
-		int *outlen) {
+		unsigned int *outlen) {
 	ZFILE *z = gn_unzip_fopen(zf, filename, file_crc);
 	int readed;
 	if (!z)

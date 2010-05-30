@@ -798,29 +798,45 @@ struct roms_init_func {
 	char *name;
 	int (*init)(GAME_ROMS *r);
 } init_func_table[] = {
-		//	{"mslugx",init_mslugx},
-		{ "kof99", init_kof99 }, { "kof99n", init_kof99n }, { "garou",
-				init_garou },
-		{ "garouo", init_garouo },
-		//	{"garoup",init_garoup},
-		{ "garoubl", init_garoubl }, { "mslug3", init_mslug3 }, { "mslug3h",
-				init_mslug3h }, { "mslug3n", init_mslug3h }, { "mslug3b6",
-				init_mslug3b6 }, { "kof2000", init_kof2000 }, { "kof2000n",
-				init_kof2000n }, { "kof2001", init_kof2001 }, { "mslug4",
-				init_mslug4 }, { "ms4plus", init_ms4plus }, { "ganryu",
-				init_ganryu }, { "s1945p", init_s1945p }, { "preisle2",
-				init_preisle2 }, { "bangbead", init_bangbead }, { "nitd",
-				init_nitd }, { "zupapa", init_zupapa }, { "sengoku3",
-				init_sengoku3 }, { "kof98", init_kof98 },
-		{ "rotd", init_rotd }, { "kof2002", init_kof2002 }, { "kof2002b",
-				init_kof2002b }, { "kf2k2pls", init_kf2k2pls }, { "kf2k2mp",
-				init_kf2k2mp }, { "kof2km2", init_kof2km2 }, { "matrim",
-				init_matrim }, { "pnyaa", init_pnyaa },
-		{ "mslug5", init_mslug5 }, { "ms5pcb", init_ms5pcb }, { "ms5plus",
-				init_ms5plus }, { NULL, NULL } };
+  //	{"mslugx",init_mslugx},
+  { "kof99", init_kof99 }, 
+  { "kof99n", init_kof99n }, 
+  { "garou", init_garou },
+  { "garouo", init_garouo },
+  //	{"garoup",init_garoup},
+  { "garoubl", init_garoubl }, 
+  { "mslug3", init_mslug3 }, 
+  { "mslug3h", init_mslug3h }, 
+  { "mslug3n", init_mslug3h }, 
+  { "mslug3b6", init_mslug3b6 }, 
+  { "kof2000", init_kof2000 }, 
+  { "kof2000n", init_kof2000n }, 
+  { "kof2001", init_kof2001 }, 
+  { "mslug4", init_mslug4 }, 
+  { "ms4plus", init_ms4plus }, 
+  { "ganryu", init_ganryu }, 
+  { "s1945p", init_s1945p }, 
+  { "preisle2", init_preisle2 }, 
+  { "bangbead", init_bangbead }, 
+  { "nitd", init_nitd }, 
+  { "zupapa", init_zupapa }, 
+  { "sengoku3", init_sengoku3 }, 
+  { "kof98", init_kof98 }, 
+  { "rotd", init_rotd }, 
+  { "kof2002", init_kof2002 }, 
+  { "kof2002b",	init_kof2002b }, 
+  { "kf2k2pls", init_kf2k2pls }, 
+  { "kf2k2mp", init_kf2k2mp }, 
+  { "kof2km2", init_kof2km2 }, 
+  { "matrim", init_matrim }, 
+  { "pnyaa", init_pnyaa }, 
+  { "mslug5", init_mslug5 }, 
+  { "ms5pcb", init_ms5pcb }, 
+  { "ms5plus", init_ms5plus },
+  { NULL, NULL } };
 
 static int allocate_region(ROM_REGION *r, Uint32 size, int region) {
-	DEBUG_LOG("Allocating 0x%08x byte\n", size);
+  DEBUG_LOG("Allocating 0x%08x byte for Region %d\n", size,region );
 	if (size != 0) {
 #ifdef GP2X
 		switch (region) {
@@ -865,7 +881,7 @@ static int allocate_region(ROM_REGION *r, Uint32 size, int region) {
 }
 
 static void free_region(ROM_REGION *r) {
-	printf("%p %p %d\n",r,r->p,r->size);
+	DEBUG_LOG("Free Region %p %p %d\n",r,r->p,r->size);
 	if (r->p)
 		free(r->p);
 	r->size = 0;
@@ -1097,6 +1113,8 @@ static int load_region(PKZIP *pz, GAME_ROMS *r, int region, Uint32 src,
 		DEBUG_LOG("setoffset: %d %08x %08x %08x\n", rc, src, dest, size);
 	}
 
+	DEBUG_LOG("Trying to load file %-17s in region %d\n", filename, region);
+
 	switch (region) {
 	case REGION_SPRITES: /* Special interleaved loading  */
 		read_data_i(gz, &r->tiles, dest, size);
@@ -1114,7 +1132,7 @@ static int load_region(PKZIP *pz, GAME_ROMS *r, int region, Uint32 src,
 		read_data_p(gz, &r->game_sfix, dest, size);
 		break;
 	case REGION_AUDIO_DATA_1:
-		read_data_p(gz, &r->adpcma, dest, size);
+	        read_data_p(gz, &r->adpcma, dest, size);
 		break;
 	case REGION_AUDIO_DATA_2:
 		read_data_p(gz, &r->adpcmb, dest, size);
@@ -1261,8 +1279,8 @@ SDL_bool dr_load_bios(GAME_ROMS *r) {
 	memory.ng_lo = gn_unzip_file_malloc(pz, "000-lo.lo", 0x0, &size);
 
 	if (!(r->info.flags & HAS_CUSTOM_SFIX_BIOS)) {
-		r->bios_sfix.p = gn_unzip_file_malloc(pz, "sfix.sfx", 0x0,
-				&r->bios_sfix.size);
+	  r->bios_sfix.p = gn_unzip_file_malloc(pz, "sfix.sfx", 0x0,
+						&r->bios_sfix.size);
 	}
 	/* convert bios fix char */
 	convert_all_char(memory.rom.bios_sfix.p, 0x20000, memory.fix_board_usage);
@@ -1343,7 +1361,7 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 	ROM_DEF *drv;
 	int i;
 
-	memset(r,sizeof(GAME_ROMS),0);
+	memset(r,0,sizeof(GAME_ROMS));
 
 	drv = res_load_drv(name);
 	if (!drv) {
