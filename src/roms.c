@@ -63,38 +63,38 @@ int bankoffset_kof99[64] = { 0x000000, 0x100000, 0x200000, 0x300000, 0x3cc000,
 /* addr,uncramblecode,.... */
 Uint8 scramblecode_kof99[7] = { 0xF0, 14, 6, 8, 10, 12, 5, };
 int bankoffset_garou[64] = { 0x000000, 0x100000, 0x200000, 0x300000, // 00
-		0x280000, 0x380000, 0x2d0000, 0x3d0000, // 04
-		0x2f0000, 0x3f0000, 0x400000, 0x500000, // 08
-		0x420000, 0x520000, 0x440000, 0x540000, // 12
-		0x498000, 0x598000, 0x4a0000, 0x5a0000, // 16
-		0x4a8000, 0x5a8000, 0x4b0000, 0x5b0000, // 20
-		0x4b8000, 0x5b8000, 0x4c0000, 0x5c0000, // 24
-		0x4c8000, 0x5c8000, 0x4d0000, 0x5d0000, // 28
-		0x458000, 0x558000, 0x460000, 0x560000, // 32
-		0x468000, 0x568000, 0x470000, 0x570000, // 36
-		0x478000, 0x578000, 0x480000, 0x580000, // 40
-		0x488000, 0x588000, 0x490000, 0x590000, // 44
-		0x5d0000, 0x5d8000, 0x5e0000, 0x5e8000, // 48
-		0x5f0000, 0x5f8000, 0x600000, /* rest not used? */
+                             0x280000, 0x380000, 0x2d0000, 0x3d0000, // 04
+                             0x2f0000, 0x3f0000, 0x400000, 0x500000, // 08
+                             0x420000, 0x520000, 0x440000, 0x540000, // 12
+                             0x498000, 0x598000, 0x4a0000, 0x5a0000, // 16
+                             0x4a8000, 0x5a8000, 0x4b0000, 0x5b0000, // 20
+                             0x4b8000, 0x5b8000, 0x4c0000, 0x5c0000, // 24
+                             0x4c8000, 0x5c8000, 0x4d0000, 0x5d0000, // 28
+                             0x458000, 0x558000, 0x460000, 0x560000, // 32
+                             0x468000, 0x568000, 0x470000, 0x570000, // 36
+                             0x478000, 0x578000, 0x480000, 0x580000, // 40
+                             0x488000, 0x588000, 0x490000, 0x590000, // 44
+                             0x5d0000, 0x5d8000, 0x5e0000, 0x5e8000, // 48
+                             0x5f0000, 0x5f8000, 0x600000, /* rest not used? */
 };
 Uint8 scramblecode_garou[7] = { 0xC0, 5, 9, 7, 6, 14, 12, };
 int bankoffset_garouo[64] = { 0x000000, 0x100000, 0x200000, 0x300000, // 00
-		0x280000, 0x380000, 0x2d0000, 0x3d0000, // 04
-		0x2c8000, 0x3c8000, 0x400000, 0x500000, // 08
-		0x420000, 0x520000, 0x440000, 0x540000, // 12
-		0x598000, 0x698000, 0x5a0000, 0x6a0000, // 16
-		0x5a8000, 0x6a8000, 0x5b0000, 0x6b0000, // 20
-		0x5b8000, 0x6b8000, 0x5c0000, 0x6c0000, // 24
-		0x5c8000, 0x6c8000, 0x5d0000, 0x6d0000, // 28
-		0x458000, 0x558000, 0x460000, 0x560000, // 32
-		0x468000, 0x568000, 0x470000, 0x570000, // 36
-		0x478000, 0x578000, 0x480000, 0x580000, // 40
-		0x488000, 0x588000, 0x490000, 0x590000, // 44
-		0x5d8000, 0x6d8000, 0x5e0000, 0x6e0000, // 48
-		0x5e8000, 0x6e8000, 0x6e8000, 0x000000, // 52
-		0x000000, 0x000000, 0x000000, 0x000000, // 56
-		0x000000, 0x000000, 0x000000, 0x000000, // 60
-		};
+                              0x280000, 0x380000, 0x2d0000, 0x3d0000, // 04
+                              0x2c8000, 0x3c8000, 0x400000, 0x500000, // 08
+                              0x420000, 0x520000, 0x440000, 0x540000, // 12
+                              0x598000, 0x698000, 0x5a0000, 0x6a0000, // 16
+                              0x5a8000, 0x6a8000, 0x5b0000, 0x6b0000, // 20
+                              0x5b8000, 0x6b8000, 0x5c0000, 0x6c0000, // 24
+                              0x5c8000, 0x6c8000, 0x5d0000, 0x6d0000, // 28
+                              0x458000, 0x558000, 0x460000, 0x560000, // 32
+                              0x468000, 0x568000, 0x470000, 0x570000, // 36
+                              0x478000, 0x578000, 0x480000, 0x580000, // 40
+                              0x488000, 0x588000, 0x490000, 0x590000, // 44
+                              0x5d8000, 0x6d8000, 0x5e0000, 0x6e0000, // 48
+                              0x5e8000, 0x6e8000, 0x6e8000, 0x000000, // 52
+                              0x000000, 0x000000, 0x000000, 0x000000, // 56
+                              0x000000, 0x000000, 0x000000, 0x000000, // 60
+};
 Uint8 scramblecode_garouo[7] = { 0xC0, 4, 8, 14, 2, 11, 13, };
 
 int bankoffset_mslug3[64] = { 0x000000, 0x020000, 0x040000, 0x060000, // 00
@@ -145,12 +145,12 @@ static int unzLocateFileByCRC(unzFile file,Uint32 crc)
 	err = unzGoToFirstFile(file);
 	while (err == UNZ_OK) {
 		err = unzGetCurrentFileInfo(file,&fileinfo,
-				filename,255,
-				NULL,0,NULL,0);
+                                    filename,255,
+                                    NULL,0,NULL,0);
 		if (err == UNZ_OK) {
 			//crc=strtoul(szFileName,NULL,0);
 			if (crc==fileinfo.crc)
-			return UNZ_OK;
+                return UNZ_OK;
 			err = unzGoToNextFile(file);
 		}
 	}
@@ -176,7 +176,7 @@ static int unzLocateFileByCRC(unzFile file,Uint32 crc)
  */
 
 int init_mslugx(GAME_ROMS *r) {
-	int i;
+  unsigned int i;
 	Uint8 *RAM = r->cpu_m68k.p;
 	for (i = 0; i < r->cpu_m68k.size; i += 2) {
 		if ((READ_WORD_ROM(&RAM[i + 0]) == 0x0243)
@@ -836,7 +836,7 @@ struct roms_init_func {
   { NULL, NULL } };
 
 static int allocate_region(ROM_REGION *r, Uint32 size, int region) {
-  DEBUG_LOG("Allocating 0x%08x byte for Region %d\n", size,region );
+  DEBUG_LOG("Allocating 0x%08x byte for Region %d\n", size,region);
 	if (size != 0) {
 #ifdef GP2X
 		switch (region) {
@@ -871,8 +871,11 @@ static int allocate_region(ROM_REGION *r, Uint32 size, int region) {
 #else
 		r->p=malloc(size);
 #endif
-		if (r->p == 0)
-			return 1;
+		if (r->p == 0) {
+		  r->size=0;
+		  printf("Error allocating\n");
+		  return 1;
+		}
 		memset(r->p, 0, size);
 	} else
 		r->p = NULL;
@@ -1241,6 +1244,57 @@ static void convert_all_tile(GAME_ROMS *r) {
 		((Uint32*) r->spr_usage.p)[i >> 4] |= convert_roms_tile(r->tiles.p, i);
 	}
 }
+
+static void convert_all_char(Uint8 *Ptr, int Taille, 
+		      Uint8 *usage_ptr)
+{
+    int		i,j;
+    unsigned char	usage;
+    
+    Uint8 *Src;
+    Uint8 *sav_src;
+
+    Src=(Uint8*)malloc(Taille);
+    if (!Src) {
+	printf("Not enought memory!!\n");
+	return;
+    }
+    sav_src=Src;
+    memcpy(Src,Ptr,Taille);
+#ifdef WORDS_BIGENDIAN
+#define CONVERT_TILE *Ptr++ = *(Src+8);\
+	             usage |= *(Src+8);\
+                     *Ptr++ = *(Src);\
+		     usage |= *(Src);\
+		     *Ptr++ = *(Src+24);\
+		     usage |= *(Src+24);\
+		     *Ptr++ = *(Src+16);\
+		     usage |= *(Src+16);\
+		     Src++;
+#else
+#define CONVERT_TILE *Ptr++ = *(Src+16);\
+	             usage |= *(Src+16);\
+                     *Ptr++ = *(Src+24);\
+		     usage |= *(Src+24);\
+		     *Ptr++ = *(Src);\
+		     usage |= *(Src);\
+		     *Ptr++ = *(Src+8);\
+		     usage |= *(Src+8);\
+		     Src++;
+#endif
+    for(i=Taille;i>0;i-=32) {
+        usage = 0;
+        for (j=0;j<8;j++) {
+            CONVERT_TILE
+                }
+        Src+=24;
+        *usage_ptr++ = usage;
+    }
+    free(sav_src);
+#undef CONVERT_TILE
+}
+
+
 
 static int init_roms(GAME_ROMS *r) {
 	int i = 0;

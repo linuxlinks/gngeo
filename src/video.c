@@ -29,13 +29,7 @@
 #include "screen.h"
 #include "frame_skip.h"
 #include "transpack.h"
-//#include "driver.h"
-//#include "unzip.h"
-/*
-#ifdef GP2X
-#include "shared940.h"
-#endif
-*/
+
 extern int neogeo_fix_bank_type;
 
 
@@ -63,7 +57,6 @@ void draw_tile_i386_norm(unsigned int tileno,int sx,int sy,int zx,int zy,
 void draw_tile_i386_50(unsigned int tileno,int sx,int sy,int zx,int zy,
 		       int color,int xflip,int yflip,unsigned char *bmp);
 void draw_one_char_i386(int byte1,int byte2,unsigned short *br);
-int draw_one_char_arm(int byte1,int byte2,unsigned short *br);
 
 void draw_scanline_tile_i386_norm(unsigned int tileno,int yoffs,int sx,int line,int zx,
 				  int color,int xflip,unsigned char *bmp);
@@ -72,7 +65,7 @@ void draw_scanline_tile_i386_50(unsigned int tileno,int yoffs,int sx,int line,in
 				int color,int xflip,unsigned char *bmp);
 #endif
 
-Uint8 strip_usage[0x300];
+//Uint8 strip_usage[0x300];
 #define PEN_USAGE(tileno) ((memory.pen_usage[tileno>>4]>>((tileno&0xF)*2))&0x3)
 
 
@@ -209,190 +202,6 @@ static void fix_value_init(void) {
 
 #define fix_add(x, y) (0x1000 * (((memory.vid.ram[0x7500 + ((y-1)&31) + 32 * (x/6)] >> (5-(x%6))*2) & 3) ^ 3))
 
-void convert_tile(int tileno)
-{
-    unsigned char swap[128];
-    unsigned int *gfxdata;
-    int x,y;
-    unsigned int pen,usage=0;
-    TRANS_PACK *t;
-    gfxdata = (unsigned int *)&memory.rom.tiles.p[ tileno<<7];
-  
-    memcpy(swap,gfxdata,128);
-
-    //filed=1;
-    for (y = 0;y < 16;y++) {
-        unsigned int dw;
-    
-        dw = 0;
-        for (x = 0;x < 8;x++)
-        {
-            pen  = ((swap[64 + (y<<2) + 3] >> x) & 1) << 3;
-            pen |= ((swap[64 + (y<<2) + 1] >> x) & 1) << 2;
-            pen |= ((swap[64 + (y<<2) + 2] >> x) & 1) << 1;
-            pen |=  (swap[64 + (y<<2)    ] >> x) & 1;
-	    //if (!pen) filed=0;
-            dw |= pen << ((7-x)<<2);
-            //memory.pen_usage[tileno]  |= (1 << pen);
-	    usage |= (1 << pen);
-        }
-#ifdef GP2X
-	if (memory.gp2x_gfx_mapped==0)
-#endif
-		*(gfxdata++) = dw;
-     
-        dw = 0;
-        for (x = 0;x < 8;x++)
-        {
-            pen  = ((swap[(y<<2) + 3] >> x) & 1) << 3;
-            pen |= ((swap[(y<<2) + 1] >> x) & 1) << 2;
-            pen |= ((swap[(y<<2) + 2] >> x) & 1) << 1;
-            pen |=  (swap[(y<<2)    ] >> x) & 1;
-	    //if (!pen) filed=0;
-            dw |= pen << ((7-x)<<2);
-            //memory.pen_usage[tileno]  |= (1 << pen);
-	    usage |= (1 << pen);
-        }
-#ifdef GP2X
-	if (memory.gp2x_gfx_mapped==0)
-#endif
-		*(gfxdata++) = dw;
-    }
-
-    /* 0: Normal, 1: invisible, 2: transparent25, 3: Transparent50 */
-    if ((usage & ~1) == 0) {
-	    memory.pen_usage[tileno>>4]|=(TILE_INVISIBLE<<((tileno&0xF)*2));
-    } else {
-	    t=trans_pack_find(tileno);
-	    if (t!=NULL) {
-		    if (t->type==1)
-			    memory.pen_usage[tileno>>4]|=(TILE_TRANSPARENT25<<((tileno&0xF)*2));
-		    else if (t->type==2) 
-			    memory.pen_usage[tileno>>4]|=(TILE_TRANSPARENT50<<((tileno&0xF)*2));
-	    }
-    }
-/*
-    if ((usage & ~1) == 0) {
-        memory.pen_usage[tileno]=TILE_INVISIBLE;
-    } else {
-	t=trans_pack_find(tileno);
-        if (t!=NULL) {
-            if (t->type==1)
-                memory.pen_usage[tileno]=TILE_TRANSPARENT25;
-            else {
-                if (t->type==2)
-                    memory.pen_usage[tileno]=TILE_TRANSPARENT50;
-                else
-                    memory.pen_usage[tileno]=TILE_NORMAL;
-            }
-        } else {
-	    memory.pen_usage[tileno]=TILE_NORMAL;
-	}
-    }
-*/
-  
-}
-
-void convert_all_char(Uint8 *Ptr, int Taille, 
-		      Uint8 *usage_ptr)
-{
-    int		i,j;
-    unsigned char	usage;
-    
-    Uint8 *Src;
-    Uint8 *sav_src;
-
-    Src=(Uint8*)malloc(Taille);
-    if (!Src) {
-	printf("Not enought memory!!\n");
-	return;
-    }
-    sav_src=Src;
-    memcpy(Src,Ptr,Taille);
-#ifdef WORDS_BIGENDIAN
-#define CONVERT_TILE *Ptr++ = *(Src+8);\
-	             usage |= *(Src+8);\
-                     *Ptr++ = *(Src);\
-		     usage |= *(Src);\
-		     *Ptr++ = *(Src+24);\
-		     usage |= *(Src+24);\
-		     *Ptr++ = *(Src+16);\
-		     usage |= *(Src+16);\
-		     Src++;
-#else
-#define CONVERT_TILE *Ptr++ = *(Src+16);\
-	             usage |= *(Src+16);\
-                     *Ptr++ = *(Src+24);\
-		     usage |= *(Src+24);\
-		     *Ptr++ = *(Src);\
-		     usage |= *(Src);\
-		     *Ptr++ = *(Src+8);\
-		     usage |= *(Src+8);\
-		     Src++;
-#endif
-    for(i=Taille;i>0;i-=32) {
-        usage = 0;
-        for (j=0;j<8;j++) {
-            CONVERT_TILE
-                }
-        Src+=24;
-        *usage_ptr++ = usage;
-    }
-    free(sav_src);
-#undef CONVERT_TILE
-}
-
-/* For MGD-2 dumps */
-static int mgd2_tile_pos=0;
-void convert_mgd2_tiles(unsigned char *buf,int len)
-{
-    int i;
-    unsigned char t;
-
-    if (len==memory.rom.tiles.size && mgd2_tile_pos==memory.rom.tiles.size) {
-	mgd2_tile_pos=0;
-    }
-    if (len == 2) {
-	
-	
-	return;
-    }
-
-    if (len == 6)
-    {
-        unsigned char swp[6];
-
-        memcpy(swp,buf,6);
-        buf[0] = swp[0];
-        buf[1] = swp[3];
-        buf[2] = swp[1];
-        buf[3] = swp[4];
-        buf[4] = swp[2];
-        buf[5] = swp[5];
-
-        return;
-    }
-
-    if (len % 4) exit(1);	/* must not happen */
-
-    len /= 2;
-
-    for (i = 0;i < len/2;i++)
-    {
-        t = buf[len/2 + i];
-        buf[len/2 + i] = buf[len + i];
-        buf[len + i] = t;
-    }
-    if (len==2) {
-	mgd2_tile_pos+=2;
-    }
-    convert_mgd2_tiles(buf,len);
-    convert_mgd2_tiles(buf + len,len);
-}
-
-
-
-
 /* Drawing function generation */
 #define RENAME(name) name##_tile
 #define PUTPIXEL(dst,src) dst=src
@@ -406,321 +215,8 @@ void convert_mgd2_tiles(unsigned char *buf,int len)
 #define PUTPIXEL(dst,src) dst=BLEND16_25(src,dst)
 #include "video_template.h"
 
-/* Drawing function (debug) */
-#define DEBUG_VIDEO
-#define RENAME(name) name##_debug
-#define PUTPIXEL(dst,src) dst=src
-#include "video_template.h"
-#undef DEBUG_VIDEO
-#define PUTPIXEL(dst,src) dst=src
-static __inline__ void draw_tile_full(unsigned int tileno,int sx,int sy,int zx,int zy,
-				      int color,int xflip,int yflip,unsigned char *bmp)
-{
-    unsigned int *gfxdata,myword;
-    int y;
-    unsigned char col;
-    unsigned short *br;
-    unsigned int *paldata=(unsigned int *)&current_pc_pal[16*color];
-    char *l_y_skip;
-    int l; // Line skipping counter
-#ifdef DEBUG_VIDEO
-    int buf_w=544-zx;
-    int buf_w_yflip=544+zx;
-#else
-    int buf_w=(buffer->pitch>>1)-zx;
-    int buf_w_yflip=(buffer->pitch>>1)+zx;
-#endif
-    tileno=tileno%memory.nb_of_tiles;
-   
-    gfxdata = (unsigned int *)&memory.rom.tiles.p[ tileno<<7];
-
-    /* y zoom table */
-    if(zy==16)
-        l_y_skip=full_y_skip;
-    else
-        l_y_skip=dda_y_skip;
-
-    if (zx==16) {
-        if (xflip) {
-            l=0;
-            if (yflip) {
-#ifdef DEBUG_VIDEO
-                br= (unsigned short *)bmp+((zy-1)+sy)*544+sx;
-#else
-                br= (unsigned short *)bmp+((zy-1)+sy)*(buffer->pitch>>1)+sx;
-#endif
-                for(y=0;y<zy;y++) {
-                    gfxdata+=l_y_skip[l]<<1;
-                    myword = gfxdata[1];
-                    br[0]=paldata[(myword>>0)&0xf];
-                    br[1]=paldata[(myword>>4)&0xf];
-                    br[2]=paldata[(myword>>8)&0xf];
-                    br[3]=paldata[(myword>>12)&0xf];
-                    br[4]=paldata[(myword>>16)&0xf];
-                    br[5]=paldata[(myword>>20)&0xf];
-                    br[6]=paldata[(myword>>24)&0xf];
-                    br[7]=paldata[(myword>>28)&0xf];
-                    myword = gfxdata[0];
-                    br[8]=paldata[(myword>>0)&0xf];
-                    br[9]=paldata[(myword>>4)&0xf];
-                    br[10]=paldata[(myword>>8)&0xf];
-                    br[11]=paldata[(myword>>12)&0xf];
-                    br[12]=paldata[(myword>>16)&0xf];
-                    br[13]=paldata[(myword>>20)&0xf];
-                    br[14]=paldata[(myword>>24)&0xf];
-                    br[15]=paldata[(myword>>28)&0xf];
-#ifdef DEBUG_VIDEO
-                    br-=544;
-#else
-                    br-=(buffer->pitch>>1);
-#endif
-                    l++;
-                }
-            } else {
-#ifdef DEBUG_VIDEO
-                br= (unsigned short *)bmp+(sy)*544+sx;
-#else
-                br= (unsigned short *)bmp+(sy)*(buffer->pitch>>1)+sx;
-#endif
-                for(y=0;y<zy;y++) {
-                    
-                    gfxdata+=l_y_skip[l]<<1;
-                    myword = gfxdata[1];
-		    br[0]=paldata[(myword>>0)&0xf];
-                    br[1]=paldata[(myword>>4)&0xf];
-                    br[2]=paldata[(myword>>8)&0xf];
-                    br[3]=paldata[(myword>>12)&0xf];
-                    br[4]=paldata[(myword>>16)&0xf];
-                    br[5]=paldata[(myword>>20)&0xf];
-                    br[6]=paldata[(myword>>24)&0xf];
-                    br[7]=paldata[(myword>>28)&0xf];
-                    myword = gfxdata[0];
-                    br[8]=paldata[(myword>>0)&0xf];
-                    br[9]=paldata[(myword>>4)&0xf];
-                    br[10]=paldata[(myword>>8)&0xf];
-                    br[11]=paldata[(myword>>12)&0xf];
-                    br[12]=paldata[(myword>>16)&0xf];
-                    br[13]=paldata[(myword>>20)&0xf];
-                    br[14]=paldata[(myword>>24)&0xf];
-                    br[15]=paldata[(myword>>28)&0xf];
-#ifdef DEBUG_VIDEO
-                    br+=544;
-#else
-                    br+=(buffer->pitch>>1);
-#endif
-                    l++;
-		
-                }
-            }
-        }else {
-            l=0;
-            if (yflip) {
-#ifdef DEBUG_VIDEO
-                br= (unsigned short *)bmp+((zy-1)+sy)*544+sx;
-#else
-                br= (unsigned short *)bmp+((zy-1)+sy)*(buffer->pitch>>1)+sx;
-#endif
-                for(y=0;y<zy;y++) {
-                    gfxdata+=l_y_skip[l]<<1;
-                    myword = gfxdata[0];
-                    br[0]=paldata[(myword>>28)&0xf];
-                    br[1]=paldata[(myword>>24)&0xf];
-                    br[2]=paldata[(myword>>20)&0xf];
-                    br[3]=paldata[(myword>>16)&0xf];
-                    br[4]=paldata[(myword>>12)&0xf];
-                    br[5]=paldata[(myword>>8)&0xf];
-                    br[6]=paldata[(myword>>4)&0xf];
-                    br[7]=paldata[(myword>>0)&0xf];
-	      
-                    myword = gfxdata[1];
-                    br[8]=paldata[(myword>>28)&0xf];
-                    br[9]=paldata[(myword>>24)&0xf];
-                    br[10]=paldata[(myword>>20)&0xf];
-                    br[11]=paldata[(myword>>16)&0xf];
-                    br[12]=paldata[(myword>>12)&0xf];
-                    br[13]=paldata[(myword>>8)&0xf];
-                    br[14]=paldata[(myword>>4)&0xf];
-                    br[15]=paldata[(myword>>0)&0xf];
-                    l++;
-#ifdef DEBUG_VIDEO
-                    br-=544;
-#else
-                    br-=(buffer->pitch>>1);
-#endif
-                }
-            } else {
-#ifdef DEBUG_VIDEO
-                br= (unsigned short *)bmp+(sy)*544+sx;
-#else
-                br= (unsigned short *)bmp+(sy)*(buffer->pitch>>1)+sx;
-#endif
-                for(y=0;y<zy;y++) {
-                    gfxdata+=l_y_skip[l]<<1;
-                    myword = gfxdata[0];
-                    br[0]=paldata[(myword>>28)&0xf];
-                    br[1]=paldata[(myword>>24)&0xf];
-                    br[2]=paldata[(myword>>20)&0xf];
-                    br[3]=paldata[(myword>>16)&0xf];
-                    br[4]=paldata[(myword>>12)&0xf];
-                    br[5]=paldata[(myword>>8)&0xf];
-                    br[6]=paldata[(myword>>4)&0xf];
-                    br[7]=paldata[(myword>>0)&0xf];
-	      
-                    myword = gfxdata[1];
-                    br[8]=paldata[(myword>>28)&0xf];
-                    br[9]=paldata[(myword>>24)&0xf];
-                    br[10]=paldata[(myword>>20)&0xf];
-                    br[11]=paldata[(myword>>16)&0xf];
-                    br[12]=paldata[(myword>>12)&0xf];
-                    br[13]=paldata[(myword>>8)&0xf];
-                    br[14]=paldata[(myword>>4)&0xf];
-                    br[15]=paldata[(myword>>0)&0xf];
-
-                    l++;
-#ifdef DEBUG_VIDEO
-                    br+=544;
-#else
-                    br+=(buffer->pitch>>1);
-#endif
-                }
-            }
-        }
-    }else { // zx!=16
-        if (xflip) {
-            l=0;
-            if (yflip) {
-#ifdef DEBUG_VIDEO
-                br= (unsigned short *)bmp+((zy-1)+sy)*544+sx;
-#else
-                br= (unsigned short *)bmp+((zy-1)+sy)*(buffer->pitch>>1)+sx;
-#endif
-                for(y=0;y<zy;y++) {
-                    gfxdata+=l_y_skip[l]<<1;
-                    myword = gfxdata[1];
-                    if (dda_x_skip[ 0]) {if ((col=((myword>>0)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-                    if (dda_x_skip[ 1]) {if  ((col=((myword>>4)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-                    if (dda_x_skip[ 2]) {if  ((col=((myword>>8)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-                    if (dda_x_skip[ 3]) {if  ((col=((myword>>12)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-                    if (dda_x_skip[ 4]) {if  ((col=((myword>>16)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-                    if (dda_x_skip[ 5]) {if  ((col=((myword>>20)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-                    if (dda_x_skip[ 6]) {if  ((col=((myword>>24)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-                    if (dda_x_skip[ 7]) {if  ((col=((myword>>28)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-
-                    myword = gfxdata[0];
-                    if (dda_x_skip[ 8]) {if  ((col=((myword>>0)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-                    if (dda_x_skip[ 9]) {if  ((col=((myword>>4)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-                    if (dda_x_skip[10]) {if  ((col=((myword>>8)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-                    if (dda_x_skip[11]) {if  ((col=((myword>>12)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-                    if (dda_x_skip[12]) {if  ((col=((myword>>16)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-                    if (dda_x_skip[13]) {if  ((col=((myword>>20)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-                    if (dda_x_skip[14]) {if  ((col=((myword>>24)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-                    if (dda_x_skip[15]) {if  ((col=((myword>>28)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-                    br-=buf_w_yflip;
-                    l++;
-                }
-            } else {
-#ifdef DEBUG_VIDEO
-                br= (unsigned short *)bmp+(sy)*544+sx;
-#else
-                br= (unsigned short *)bmp+(sy)*(buffer->pitch>>1)+sx;
-#endif
-                for(y=0;y<zy;y++) {
-                    gfxdata+=l_y_skip[l]<<1;
-                    myword = gfxdata[1];
-                    if (dda_x_skip[ 0]) {if  ((col=((myword>>0)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 1]) {if  ((col=((myword>>4)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 2]) {if  ((col=((myword>>8)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 3]) {if  ((col=((myword>>12)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 4]) {if  ((col=((myword>>16)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 5]) {if  ((col=((myword>>20)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 6]) {if  ((col=((myword>>24)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 7]) {if  ((col=((myword>>28)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-
-                    myword = gfxdata[0];
-                    if (dda_x_skip[ 8]) {if  ((col=((myword>>0)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 9]) {if  ((col=((myword>>4)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[10]) {if  ((col=((myword>>8)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[11]) {if  ((col=((myword>>12)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[12]) {if  ((col=((myword>>16)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[13]) {if  ((col=((myword>>20)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[14]) {if  ((col=((myword>>24)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[15]) {if  ((col=((myword>>28)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-
-                    br+=buf_w;
-                    l++;
-                }
-            }
-        }else {
-            l=0;
-            if (yflip) {
-#ifdef DEBUG_VIDEO
-                br= (unsigned short *)bmp+((zy-1)+sy)*544+sx;
-#else
-                br= (unsigned short *)bmp+((zy-1)+sy)*(buffer->pitch>>1)+sx;
-#endif
-                for(y=0;y<zy;y++) {
-
-                    gfxdata+=l_y_skip[l]<<1;
-                    myword = gfxdata[0];
-                    if (dda_x_skip[ 0]) {if ((col=((myword>>28)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 1]) {if ((col=((myword>>24)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 2]) {if ((col=((myword>>20)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 3]) {if ((col=((myword>>16)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 4]) {if ((col=((myword>>12)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 5]) {if ((col=((myword>>8)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 6]) {if ((col=((myword>>4)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 7]) {if ((col=((myword>>0)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-	      
-                    myword = gfxdata[1];
-                    if (dda_x_skip[ 8]) {if ((col=((myword>>28)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 9]) {if ((col=((myword>>24)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[10]) {if ((col=((myword>>20)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[11]) {if ((col=((myword>>16)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[12]) {if ((col=((myword>>12)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[13]) {if ((col=((myword>>8)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[14]) {if ((col=((myword>>4)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[15]) {if ((col=((myword>>0)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    l++; 
-                    br-=buf_w_yflip;
-                }
-            } else {
-#ifdef DEBUG_VIDEO
-                br= (unsigned short *)bmp+(sy)*544+sx;
-#else
-                br= (unsigned short *)bmp+(sy)*(buffer->pitch>>1)+sx;
-#endif
-                for(y=0;y<zy;y++) {
-
-                    gfxdata+=l_y_skip[l]<<1;
-                    myword = gfxdata[0];
-                    if (dda_x_skip[ 0]) {if ((col=((myword>>28)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 1]) {if ((col=((myword>>24)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 2]) {if ((col=((myword>>20)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 3]) {if ((col=((myword>>16)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 4]) {if ((col=((myword>>12)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 5]) {if ((col=((myword>>8)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 6]) {if ((col=((myword>>4)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 7]) {if ((col=((myword>>0)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-	      
-                    myword = gfxdata[1];
-                    if (dda_x_skip[ 8]) {if ((col=((myword>>28)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[ 9]) {if ((col=((myword>>24)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[10]) {if ((col=((myword>>20)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[11]) {if ((col=((myword>>16)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[12]) {if ((col=((myword>>12)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[13]) {if ((col=((myword>>8)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[14]) {if ((col=((myword>>4)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    if (dda_x_skip[15]) {if ((col=((myword>>0)&0xf))) PUTPIXEL(*br,paldata[col]);br++;} 
-                    l++;
-                    br+=buf_w;
-                }
-            }
-        }
-    }
-}
-
 #ifdef PROCESSOR_ARM
-static __inline__ void draw_tile_gp2x_norm(unsigned int tileno,int sx,int sy,int zx,int zy,
+static __inline__ void draw_tile_arm(unsigned int tileno,int sx,int sy,int zx,int zy,
 			 int color,int xflip,int yflip,unsigned char *bmp) {
 	Uint32 pitch=352/*buffer->pitch>>1*/;
 	//static SDL_Rect blit_rect={0,0,16,16};
@@ -735,7 +231,7 @@ static __inline__ void draw_tile_gp2x_norm(unsigned int tileno,int sx,int sy,int
 		ldda_y_skip=full_y_skip;
 	else
 		ldda_y_skip=dda_y_skip;
-#if 1
+
 	//if (yskip==16) dda_y_skip_i=0xFFFE;
 	if (zx==16) {
 		if (!xflip) {
@@ -783,94 +279,18 @@ static __inline__ void draw_tile_gp2x_norm(unsigned int tileno,int sx,int sy,int
 							  zy);
 			}
 		}
-/*		
-		if (xflip) {
-			if (yflip) {
-				draw_tile_arm_xyflip_xzoom(tileno,color,
-							   (unsigned short*)bmp+((zy-1)+sy)*pitch+sx,
-							   zy);
-			} else {
-				draw_tile_arm_xflip_xzoom(tileno,color,
-							  (unsigned short*)bmp+(sy)*pitch+sx,
-							  zy);
-			}
-		} else {
-			if (yflip) {
-				draw_tile_arm_yflip_xzoom(tileno,color,
-							  (unsigned short*)bmp+((zy-1)+sy)*pitch+sx,
-							  zy);
-			} else {
-				draw_tile_arm_xzoom(tileno,color,
-						    (unsigned short*)bmp+(sy)*pitch+sx,
-						    zy);
-						    }
-		}
-*/
-
 	}
-#else
-	//if (yskip==16) dda_y_skip_i=0xFFFE;
-	if (zx!=16) {
-		dda_x_skip_i=ddaxskip_i[zx];
-		/*
-		  draw_tile(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
-		  tileatr & 0x01,tileatr & 0x02,
-		  (unsigned char*)buffer->pixels);
-		*/
-				
-		if (xflip) {
-			if (yflip) {
-				draw_tile_arm_xyflip_xzoom(tileno,color,
-							   (unsigned short*)bmp+((zy-1)+sy)*pitch+sx,
-							   zy);
-			} else {
-				draw_tile_arm_xflip_xzoom(tileno,color,
-							  (unsigned short*)bmp+(sy)*pitch+sx,
-							  zy);
-			}
-		} else {
-			if (yflip) {
-				draw_tile_arm_yflip_xzoom(tileno,color,
-							  (unsigned short*)bmp+((zy-1)+sy)*pitch+sx,
-							  zy);
-			} else {
-				draw_tile_arm_xzoom(tileno,color,
-						    (unsigned short*)bmp+(sy)*pitch+sx,
-						    zy);
-			}
-		}
-	} else {
-		if (xflip) {
-			if (yflip) {
-				draw_tile_arm_xyflip_norm(tileno,color,
-							  (unsigned short*)bmp+((zy-1)+sy)*pitch+sx,
-							  zy);
-			} else {
-				draw_tile_arm_xflip_norm(tileno,color,
-							 (unsigned short*)bmp+(sy)*pitch+sx,
-							 zy);
-			}
-		} else {
-			if (yflip) {
-				draw_tile_arm_yflip_norm(tileno,color,
-							 (unsigned short*)bmp+((zy-1)+sy)*pitch+sx,
-							 zy);
-			} else {
-				draw_tile_arm_norm(tileno,color,
-						   (unsigned short*)bmp+(sy)*pitch+sx,
-						   zy);
-			}
-		}
-	}	
-#endif
 }
 #endif
+
+#if 0
 
 void debug_draw_tile(unsigned int tileno,int sx,int sy,int zx,int zy,
 		     int color,int xflip,int yflip,unsigned char *bmp) {
     draw_debug(tileno,sx,sy,zx,zy,color,xflip,yflip,bmp);
 }
 
+#endif
 
 static __inline__ void draw_fix_char(unsigned char *buf,int start,int end)
 {
@@ -1138,9 +558,9 @@ void draw_screen(void)
 #ifdef PROCESSOR_ARM
 		    //if (memory.pen_usage[tileno]!=TILE_INVISIBLE)
 		    if (PEN_USAGE(tileno)!=TILE_INVISIBLE)
-			    draw_tile_gp2x_norm(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
-						tileatr & 0x01,tileatr & 0x02,
-						(unsigned char*)buffer->pixels);
+			    draw_tile_arm(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
+					  tileatr & 0x01,tileatr & 0x02,
+					  (unsigned char*)buffer->pixels);
 #else
 #ifdef I386_ASM
 			//switch (memory.pen_usage[tileno]) {
@@ -1168,13 +588,6 @@ void draw_screen(void)
 		}
 #else
                 switch (PEN_USAGE(tileno)) {
-/*
-		case TILE_FULL:
-			draw_tile_full(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
-				       tileatr & 0x01,tileatr & 0x02,
-				       (unsigned char*)buffer->pixels);
-			break;
-*/
 		case TILE_NORMAL:
 		    draw_tile(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
 			      tileatr & 0x01,tileatr & 0x02,
@@ -1208,18 +621,10 @@ void draw_screen(void)
         conf.do_message--;
     }
     if (show_fps)
-        SDL_textout(buffer,visible_area.x,visible_area.y,fps_str);
+      SDL_textout(buffer,visible_area.x,visible_area.y,fps_str);
 
 	
-	screen_update();
-/*
-	i=0;
-	for (sx=0;sx<256;sx++) {
-		if (sx&1) printf("%d",bank[sx]+bank[sx-1]);
-		if (bank[sx]) i++;
-	}
-	printf(" %d Ko \n",((i*0x80000/256)*16*8)/1024);
-*/
+    screen_update();
 }
 
 void draw_screen_scanline(int start_line, int end_line,int refresh)
@@ -1236,15 +641,6 @@ void draw_screen_scanline(int start_line, int end_line,int refresh)
     int invert;
     Uint8 *zoomy_rom;
 
-#ifdef DEBUG_VIDEO
-  
-    clear_rect.x=visible_area.x;
-    clear_rect.w=visible_area.w;
-    clear_rect.y=visible_area.y;
-    clear_rect.h=visible_area.w;
-    SDL_FillRect(buffer,NULL,current_pc_pal[4095]);
-    SDL_FillRect(buffer,&clear_rect,0xFF00);
-#else
     if (start_line>255) start_line=255;  
     if (end_line>255) end_line=255;  
 
@@ -1254,7 +650,7 @@ void draw_screen_scanline(int start_line, int end_line,int refresh)
 
 
     SDL_FillRect(buffer,&clear_rect,current_pc_pal[4095]);
-#endif
+
     /* Draw sprites */
     for (count=0;count<0x300;count+=2) {
 
@@ -1314,59 +710,6 @@ void draw_screen_scanline(int start_line, int end_line,int refresh)
         offs = count<<6;
         zoomy_rom = memory.ng_lo + (zy << 8);
    
-#ifdef DEBUG_VIDEO
-        yskip=16;
-        tsy=sy;
-
-        for (y=0; y < my ;y++) {
-            tileno  = READ_WORD(&vidram[offs]);
-            offs+=2;
-            tileatr = READ_WORD(&vidram[offs]);
-            offs+=2;
-
-            if (memory.nb_of_tiles>0x10000 && tileatr&0x10) tileno+=0x10000;
-            if (memory.nb_of_tiles>0x20000 && tileatr&0x20) tileno+=0x20000;
-            if (memory.nb_of_tiles>0x40000 && tileatr&0x40) tileno+=0x40000;
-
-	    /* animation automatique */
-            if (tileatr&0x8) tileno=(tileno&~7)+((tileno+neogeo_frame_counter)&7);
-            else if (tileatr&0x4) tileno=(tileno&~3)+((tileno+neogeo_frame_counter)&3);
-      
-            if(zy!=255)
-            {
-                yskip=0;
-                dda_y_skip[0]=0;
-                for(i=0;i<16;i++)
-                {
-                    dda_y_skip[i+1]=0;
-                    dday-=zy+1;
-                    if(dday<=0)
-                    {
-                        dday+=256;
-                        yskip++;
-                        dda_y_skip[yskip]++;
-                    }
-                    else dda_y_skip[yskip]++;
-                }
-            }
-      
-
-            if (tsy>262) tsy-=512;
-            if (sx >= 0 && sx+15 < 544 && tsy>=0 && tsy+15 <544) {
-		    /*
-                if (memory.pen_usage[tileno]==TILE_UNCONVERTED)
-                    convert_tile(tileno);
-		    */
-	
-                draw_tile(tileno,sx+visible_area.x,tsy,zx+1,yskip,tileatr>>8,
-                          tileatr & 0x01,tileatr & 0x02,
-                          (unsigned char*)buffer->pixels);
-      
-            }
-            tsy +=yskip;
-        }  /* for y */
-            
-#else
 	otile=-1;
         for (yy=start_line;yy<=end_line;yy++) {
             y=yy-sy; /* y: 0 -> my*16 */
@@ -1457,18 +800,10 @@ void draw_screen_scanline(int start_line, int end_line,int refresh)
 	  
             
         }
-#endif /* DEBUG_VIDEO */
     }  /* for count */
 
-/*
-#ifndef DEBUG_VIDEO
-    draw_fix_char(buffer->pixels,start_line,end_line);
-#endif
-*/
     if (refresh) {
-#ifndef DEBUG_VIDEO
 	draw_fix_char(buffer->pixels,0,0);
-#endif
  
         if (conf.do_message) {
             SDL_textout(buffer,visible_area.x,visible_area.h+visible_area.y-13,conf.message);
@@ -1476,12 +811,7 @@ void draw_screen_scanline(int start_line, int end_line,int refresh)
         }
         if (show_fps)
             SDL_textout(buffer,visible_area.x,visible_area.y,fps_str);
-#ifdef DEBUG_VIDEO
-        SDL_BlitSurface(buffer,NULL,screen,NULL);
-        SDL_UpdateRect(screen,0,0,0,0);
-#else
         screen_update();
-#endif
     }
 }
 

@@ -43,6 +43,8 @@ Uint32 bankaddress = 0;
 //Uint8 neo_memcard[0x800];
 extern int current_line;
 
+#if 0
+
 static void draw_border(SDL_Surface *buf, int x, int y, int w, int h,
 		Uint32 color) {
 	SDL_Rect rect;
@@ -146,6 +148,8 @@ void dump_hardware_reg(void) {
 	draw_border(video_dump, 16, 16, 496, 496, 0x001F);
 	SDL_SaveBMP(video_dump, "/tmp/dump.bmp");
 }
+
+#endif
 
 void neogeo_sound_irq(int irq) {
 	//printf("neogeo_sound_irq %d\n",irq);
@@ -740,7 +744,7 @@ void mem68k_store_z80_byte(Uint32 addr, Uint8 data) {
 	if (addr == 0x320000) {
 		sound_code = data & 0xff;
 		pending_command = 1;
-		printf("B Pending command. Sound_code=%02x\n",sound_code);
+		//printf("B Pending command. Sound_code=%02x\n",sound_code);
 		if (conf.sound) {
 #ifdef ENABLE_940T
 			//printf("%d\n",shared_ctl->pending_command);

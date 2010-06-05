@@ -520,8 +520,8 @@ int cpu_68k_debuger(void (*execstep)(void),void (*dump)(void)) {
 	    }
 	    break;
 	case 'h':
-	    dump_hardware_reg();
-	    break;
+	  //dump_hardware_reg();
+	  break;
 	case 'q':
 	    debug_end=1;
 	    break;

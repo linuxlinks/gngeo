@@ -365,13 +365,13 @@ int handle_event(void) {
 
 	/* Update P1 */
 	memory.intern_p1 = 0xFF;
-	if (joy_state[0][GN_UP])
+	if (joy_state[0][GN_UP] && (!joy_state[0][GN_DOWN]))
 	    memory.intern_p1 &= 0xFE;
-	if (joy_state[0][GN_DOWN])
+	if (joy_state[0][GN_DOWN] && (!joy_state[0][GN_UP]))
 	    memory.intern_p1 &= 0xFD;
-	if (joy_state[0][GN_LEFT])
+	if (joy_state[0][GN_LEFT] && (!joy_state[0][GN_RIGHT]))
 	    memory.intern_p1 &= 0xFB;
-	if (joy_state[0][GN_RIGHT])
+	if (joy_state[0][GN_RIGHT] && (!joy_state[0][GN_LEFT]))
 	    memory.intern_p1 &= 0xF7;
 	if (joy_state[0][GN_A])
 	    memory.intern_p1 &= 0xEF;	// A
@@ -384,13 +384,13 @@ int handle_event(void) {
 
 	/* Update P1 */
 	memory.intern_p2 = 0xFF;
-	if (joy_state[1][GN_UP])
+	if (joy_state[1][GN_UP] && (!joy_state[1][GN_DOWN]))
 	    memory.intern_p2 &= 0xFE;
-	if (joy_state[1][GN_DOWN])
+	if (joy_state[1][GN_DOWN] && (!joy_state[1][GN_UP]))
 	    memory.intern_p2 &= 0xFD;
-	if (joy_state[1][GN_LEFT])
+	if (joy_state[1][GN_LEFT] && (!joy_state[1][GN_RIGHT]))
 	    memory.intern_p2 &= 0xFB;
-	if (joy_state[1][GN_RIGHT])
+	if (joy_state[1][GN_RIGHT] && (!joy_state[1][GN_LEFT]))
 	    memory.intern_p2 &= 0xF7;
 	if (joy_state[1][GN_A])
 	    memory.intern_p2 &= 0xEF;	// A

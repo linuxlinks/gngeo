@@ -349,7 +349,7 @@ void free_bios_memory(void) {
     free(memory.pal_pc2);memory.pal_pc2=NULL;
     */
 }
-
+#if 0
 void open_bios(void)
 {
     FILE *f;
@@ -450,5 +450,5 @@ void open_bios(void)
 
     free(romfile);
 }
-
+#endif
 

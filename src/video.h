@@ -78,10 +78,10 @@ void debug_draw_tile(unsigned int tileno,int sx,int sy,int zx,int zy,
 void draw_screen_scanline(int start_line, int end_line, int refresh);
 void draw_screen(void);
 // void show_cache(void);
-void convert_all_char(unsigned char *Ptr, int Taille,
-		      unsigned char *usage_ptr);
-void convert_mgd2_tiles(unsigned char *buf, int len);
-void convert_tile(int tileno);
+//void convert_all_char(unsigned char *Ptr, int Taille,
+//		      unsigned char *usage_ptr);
+//void convert_mgd2_tiles(unsigned char *buf, int len);
+//void convert_tile(int tileno);
 
 
 #endif

@@ -81,8 +81,10 @@ void sdl_set_title(char *name) {
     char *title;
     if (name) {
 	title = malloc(strlen("Gngeo : ")+strlen(name)+1);
-	sprintf(title,"Gngeo : %s",name);
-	SDL_WM_SetCaption(title, NULL);
+	if (title) {
+	  sprintf(title,"Gngeo : %s",name);
+	  SDL_WM_SetCaption(title, NULL);
+	}
     } else {
 	SDL_WM_SetCaption("Gngeo", NULL);
     }

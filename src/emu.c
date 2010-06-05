@@ -797,6 +797,6 @@ void cpu_68k_dpg_step(void) {
 void debug_loop(void) {
 	int a;
 	do {
-		a = cpu_68k_debuger(cpu_68k_dpg_step, dump_hardware_reg);
+	  a = cpu_68k_debuger(cpu_68k_dpg_step, /*dump_hardware_reg*/NULL);
 	} while (a != -1);
 }
