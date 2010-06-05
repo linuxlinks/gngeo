@@ -48,7 +48,6 @@ Uint32 *mem_bank_usage;
 
 //GFX_CACHE gcache;
 
-
 void draw_one_char_arm(int byte1,int byte2,unsigned short *br);
 int draw_tile_arm_norm(unsigned int tileno, int color,unsigned char *bmp,int zy);
 #endif

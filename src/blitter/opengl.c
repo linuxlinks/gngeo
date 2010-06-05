@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 #ifdef HAVE_GL_GL_H
+#ifndef WII
 #ifndef GP2X
 
 #include "SDL.h"
@@ -368,5 +369,6 @@ blitter_opengl_fullscreen()
 	SDL_WM_ToggleFullScreen(video_opengl);
 }
 
+#endif
 #endif
 #endif

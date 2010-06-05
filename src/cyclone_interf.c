@@ -127,21 +127,7 @@ static unsigned int   MyCheckPc(unsigned int pc) {
 			MyCyclone.membase=(int)memory.rom.bios_m68k.p-0xc00000;
 		break;
 	}
-#if 0
-	if (pc>=0x0 && pc<=0xFFFFF) MyCyclone.membase=(int)memory.rom.cpu_m68k.p;
-	if (pc>=0x200000 && pc<=0x2FFFfF) {
-		MyCyclone.membase=(int)(memory.rom.cpu_m68k.p+bankaddress)-0x200000;
-	}
-	if (pc>=0x100000 && pc<=0x10FFff) {
-		MyCyclone.membase=(int)memory.ram-0x100000;
-	}
-	if (pc>=0xc00000 && pc<=0xc1FFff) {
-		MyCyclone.membase=(int)memory.rom.bios_m68k.p-0xc00000;
-		//printf("PC=%08x MemBase=%08x bios=%08x\n",pc,MyCyclone.membase,(int)memory.rom.bios_m68k.p);
-	}
 
-	//if (pc>=0xff0000) MyCyclone.membase=(int)RamMem-0xff0000; // Jump to Ram
-#endif
  	if (MyCyclone.membase==-1) {
  		printf("ERROROROOR %08x\n",pc);
  		exit(1);
@@ -157,53 +143,6 @@ static unsigned char  MyRead8  (unsigned int a) {
 	unsigned int addr=a&0xFFFFF;
 	unsigned int b=((a&0xF0000)>>16);
 	a&=0xFFFFFF;
-#if 0	
-	switch((a&0xFF0000)>>16) {
-	case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05:
-	case 0x06: case 0x07: case 0x08: case 0x09: case 0x0A: case 0x0B:
-	case 0x0C: case 0x0D: case 0x0E: case 0x0F:
-		return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + addr));
-		break;
-	case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25:
-	case 0x26: case 0x27: case 0x28: case 0x29: case 0x2A: case 0x2B:
-	case 0x2C: case 0x2D: case 0x2E: case 0x2F:
-		return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
-		break;
-	case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15:
-	case 0x16: case 0x17: case 0x18: case 0x19: case 0x1A: case 0x1B:
-	case 0x1C: case 0x1D: case 0x1E: case 0x1F:
-		return (READ_BYTE_ROM(memory.ram + (addr&0xFFFF)));
-		break;
-	case 0xC0: case 0xC1:
-		return (READ_BYTE_ROM(memory.rom.bios_m68k.p + addr));
-		break;
-
-	case 0xd0:
-		return mem68k_fetch_sram_byte(a);
-		break;
-	case 0x40:
-		return mem68k_fetch_pal_byte(a);
-		break;
-	case 0x3C:
-		return mem68k_fetch_video_byte(a);
-		break;
-	case 0x30:
-		return mem68k_fetch_ctl1_byte(a);
-		break;
-	case 0x34:
-		return mem68k_fetch_ctl2_byte(a);
-		break;
-	case 0x38:
-		return mem68k_fetch_ctl3_byte(a);
-		break;
-	case 0x32:
-		return mem68k_fetch_coin_byte(a);
-		break;
-	case 0x80:
-		return mem68k_fetch_memcrd_byte(a);
-		break;
-	}
-#else
 	switch((a&0xFF0000)>>20) {
 	case 0x0:
 		return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + addr));
@@ -234,24 +173,7 @@ static unsigned char  MyRead8  (unsigned int a) {
 		if (b==0) return mem68k_fetch_memcrd_byte(a);
 		break;
 	}
-#endif
-/*
-	MEMHANDLER_READ(0,0xFFFFF,mem68k_fetch_cpu_byte);
-	MEMHANDLER_READ(0x200000,0x2FFFFF,mem68k_fetch_bk_normal_byte);
-	MEMHANDLER_READ(0x100000,0x10FFFF,mem68k_fetch_ram_byte);
-	MEMHANDLER_READ(0xc00000,0xc1FFFF,mem68k_fetch_bios_byte);
 
-
-	MEMHANDLER_READ(0xd00000, 0xd0ffff, mem68k_fetch_sram_byte);
-	MEMHANDLER_READ(0x400000, 0x401fff, mem68k_fetch_pal_byte);
-	MEMHANDLER_READ(0x3c0000, 0x3c0fff, mem68k_fetch_video_byte);
-	MEMHANDLER_READ(0x300000, 0x300fff, mem68k_fetch_ctl1_byte);
-	MEMHANDLER_READ(0x340000, 0x340fff, mem68k_fetch_ctl2_byte);
-	MEMHANDLER_READ(0x380000, 0x380fff, mem68k_fetch_ctl3_byte);
-	MEMHANDLER_READ(0x320000, 0x320fff, mem68k_fetch_coin_byte);
-	MEMHANDLER_READ(0x800000, 0x800fff, mem68k_fetch_memcrd_byte);
-	printf("Unhandled read8  @ %08x\n",a);
-*/
 	return 0xFF;
 }
 static unsigned short MyRead16 (unsigned int a) {
@@ -259,56 +181,7 @@ static unsigned short MyRead16 (unsigned int a) {
 	unsigned int b=((a&0xF0000)>>16);
 	//printf("read 32 %08x\n",a);
 	a&=0xFFFFFF;
-#if 0
-	
 
-
-	switch((a&0xFF0000)>>16) {
-	case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05:
-	case 0x06: case 0x07: case 0x08: case 0x09: case 0x0A: case 0x0B:
-	case 0x0C: case 0x0D: case 0x0E: case 0x0F:
-		return (READ_WORD_ROM(memory.rom.cpu_m68k.p + addr));
-		break;
-	case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25:
-	case 0x26: case 0x27: case 0x28: case 0x29: case 0x2A: case 0x2B:
-	case 0x2C: case 0x2D: case 0x2E: case 0x2F:
-		return (READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
-		break;
-	case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15:
-	case 0x16: case 0x17: case 0x18: case 0x19: case 0x1A: case 0x1B:
-	case 0x1C: case 0x1D: case 0x1E: case 0x1F:
-		return (READ_WORD_ROM(memory.ram + (addr&0xFFFF)));
-		break;
-	case 0xC0: case 0xC1:
-		return (READ_WORD_ROM(memory.rom.bios_m68k.p + addr));
-		break;
-
-	case 0xd0:
-		return mem68k_fetch_sram_word(a);
-		break;
-	case 0x40:
-		return mem68k_fetch_pal_word(a);
-		break;
-	case 0x3C:
-		return mem68k_fetch_video_word(a);
-		break;
-	case 0x30:
-		return mem68k_fetch_ctl1_word(a);
-		break;
-	case 0x34:
-		return mem68k_fetch_ctl2_word(a);
-		break;
-	case 0x38:
-		return mem68k_fetch_ctl3_word(a);
-		break;
-	case 0x32:
-		return mem68k_fetch_coin_word(a);
-		break;
-	case 0x80:
-		return mem68k_fetch_memcrd_word(a);
-		break;
-	}
-#else
 	switch((a&0xFF0000)>>20) {
 	case 0x0:
 		return (READ_WORD_ROM(memory.rom.cpu_m68k.p + addr));
@@ -340,23 +213,7 @@ static unsigned short MyRead16 (unsigned int a) {
 		if (b==0) return mem68k_fetch_memcrd_word(a);
 		break;
 	}
-#endif
-/*
-	MEMHANDLER_READ(0,0xFFFFF,mem68k_fetch_cpu_word);
-	MEMHANDLER_READ(0x200000,0x2FFFFF,mem68k_fetch_bk_normal_word);
-	MEMHANDLER_READ(0x100000,0x10FFFF,mem68k_fetch_ram_word);
-	MEMHANDLER_READ(0xc00000,0xc1FFFF,mem68k_fetch_bios_word);
 
-	MEMHANDLER_READ(0xd00000, 0xd0ffff, mem68k_fetch_sram_word);
-	MEMHANDLER_READ(0x400000, 0x401fff, mem68k_fetch_pal_word);
-	MEMHANDLER_READ(0x3c0000, 0x3c0fff, mem68k_fetch_video_word);
-	MEMHANDLER_READ(0x300000, 0x300fff, mem68k_fetch_ctl1_word);
-	MEMHANDLER_READ(0x340000, 0x340fff, mem68k_fetch_ctl2_word);
-	MEMHANDLER_READ(0x380000, 0x380fff, mem68k_fetch_ctl3_word);
-	MEMHANDLER_READ(0x320000, 0x320fff, mem68k_fetch_coin_word);
-	MEMHANDLER_READ(0x800000, 0x800fff, mem68k_fetch_memcrd_word);
-	printf("Unhandled read16 @ %08x\n",a);
-*/
 	return 0xF0F0;
 }
 static unsigned int   MyRead32 (unsigned int a) {
@@ -364,67 +221,7 @@ static unsigned int   MyRead32 (unsigned int a) {
 	unsigned int addr=a&0xFFFFF;
 	unsigned int b=((a&0xF0000)>>16);
 	a&=0xFFFFFF;
-#if 0
-	//printf("read 32 %08x\n",a);
-	
 
-
-
-	switch((a&0xFF0000)>>16) {
-	case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05:
-	case 0x06: case 0x07: case 0x08: case 0x09: case 0x0A: case 0x0B:
-	case 0x0C: case 0x0D: case 0x0E: case 0x0F:
-		//return mem68k_fetch_cpu_long(a);
-		return ((READ_WORD_ROM(memory.rom.cpu_m68k.p + addr))<<16) | 
-			(READ_WORD_ROM(memory.rom.cpu_m68k.p + (addr+2)));
-		break;
-	case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25:
-	case 0x26: case 0x27: case 0x28: case 0x29: case 0x2A: case 0x2B:
-	case 0x2C: case 0x2D: case 0x2E: case 0x2F:
-		//return mem68k_fetch_bk_normal_long(a);
-		return ((READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + addr))<<16) | 
-			(READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + (addr+2)));
-		break;
-	case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15:
-	case 0x16: case 0x17: case 0x18: case 0x19: case 0x1A: case 0x1B:
-	case 0x1C: case 0x1D: case 0x1E: case 0x1F:
-		//return mem68k_fetch_ram_long(a);
-		addr&=0xFFFF;
-		return ((READ_WORD_ROM(memory.ram + addr))<<16) | 
-			(READ_WORD_ROM(memory.ram + (addr+2)));
-		break;
-	case 0xC0: case 0xC1:
-		//return mem68k_fetch_bios_long(a);
-		return ((READ_WORD_ROM(memory.rom.bios_m68k.p + addr))<<16) | 
-			(READ_WORD_ROM(memory.rom.bios_m68k.p + (addr+2)));
-		break;
-
-	case 0xd0:
-		return mem68k_fetch_sram_long(a);
-		break;
-	case 0x40:
-		return mem68k_fetch_pal_long(a);
-		break;
-	case 0x3C:
-		return mem68k_fetch_video_long(a);
-		break;
-	case 0x30:
-		return mem68k_fetch_ctl1_long(a);
-		break;
-	case 0x34:
-		return mem68k_fetch_ctl2_long(a);
-		break;
-	case 0x38:
-		return mem68k_fetch_ctl3_long(a);
-		break;
-	case 0x32:
-		return mem68k_fetch_coin_long(a);
-		break;
-	case 0x80:
-		return mem68k_fetch_memcrd_long(a);
-		break;
-	}
-#else
 	switch((a&0xFF0000)>>20) {
 	case 0x0:
 		//return mem68k_fetch_cpu_long(a);
@@ -465,70 +262,13 @@ static unsigned int   MyRead32 (unsigned int a) {
 		if (b==0) return mem68k_fetch_memcrd_long(a);
 		break;
 	}
-#endif
-/*
-	MEMHANDLER_READ(0,0xFFFFF,mem68k_fetch_cpu_long);
-	MEMHANDLER_READ(0x200000,0x2FFFFF,mem68k_fetch_bk_normal_long);
-	MEMHANDLER_READ(0x100000,0x10FFFF,mem68k_fetch_ram_long);
-	MEMHANDLER_READ(0xc00000,0xc1FFFF,mem68k_fetch_bios_long);
 
-	MEMHANDLER_READ(0xd00000, 0xd0ffff, mem68k_fetch_sram_long);
-	MEMHANDLER_READ(0x400000, 0x401fff, mem68k_fetch_pal_long);
-	MEMHANDLER_READ(0x3c0000, 0x3c0fff, mem68k_fetch_video_long);
-	MEMHANDLER_READ(0x300000, 0x300fff, mem68k_fetch_ctl1_long);
-	MEMHANDLER_READ(0x340000, 0x340fff, mem68k_fetch_ctl2_long);
-	MEMHANDLER_READ(0x380000, 0x380fff, mem68k_fetch_ctl3_long);
-	MEMHANDLER_READ(0x320000, 0x320fff, mem68k_fetch_coin_long);
-	MEMHANDLER_READ(0x800000, 0x800fff, mem68k_fetch_memcrd_long);
-	printf("Unhandled read32 @ %08x\n",a);
-*/
-/*
-	cpu_68k_dumpreg();
-	printf("%04x\n",mem68k_fetch_bios_word(0x00c110fc));
-	printf("%04x\n",mem68k_fetch_bios_word(0x00c110fe));
-	printf("%04x\n",mem68k_fetch_bios_word(0x00c11100));
-*/
 	return 0xFF00FF00;
 }
 static void MyWrite8 (unsigned int a,unsigned char  d) {
 	unsigned int b=((a&0xF0000)>>16);
 	a&=0xFFFFFF;
-#if 0
-	switch((a&0xFF0000)>>16) {
-	case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15:
-	case 0x16: case 0x17: case 0x18: case 0x19: case 0x1A: case 0x1B:
-	case 0x1C: case 0x1D: case 0x1E: case 0x1F:
-		WRITE_BYTE_ROM(memory.ram + (a&0xffff),d);
-		return ;
-		//mem68k_store_ram_byte(a,d);return;
-		break;
-	case 0x3c:
-		mem68k_store_video_byte(a,d);return;
-		break;
-	case 0x40:
-		mem68k_store_pal_byte(a,d);return;
-		break;
-	case 0xD0:
-		mem68k_store_sram_byte(a,d);return;
-		break;
-	case 0x38:
-		mem68k_store_pd4990_byte(a,d);return;
-		break;
-	case 0x32:
-		mem68k_store_z80_byte(a,d);return;
-		break;
-	case 0x3A:
-		mem68k_store_setting_byte(a,d);return;
-		break;
-	case 0x2F:
-		mem68k_store_bk_normal_byte(a,d);return;
-		break;
-	case 0x80:
-		mem68k_store_memcrd_byte(a,d);return;
-		break;
 
-	}
-#else
 	switch((a&0xFF0000)>>20) {
 	case 0x1:
 		WRITE_BYTE_ROM(memory.ram + (a&0xffff),d);
@@ -555,18 +295,7 @@ static void MyWrite8 (unsigned int a,unsigned char  d) {
 		break;
 
 	}
-#endif
-/*
-	MEMHANDLER_WRITE(0x100000,0x10FFFF,mem68k_store_ram_byte);
-	MEMHANDLER_WRITE(0x3c0000, 0x3c0fff, mem68k_store_video_byte);
-	MEMHANDLER_WRITE(0x400000, 0x401fff, mem68k_store_pal_byte);
-	MEMHANDLER_WRITE(0xd00000, 0xd0ffff, mem68k_store_sram_byte);
-	MEMHANDLER_WRITE(0x380000, 0x380fff, mem68k_store_pd4990_byte);
-	MEMHANDLER_WRITE(0x320000, 0x320fff, mem68k_store_z80_byte);
-	MEMHANDLER_WRITE(0x3a0000, 0x3a0fff, mem68k_store_setting_byte);
-	MEMHANDLER_WRITE(0x200000, 0x2fffff, mem68k_store_bk_normal_byte);
-	MEMHANDLER_WRITE(0x800000, 0x800fff, mem68k_store_memcrd_byte);
-*/
+
 	if(a==0x300001) memory.watchdog=0; // Watchdog
 
 	//printf("Unhandled write8  @ %08x = %02x\n",a,d);
@@ -574,42 +303,7 @@ static void MyWrite8 (unsigned int a,unsigned char  d) {
 static void MyWrite16(unsigned int a,unsigned short d) {
 	unsigned int b=((a&0xF0000)>>16);
 	a&=0xFFFFFF;
-#if 0
-	switch((a&0xFF0000)>>16) {
-	case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15:
-	case 0x16: case 0x17: case 0x18: case 0x19: case 0x1A: case 0x1B:
-	case 0x1C: case 0x1D: case 0x1E: case 0x1F:
-		WRITE_WORD_ROM(memory.ram + (a&0xffff),d);
-		return;
-		//mem68k_store_ram_word(a,d);return;
-		break;
-	case 0x3c:
-		cyclone68k_store_video_word(a,d);return;
-		//mem68k_store_video_word(a,d);return;
-		break;
-	case 0x40:
-		mem68k_store_pal_word(a,d);return;
-		break;
-	case 0xD0:
-		mem68k_store_sram_word(a,d);return;
-		break;
-	case 0x38:
-		mem68k_store_pd4990_word(a,d);return;
-		break;
-	case 0x32:
-		mem68k_store_z80_word(a,d);return;
-		break;
-	case 0x3A:
-		mem68k_store_setting_word(a,d);return;
-		break;
-	case 0x2F:
-		mem68k_store_bk_normal_word(a,d);return;
-		break;
-	case 0x80:
-		mem68k_store_memcrd_word(a,d);return;
-		break;
-	}
-#else
+
 	switch((a&0xFF0000)>>20) {
 	case 0x1:
 		WRITE_WORD_ROM(memory.ram + (a&0xffff),d);
@@ -617,7 +311,7 @@ static void MyWrite16(unsigned int a,unsigned short d) {
 		//mem68k_store_ram_word(a,d);return;
 		break;
 	case 0x3:
-		if (b==0xc) {cyclone68k_store_video_word(a,d);return;}
+		if (b==0xc) {mem68k_store_video_word(a,d);return;}
 		if (b==8) {mem68k_store_pd4990_word(a,d);return;}
 		if (b==2) {mem68k_store_z80_word(a,d);return;}
 		if (b==0xA) {mem68k_store_setting_word(a,d);return;}
@@ -635,63 +329,13 @@ static void MyWrite16(unsigned int a,unsigned short d) {
 		if (b==0) mem68k_store_memcrd_word(a,d);return;
 		break;
 	}
-#endif
 
-/*
-	MEMHANDLER_WRITE(0x100000,0x10FFFF,mem68k_store_ram_word);
-	MEMHANDLER_WRITE(0x3c0000, 0x3c0fff, mem68k_store_video_word);
-	MEMHANDLER_WRITE(0x400000, 0x401fff, mem68k_store_pal_word);
-	MEMHANDLER_WRITE(0xd00000, 0xd0ffff, mem68k_store_sram_word);
-	MEMHANDLER_WRITE(0x380000, 0x380fff, mem68k_store_pd4990_word);
-	MEMHANDLER_WRITE(0x320000, 0x320fff, mem68k_store_z80_word);
-	MEMHANDLER_WRITE(0x3a0000, 0x3a0fff, mem68k_store_setting_word);
-	MEMHANDLER_WRITE(0x200000, 0x2fffff, mem68k_store_bk_normal_word);
-	MEMHANDLER_WRITE(0x800000, 0x800fff, mem68k_store_memcrd_word);
-*/
 	//printf("Unhandled write16 @ %08x = %04x\n",a,d);
 }
 static void MyWrite32(unsigned int a,unsigned int   d) {
 	unsigned int b=((a&0xF0000)>>16);
 	a&=0xFFFFFF;
-#if 0
-	switch((a&0xFF0000)>>16) {
-	case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15:
-	case 0x16: case 0x17: case 0x18: case 0x19: case 0x1A: case 0x1B:
-	case 0x1C: case 0x1D: case 0x1E: case 0x1F:
-		WRITE_WORD_ROM(memory.ram + (a&0xffff),d>>16);
-		WRITE_WORD_ROM(memory.ram + (a&0xffff)+2,d&0xFFFF);
-		return;
-		//mem68k_store_ram_long(a,d);return;
-		break;
-	case 0x3c:
-		//mem68k_store_video_long(a,d);return;
-		mem68k_store_video_word(a,d>>16);
-		mem68k_store_video_word(a+2,d & 0xffff);
-		return;
-		break;
-	case 0x40:
-		mem68k_store_pal_long(a,d);return;
-		break;
-	case 0xD0:
-		mem68k_store_sram_long(a,d);return;
-		break;
-	case 0x38:
-		mem68k_store_pd4990_long(a,d);return;
-		break;
-	case 0x32:
-		mem68k_store_z80_long(a,d);return;
-		break;
-	case 0x3A:
-		mem68k_store_setting_long(a,d);return;
-		break;
-	case 0x2F:
-		mem68k_store_bk_normal_long(a,d);return;
-		break;
-	case 0x80:
-		mem68k_store_memcrd_long(a,d);return;
-		break;
-	}
-#else
+
 		switch((a&0xFF0000)>>20) {
 	case 0x1:
 		WRITE_WORD_ROM(memory.ram + (a&0xffff),d>>16);
@@ -721,18 +365,7 @@ static void MyWrite32(unsigned int a,unsigned int   d) {
 		if (b==0) mem68k_store_memcrd_long(a,d);return;
 		break;
 	}
-#endif
-/*
-	MEMHANDLER_WRITE(0x100000,0x10FFFF,mem68k_store_ram_long);
-	MEMHANDLER_WRITE(0x3c0000, 0x3c0fff, mem68k_store_video_long);
-	MEMHANDLER_WRITE(0x400000, 0x401fff, mem68k_store_pal_long);
-	MEMHANDLER_WRITE(0xd00000, 0xd0ffff, mem68k_store_sram_long);
-	MEMHANDLER_WRITE(0x380000, 0x380fff, mem68k_store_pd4990_long);
-	MEMHANDLER_WRITE(0x320000, 0x320fff, mem68k_store_z80_long);
-	MEMHANDLER_WRITE(0x3a0000, 0x3a0fff, mem68k_store_setting_long);
-	MEMHANDLER_WRITE(0x200000, 0x2fffff, mem68k_store_bk_normal_long);
-	MEMHANDLER_WRITE(0x800000, 0x800fff, mem68k_store_memcrd_long);
-*/
+
 	//printf("Unhandled write32 @ %08x = %08x\n",a,d);
 }
 
