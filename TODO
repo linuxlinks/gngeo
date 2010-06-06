@@ -4,8 +4,8 @@ Savage reign doesn't work with generator68k [FIXED]
 Correct some bug introduce with generator68k (mainly, the presentation of garou) [FIXED]
 gururin has graphic glitch [FIXED]
 pulstar doesn't work (copy protection) [FIXED]
-Automatic sprite animation is sometime too fast (terry 3rd round stage in garou, mslug2 background...)
-viewpoin make unaligned word access (??) -> crash under sparc...
+Automatic sprite animation is sometime too fast (terry 3rd round stage in garou, mslug2 background...) [FIXED?]
+viewpoin make unaligned word access (??) -> crash with generator
 Optimize the raster code (Partialy done for i386 with mmx).
 Optimize the 25% trancparency drawing code (write a i386 asm version).
 Add 25% and 50% drawing routine for raster effect [DONE].
@@ -27,10 +27,10 @@ TODO For ng (With generator68k, mamez80, sp-s2.sp1 bios)
 aodk: crash just after loading. RESET @ 9000 [FIXED -> copy bios vector table by default]
 bjourney: crash just after loading. RESET @ 991c  [FIXED -> copy bios vector table by default]
 crsword: crash just after loading. RESET  @ b3be [FIXED -> copy bios vector table by default]
-
-3countb: reset after neogeo logo
-ct2k3sa: Graphical and sound glitch
-ct2k3sp: Crash after bios: Invalid instruction @ 0006002F [028B]
+ 
+3countb: reset after neogeo logo -> watchdog reset.... look like it's going in a infinite loop... same with starscream
+ct2k3sa: Graphical and sound glitch. same with starscream
+ct2k3sp: Crash after bios: Invalid instruction @ 0006002F [028B] hang with starscream
 cthd2003: idem
 diggerma: don't crash but: 
 mem68k_store_setting_word USED????
@@ -73,7 +73,7 @@ mem68k_store_setting_word USED????
 	+ NON CONTROL....
 fatfury2: Lot of bankswitch_b, normal ?...
 fatfury3: issue with watchdog protection. ok with unibios
-garou + garouo + kof2000 + ko99 :  banckswitch issue? (graphical glitch + crash, same for kof99. Bootleg version doesn't have it)
+garou + garouo + kof2000 + ko99 :  banckswitch issue? (graphical glitch + crash, same for kof99. Bootleg version is ok) SegFault with starscream
 irrmaze : need special bios support ?
 jockeygp : z80 error
 kof2001 : no fix layer

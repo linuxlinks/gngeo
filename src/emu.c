@@ -251,6 +251,7 @@ static inline int neo_interrupt(void) {
 	 static int fc;
 	 int skip_this_frame;
 	 */
+    static int frames;
 
 	pd4990a_addretrace();
 	// printf("neogeo_frame_counter_speed %d\n",neogeo_frame_counter_speed);
@@ -272,6 +273,17 @@ static inline int neo_interrupt(void) {
 
 		PROFILER_STOP(PROF_VIDEO);
 	}
+    /*
+    frames++;
+    printf("FRAME %d\n",frames);
+    if (frames==262) {
+        FILE *f;
+        sleep(1);
+        f=fopen("/tmp/video.dmp","wb");
+        fwrite(&memory.vid.ram,0x20000,1,f);
+        fclose(f);
+    }
+    */
 	return 1;
 }
 
@@ -718,8 +730,10 @@ void main_loop(void) {
 
 				update_screen();
 				memory.watchdog++;
-				if (memory.watchdog > 7)
+				if (memory.watchdog > 7) {
+                    printf("WATCHDOG RESET\n");
 					cpu_68k_reset();
+                }
 				cpu_68k_interrupt(1);
 			} else {
 				PROFILER_START(PROF_68K);
@@ -732,8 +746,10 @@ void main_loop(void) {
 
 				memory.watchdog++;
 
-				if (memory.watchdog > 7) /* Watchdog reset after ~0.13 == ~7.8 frames */
+				if (memory.watchdog > 7) { /* Watchdog reset after ~0.13 == ~7.8 frames */
+                    printf("WATCHDOG RESET %d\n",memory.watchdog);
 					cpu_68k_reset();
+                }
 
 				if (a) {
 					cpu_68k_interrupt(a);

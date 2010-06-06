@@ -139,44 +139,44 @@ static unsigned int   MyCheckPc(unsigned int pc) {
 #define MEMHANDLER_READ(start,end,func) {if (a>=start && a<=end) return func(a);} 
 #define MEMHANDLER_WRITE(start,end,func) {if (a>=start && a<=end) {func(a,d);return;}}
 
-static unsigned char  MyRead8  (unsigned int a) {
+static unsigned int  MyRead8  (unsigned int a) {
 	unsigned int addr=a&0xFFFFF;
 	unsigned int b=((a&0xF0000)>>16);
 	a&=0xFFFFFF;
 	switch((a&0xFF0000)>>20) {
 	case 0x0:
-		return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + addr));
+		return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + addr))&0xFF;
 		break;
 	case 0x2:
-		return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
+		return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + bankaddress + addr))&0xFF;
 		break;
 	case 0x1:
-		return (READ_BYTE_ROM(memory.ram + (addr&0xFFFF)));
+		return (READ_BYTE_ROM(memory.ram + (addr&0xFFFF)))&0xFF;
 		break;
 	case 0xC:
-		if (b<=1) return (READ_BYTE_ROM(memory.rom.bios_m68k.p + addr));
+		if (b<=1) return (READ_BYTE_ROM(memory.rom.bios_m68k.p + addr))&0xFF;
 		break;
 	case 0xd:
-		if (b==0) return mem68k_fetch_sram_byte(a);
+		if (b==0) return mem68k_fetch_sram_byte(a)&0xFF;
 		break;
 	case 0x4:
-		if (b==0) return mem68k_fetch_pal_byte(a);
+		if (b==0) return mem68k_fetch_pal_byte(a)&0xFF;
 		break;
 	case 0x3:
-		if (b==0xC) return mem68k_fetch_video_byte(a);
-		if (b==0) return mem68k_fetch_ctl1_byte(a);
-		if (b==4) return mem68k_fetch_ctl2_byte(a);
-		if (b==8) return mem68k_fetch_ctl3_byte(a);
-		if (b==2) return mem68k_fetch_coin_byte(a);
+		if (b==0xC) return mem68k_fetch_video_byte(a)&0xFF;
+		if (b==0) return mem68k_fetch_ctl1_byte(a)&0xFF;
+		if (b==4) return mem68k_fetch_ctl2_byte(a)&0xFF;
+		if (b==8) return mem68k_fetch_ctl3_byte(a)&0xFF;
+		if (b==2) return mem68k_fetch_coin_byte(a)&0xFF;
 		break;
 	case 0x8:
-		if (b==0) return mem68k_fetch_memcrd_byte(a);
+		if (b==0) return mem68k_fetch_memcrd_byte(a)&0xFF;
 		break;
 	}
 
 	return 0xFF;
 }
-static unsigned short MyRead16 (unsigned int a) {
+static unsigned int MyRead16 (unsigned int a) {
 	unsigned int addr=a&0xFFFFF;
 	unsigned int b=((a&0xF0000)>>16);
 	//printf("read 32 %08x\n",a);
@@ -184,33 +184,33 @@ static unsigned short MyRead16 (unsigned int a) {
 
 	switch((a&0xFF0000)>>20) {
 	case 0x0:
-		return (READ_WORD_ROM(memory.rom.cpu_m68k.p + addr));
+		return (READ_WORD_ROM(memory.rom.cpu_m68k.p + addr))&0xFFFF;
 		break;
 	case 0x2:
-		return (READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
+		return (READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + addr))&0xFFFF;
 		break;
 	case 0x1:
-		return (READ_WORD_ROM(memory.ram + (addr&0xFFFF)));
+		return (READ_WORD_ROM(memory.ram + (addr&0xFFFF)))&0xFFFF;
 		break;
 	case 0xC:
-		if (b<=1) return (READ_WORD_ROM(memory.rom.bios_m68k.p + addr));
+		if (b<=1) return (READ_WORD_ROM(memory.rom.bios_m68k.p + addr))&0xFFFF;
 		break;
 
 	case 0xd:
-		if (b==0) return mem68k_fetch_sram_word(a);
+		if (b==0) return mem68k_fetch_sram_word(a)&0xFFFF;
 		break;
 	case 0x4:
-		if (b==0) return mem68k_fetch_pal_word(a);
+		if (b==0) return mem68k_fetch_pal_word(a)&0xFFFF;
 		break;
 	case 0x3:
-		if (b==0xC) return mem68k_fetch_video_word(a);
-		if (b==0) return mem68k_fetch_ctl1_word(a);
-		if (b==4) return mem68k_fetch_ctl2_word(a);
-		if (b==8) return mem68k_fetch_ctl3_word(a);
-		if (b==2) return mem68k_fetch_coin_word(a);
+		if (b==0xC) return mem68k_fetch_video_word(a)&0xFFFF;
+		if (b==0) return mem68k_fetch_ctl1_word(a)&0xFFFF;
+		if (b==4) return mem68k_fetch_ctl2_word(a)&0xFFFF;
+		if (b==8) return mem68k_fetch_ctl3_word(a)&0xFFFF;
+		if (b==2) return mem68k_fetch_coin_word(a)&0xFFFF;
 		break;
 	case 0x8:
-		if (b==0) return mem68k_fetch_memcrd_word(a);
+		if (b==0) return mem68k_fetch_memcrd_word(a)&0xFFFF;
 		break;
 	}
 
@@ -265,10 +265,10 @@ static unsigned int   MyRead32 (unsigned int a) {
 
 	return 0xFF00FF00;
 }
-static void MyWrite8 (unsigned int a,unsigned char  d) {
+static void MyWrite8 (unsigned int a,unsigned int  d) {
 	unsigned int b=((a&0xF0000)>>16);
 	a&=0xFFFFFF;
-
+    d&=0xFF;
 	switch((a&0xFF0000)>>20) {
 	case 0x1:
 		WRITE_BYTE_ROM(memory.ram + (a&0xffff),d);
@@ -300,9 +300,11 @@ static void MyWrite8 (unsigned int a,unsigned char  d) {
 
 	//printf("Unhandled write8  @ %08x = %02x\n",a,d);
 }
-static void MyWrite16(unsigned int a,unsigned short d) {
+static void MyWrite16(unsigned int a,unsigned int d) {
 	unsigned int b=((a&0xF0000)>>16);
 	a&=0xFFFFFF;
+    d&=0xFFFF;
+    //if (d&0x8000) printf("WEIRD %x %x\n",a,d);
 
 	switch((a&0xFF0000)>>20) {
 	case 0x1:
@@ -311,7 +313,8 @@ static void MyWrite16(unsigned int a,unsigned short d) {
 		//mem68k_store_ram_word(a,d);return;
 		break;
 	case 0x3:
-		if (b==0xc) {mem68k_store_video_word(a,d);return;}
+		if (b==0xc) {
+            mem68k_store_video_word(a,d);return;}
 		if (b==8) {mem68k_store_pd4990_word(a,d);return;}
 		if (b==2) {mem68k_store_z80_word(a,d);return;}
 		if (b==0xA) {mem68k_store_setting_word(a,d);return;}
@@ -335,7 +338,7 @@ static void MyWrite16(unsigned int a,unsigned short d) {
 static void MyWrite32(unsigned int a,unsigned int   d) {
 	unsigned int b=((a&0xF0000)>>16);
 	a&=0xFFFFFF;
-
+    d&=0xFFFFFFFF;
 		switch((a&0xFF0000)>>20) {
 	case 0x1:
 		WRITE_WORD_ROM(memory.ram + (a&0xffff),d>>16);

@@ -30,17 +30,7 @@
 #include "ym2610-940/940shared.h"
 #endif
 
-/* TODO: cleanup irq2 code */
-//int irq2enable, irq2start, irq2repeat = 1000, irq2control, irq2taken;
-//int lastirq2line = 1000;
-//int irq2repeat_limit;
-//int irq2start, irq2control, irq2taken;
-//Uint32 irq2pos_value;
 Uint32 bankaddress = 0;
-
-//int neogeo_irq2type = 0;
-//Uint8 neo_memcard[0x1000];
-//Uint8 neo_memcard[0x800];
 extern int current_line;
 
 #if 0
@@ -167,7 +157,7 @@ static __inline__ Uint16 read_neo_control(void) {
 
 	if (!conf.raster) {
 
-#ifdef GP2X
+#ifdef PROCESSOR_ARM
 #ifdef USE_CYCLONE
 		scan = current_line;
 		/*
@@ -677,14 +667,15 @@ LONG_STORE(mem68k_store_pal)
 void mem68k_store_video_byte(Uint32 addr, Uint8 data) {
 	/* garou write at 3c001f, 3c000f, 3c0015 */
 	/* wjammers write, and fetch at 3c0000 .... */
-	//  printf("mem68k_store_video_byte %x %x @pc=%08x\n",addr,data,cpu_68k_getpc());
+	printf("mem68k_store_video_byte %08x %02x @pc=%08x\n",addr,data,cpu_68k_getpc());
 	if (!(addr&0x1)) {
 		mem68k_store_video_word(addr,(data<<8)|data);
 	}
 }
 
 void mem68k_store_video_word(Uint32 addr, Uint16 data) {
-
+    //data&=0xFFFF;
+    //printf("mem68k_store_video_word %08x %04x @pc=%08x\n",addr,data,cpu_68k_getpc());
 	addr &= 0xF;
 	switch (addr) {
 	case 0x0:
