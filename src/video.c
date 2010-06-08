@@ -22,6 +22,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <zlib.h>
 #include "video.h"
 #include "memory.h"
 #include "emu.h"
@@ -66,7 +67,7 @@ void draw_scanline_tile_i386_50(unsigned int tileno,int yoffs,int sx,int line,in
 #endif
 
 //Uint8 strip_usage[0x300];
-#define PEN_USAGE(tileno) ((memory.pen_usage[tileno>>4]>>((tileno&0xF)*2))&0x3)
+#define PEN_USAGE(tileno) ((((Uint32*) memory.rom.spr_usage.p)[tileno>>4]>>((tileno&0xF)*2))&0x3)
 
 
 char *ldda_y_skip;
@@ -130,6 +131,92 @@ static Uint8 fix_shift[40];
 SDL_Rect buf_rect={16,16,304,224};
 SDL_Rect screen_rect={0,0,304,224};
 */
+
+void init_sprite_cache(Uint32 size,Uint32 bsize) {
+    GFX_CACHE *gcache=&memory.vid.spr_cache;
+    int i;
+
+    /* Create our video cache */
+    gcache->slot_size=bsize;
+    printf("gfx_size=%08x\n",memory.rom.tiles.size);
+    gcache->total_bank=memory.rom.tiles.size/gcache->slot_size;
+    gcache->ptr=malloc(gcache->total_bank*sizeof(Uint8*));
+    //gcache->z_pos=malloc(gcache->total_bank*sizeof(unz_file_pos ));
+    memset(gcache->ptr,0,gcache->total_bank*sizeof(Uint8*));
+		
+    gcache->size=size;
+    gcache->data=malloc(gcache->size);
+
+    printf("INIT CACHE %p\n",gcache->data);
+
+    //gcache->max_slot=((float)gcache->size/0x4000000)*TOTAL_GFX_BANK;
+    //gcache->max_slot=((float)gcache->size/memory.rom.tiles.size)*gcache->total_bank;
+    gcache->max_slot=size/gcache->slot_size;
+    //gcache->slot_size=0x4000000/TOTAL_GFX_BANK;
+    printf("Allocating %08x for gfx cache (%d %d slot)\n",gcache->size,gcache->max_slot,gcache->slot_size);
+    gcache->usage=malloc(gcache->max_slot*sizeof(Uint32));
+    for (i=0;i<gcache->max_slot;i++)
+        gcache->usage[i]=-1;
+    printf("inbuf size= %d\n",compressBound(bsize));
+    gcache->in_buf = malloc(compressBound(bsize));
+
+    return;
+}
+
+Uint8 *get_cached_sprite_ptr(Uint32 tileno) {
+    GFX_CACHE *gcache=&memory.vid.spr_cache;
+    static int pos=0;
+	static int init=1;
+	// tileno<<7;
+	int tile_sh=~((gcache->slot_size>>7)-1);
+    //int bank=((tileno&0xFFF80)>>7);
+	//int bank=((tileno&tile_sh)>>7);
+	int bank=((tileno&tile_sh)/(gcache->slot_size>>7));
+	int a;
+    int r;
+    Uint32 cmp_size;
+    uLongf dst_size;
+
+    //printf("Triying to get data for bank %d\n",bank);
+
+	if (gcache->ptr[bank]) {
+		/* The bank is present in the cache */
+		//printf("bank %d is in cache %p\n",bank,gcache->ptr[bank]);
+		return gcache->ptr[bank];
+	}
+	/* We have to find a slot for this bank */
+	//a=rand()%gcache->max_slot;
+	a=pos;pos++;
+	if (pos>=gcache->max_slot) pos=0;
+    //printf("Offset for bank is %d\n",gcache->offset[bank]);
+    fseek(gcache->gno,gcache->offset[bank],SEEK_SET);
+    r=fread(&cmp_size,sizeof(Uint32),1,gcache->gno);
+    //printf("cmpsize=%d (r=%d)\n",cmp_size,r);
+    r=fread(gcache->in_buf,cmp_size,1,gcache->gno);
+    //printf("input readed (r=%d)\n",r);
+    //printf("A=%d data=%p slot_size=%d\n",a,gcache->data,gcache->slot_size);
+    /*
+    ZEXTERN int ZEXPORT uncompress OF((Bytef *dest, uLongf *destLen,
+                                   const Bytef *source, uLong sourceLen));
+    */
+    dst_size=gcache->slot_size;
+    r=uncompress(gcache->data+a*gcache->slot_size,&dst_size,gcache->in_buf,cmp_size);
+    //printf("Dstsize=%ld %d\n",dst_size,r);
+	/*
+      unzGoToFilePos(gp2x_gfx_dump_gz,&gcache->z_pos[bank]);
+      //printf("Get File %d %d!!\n",bank,gcache->z_pos[bank].num_of_file);
+      unzOpenCurrentFile(gp2x_gfx_dump_gz);
+      unzReadCurrentFile(gp2x_gfx_dump_gz,gcache->data+a*gcache->slot_size,gcache->slot_size);
+      unzCloseCurrentFile(gp2x_gfx_dump_gz);
+    */
+	gcache->ptr[bank]=gcache->data+a*gcache->slot_size;
+
+	if (gcache->usage[a]!=-1) {
+		gcache->ptr[gcache->usage[a]]=0;
+	}
+	gcache->usage[a]=bank;
+	return gcache->ptr[bank];
+}
 
 #ifdef GP2XDEPRECATED
 Uint8 *cache_get_gfx_ptr(Uint32 tileno) {
@@ -354,8 +441,13 @@ static __inline__ void draw_fix_char(unsigned char *buf,int start,int end)
 			break;
 		}
 	    }
-
-	    if ((byte1>=(memory.rom.game_sfix.size>>5)) || (fix_usage[byte1]==0x00)) continue;
+        /*
+        if (fix_usage[byte1]==0x00) {
+            br=(unsigned short*)buf+((y<<3))*buffer->w+(x<<3)+16;
+            br[0]=0xFFFF;
+        }
+        */
+    if ((byte1>=(memory.rom.game_sfix.size>>5)) || (fix_usage[byte1]==0x00)) continue;
 
             br=(unsigned short*)buf+((y<<3))*buffer->w+(x<<3)+16;
 #ifdef PROCESSOR_ARM
@@ -394,6 +486,7 @@ void draw_screen(void)
     char fullmode=0;
     int ddax=0,dday=0,rzx=15,yskip=0;
     Uint8 *vidram=memory.vid.ram;
+    Uint8 penusage;
 
     //    int drawtrans=0;
 
@@ -553,18 +646,29 @@ void draw_screen(void)
 
             }
 	    
-      
+            
+
             if (sx >= -16 && sx+15 < 336 && sy>=0 && sy+15 <256) {
+
+                penusage=PEN_USAGE(tileno);
+                if (memory.vid.spr_cache.data) {
+                    memory.rom.tiles.p=get_cached_sprite_ptr(tileno);
+                    tileno=(tileno&((memory.vid.spr_cache.slot_size>>7)-1));
+                }
+
+
 #ifdef PROCESSOR_ARM
+                mem_gfx=memory.rom.tiles.p;
 		    //if (memory.pen_usage[tileno]!=TILE_INVISIBLE)
-		    if (PEN_USAGE(tileno)!=TILE_INVISIBLE)
+		    if (penusage!=TILE_INVISIBLE)
 			    draw_tile_arm(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
 					  tileatr & 0x01,tileatr & 0x02,
 					  (unsigned char*)buffer->pixels);
 #else
 #ifdef I386_ASM
+            mem_gfx=&memory.rom.tiles.p;
 			//switch (memory.pen_usage[tileno]) {
-			switch (PEN_USAGE(tileno)) {
+			switch (penusage) {
 			case TILE_NORMAL:
 				//printf("%d %d %x %x %x %x\n",tileno,sx,count,t1,t2,t3);
 				draw_tile_i386_norm(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
@@ -587,7 +691,7 @@ void draw_screen(void)
 				break;
 		}
 #else
-                switch (PEN_USAGE(tileno)) {
+                switch (penusage) {
 		case TILE_NORMAL:
 		    draw_tile(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
 			      tileatr & 0x01,tileatr & 0x02,
@@ -602,7 +706,17 @@ void draw_screen(void)
 		    draw_tile_25(tileno,sx+16,sy,rzx,yskip,tileatr>>8,
 				 tileatr & 0x01,tileatr & 0x02,
 				 (unsigned char*)buffer->pixels);
+            break;
+            /*
+                default:
+                    {
+                        SDL_Rect r={sx+16,sy,rzx,yskip};
+                        SDL_FillRect(buffer,&r,0xFFAA);
+                    }
+                    //((Uint16*)(buffer->pixels))[sx+16+sy*356]=0xFFFF;
+                    
 		    break;
+            */
                 }
 #endif
 #endif

@@ -92,7 +92,7 @@ typedef struct neo_mem {
 
 	Uint8 sram[0x10000];
 
-	Uint32 *pen_usage;                      /* TODO: it's also in rom  */
+    //	Uint32 *pen_usage;                      /* TODO: it's also in rom  */
 	Uint8 fix_board_usage[4096];
 	Uint8 *fix_game_usage;
 

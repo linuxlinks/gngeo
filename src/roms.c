@@ -52,6 +52,8 @@ void neo_pcm2_swap(GAME_ROMS *r, int value);
 void neo_pcm2_snk_1999(GAME_ROMS *r, int value);
 void neogeo_cmc50_m1_decrypt(GAME_ROMS *r);
 
+static int need_decrypt=1;
+
 int neogeo_fix_bank_type = 0;
 
 int bankoffset_kof99[64] = { 0x000000, 0x100000, 0x200000, 0x300000, 0x3cc000,
@@ -176,34 +178,38 @@ static int unzLocateFileByCRC(unzFile file,Uint32 crc)
  */
 
 int init_mslugx(GAME_ROMS *r) {
-  unsigned int i;
+    unsigned int i;
 	Uint8 *RAM = r->cpu_m68k.p;
-	for (i = 0; i < r->cpu_m68k.size; i += 2) {
-		if ((READ_WORD_ROM(&RAM[i + 0]) == 0x0243)
+    if (need_decrypt) {
+        for (i = 0; i < r->cpu_m68k.size; i += 2) {
+            if ((READ_WORD_ROM(&RAM[i + 0]) == 0x0243)
 				&& (READ_WORD_ROM(&RAM[i + 2]) == 0x0001) && /* andi.w  #$1, D3 */
-		(READ_WORD_ROM(&RAM[i + 4]) == 0x6600)) { /* bne xxxx */
+                (READ_WORD_ROM(&RAM[i + 4]) == 0x6600)) { /* bne xxxx */
 
-			WRITE_WORD_ROM(&RAM[i + 4], 0x4e71);
-			WRITE_WORD_ROM(&RAM[i + 6], 0x4e71);
-		}
-	}
+                WRITE_WORD_ROM(&RAM[i + 4], 0x4e71);
+                WRITE_WORD_ROM(&RAM[i + 6], 0x4e71);
+            }
+        }
 
-	WRITE_WORD_ROM(&RAM[0x3bdc], 0x4e71);
-	WRITE_WORD_ROM(&RAM[0x3bde], 0x4e71);
-	WRITE_WORD_ROM(&RAM[0x3be0], 0x4e71);
-	WRITE_WORD_ROM(&RAM[0x3c0c], 0x4e71);
-	WRITE_WORD_ROM(&RAM[0x3c0e], 0x4e71);
-	WRITE_WORD_ROM(&RAM[0x3c10], 0x4e71);
+        WRITE_WORD_ROM(&RAM[0x3bdc], 0x4e71);
+        WRITE_WORD_ROM(&RAM[0x3bde], 0x4e71);
+        WRITE_WORD_ROM(&RAM[0x3be0], 0x4e71);
+        WRITE_WORD_ROM(&RAM[0x3c0c], 0x4e71);
+        WRITE_WORD_ROM(&RAM[0x3c0e], 0x4e71);
+        WRITE_WORD_ROM(&RAM[0x3c10], 0x4e71);
 
-	WRITE_WORD_ROM(&RAM[0x3c36], 0x4e71);
-	WRITE_WORD_ROM(&RAM[0x3c38], 0x4e71);
+        WRITE_WORD_ROM(&RAM[0x3c36], 0x4e71);
+        WRITE_WORD_ROM(&RAM[0x3c38], 0x4e71);
+    }
 	return 0;
 }
 
 int init_kof99(GAME_ROMS *r) {
-	kof99_decrypt_68k(r);
+	if (need_decrypt) {
+        kof99_decrypt_68k(r);
+        kof99_neogeo_gfx_decrypt(r, 0x00);
+    }
 	neogeo_fix_bank_type = 0;
-	kof99_neogeo_gfx_decrypt(r, 0x00);
 	memory.bksw_offset = bankoffset_kof99;
 	memory.bksw_unscramble = scramblecode_kof99;
 	memory.sma_rng_addr = 0xF8FA;
@@ -213,13 +219,15 @@ int init_kof99(GAME_ROMS *r) {
 
 int init_kof99n(GAME_ROMS *r) {
 	neogeo_fix_bank_type = 1;
-	kof99_neogeo_gfx_decrypt(r, 0x00);
+	if (need_decrypt) kof99_neogeo_gfx_decrypt(r, 0x00);
 	return 0;
 }
 
 int init_garou(GAME_ROMS *r) {
-	garou_decrypt_68k(r);
-	kof99_neogeo_gfx_decrypt(r, 0x06);
+	if (need_decrypt) {
+        garou_decrypt_68k(r);
+        kof99_neogeo_gfx_decrypt(r, 0x06);
+    }
 	neogeo_fix_bank_type = 1;
 	memory.bksw_offset = bankoffset_garou;
 	memory.bksw_unscramble = scramblecode_garou;
@@ -230,10 +238,11 @@ int init_garou(GAME_ROMS *r) {
 }
 
 int init_garouo(GAME_ROMS *r) {
-	garouo_decrypt_68k(r);
-	neogeo_fix_bank_type = 1;
-	kof99_neogeo_gfx_decrypt(r, 0x06);
-
+	if (need_decrypt) {
+        garouo_decrypt_68k(r);
+        kof99_neogeo_gfx_decrypt(r, 0x06);
+    }
+    neogeo_fix_bank_type = 1;
 	memory.bksw_offset = bankoffset_garouo;
 	memory.bksw_unscramble = scramblecode_garouo;
 	memory.sma_rng_addr = 0xCCF0;
@@ -251,16 +260,20 @@ int init_garouo(GAME_ROMS *r) {
  */
 int init_garoubl(GAME_ROMS *r) {
 	/* TODO: Bootleg support */
-	neogeo_bootleg_sx_decrypt(r, 2);
-	neogeo_bootleg_cx_decrypt(r);
+	if (need_decrypt) {
+        neogeo_bootleg_sx_decrypt(r, 2);
+        neogeo_bootleg_cx_decrypt(r);
+    }
 	return 0;
 }
 
 int init_mslug3(GAME_ROMS *r) {
-	mslug3_decrypt_68k(r);
+    printf("INIT MSLUG3\n");
+	if (need_decrypt) {
+        mslug3_decrypt_68k(r);
+        kof99_neogeo_gfx_decrypt(r, 0xad);
+    }
 	neogeo_fix_bank_type = 1;
-	kof99_neogeo_gfx_decrypt(r, 0xad);
-
 	memory.bksw_offset = bankoffset_mslug3;
 	memory.bksw_unscramble = scramblecode_mslug3;
 	//memory.sma_rng_addr=0xF8FA;
@@ -272,22 +285,26 @@ int init_mslug3(GAME_ROMS *r) {
 
 int init_mslug3h(GAME_ROMS *r) {
 	neogeo_fix_bank_type = 1;
-	kof99_neogeo_gfx_decrypt(r, 0xad);
+    if (need_decrypt) kof99_neogeo_gfx_decrypt(r, 0xad);
 	return 0;
 }
 
 int init_mslug3b6(GAME_ROMS *r) {
 	/* TODO: Bootleg support */
-	neogeo_bootleg_sx_decrypt(r, 2);
-	cmc42_neogeo_gfx_decrypt(r, 0xad);
+    if (need_decrypt) {
+        neogeo_bootleg_sx_decrypt(r, 2);
+        cmc42_neogeo_gfx_decrypt(r, 0xad);
+    }
 	return 0;
 }
 
 int init_kof2000(GAME_ROMS *r) {
-	kof2000_decrypt_68k(r);
-	neogeo_fix_bank_type = 2;
-	neogeo_cmc50_m1_decrypt(r);
-	kof2000_neogeo_gfx_decrypt(r, 0x00);
+    if (need_decrypt) {
+        kof2000_decrypt_68k(r);
+        neogeo_cmc50_m1_decrypt(r);
+        kof2000_neogeo_gfx_decrypt(r, 0x00);
+    }
+    neogeo_fix_bank_type = 2;
 	memory.bksw_offset = bankoffset_kof2000;
 	memory.bksw_unscramble = scramblecode_kof2000;
 	memory.sma_rng_addr = 0xD8DA;
@@ -297,15 +314,19 @@ int init_kof2000(GAME_ROMS *r) {
 }
 int init_kof2000n(GAME_ROMS *r) {
 	neogeo_fix_bank_type = 2;
-	neogeo_cmc50_m1_decrypt(r);
-	kof2000_neogeo_gfx_decrypt(r, 0x00);
+    if (need_decrypt) {
+        neogeo_cmc50_m1_decrypt(r);
+        kof2000_neogeo_gfx_decrypt(r, 0x00);
+    }
 	return 0;
 }
 
 int init_kof2001(GAME_ROMS *r) {
 	neogeo_fix_bank_type = 1;
-	kof2000_neogeo_gfx_decrypt(r, 0x1e);
-	neogeo_cmc50_m1_decrypt(r);
+    if (need_decrypt) {
+        kof2000_neogeo_gfx_decrypt(r, 0x1e);
+        neogeo_cmc50_m1_decrypt(r);
+    }
 	return 0;
 
 }
@@ -338,118 +359,134 @@ int init_kof2001(GAME_ROMS *r) {
 
 int init_mslug4(GAME_ROMS *r) {
 	neogeo_fix_bank_type = 1; /* USA violent content screen is wrong -- not a bug, confirmed on real hardware! */
-	neogeo_cmc50_m1_decrypt(r);
-	kof2000_neogeo_gfx_decrypt(r, 0x31);
-
-	neo_pcm2_snk_1999(r, 8);
+    if (need_decrypt) {
+        neogeo_cmc50_m1_decrypt(r);
+        kof2000_neogeo_gfx_decrypt(r, 0x31);
+        
+        neo_pcm2_snk_1999(r, 8);
+    }
 	return 0;
 
 }
 
 int init_ms4plus(GAME_ROMS *r) {
-	cmc50_neogeo_gfx_decrypt(r, 0x31);
-	neo_pcm2_snk_1999(r, 8);
-	neogeo_cmc50_m1_decrypt(r);
+    if (need_decrypt) {
+        cmc50_neogeo_gfx_decrypt(r, 0x31);
+        neo_pcm2_snk_1999(r, 8);
+        neogeo_cmc50_m1_decrypt(r);
+    }
 	return 0;
 }
 
 int init_ganryu(GAME_ROMS *r) {
 	neogeo_fix_bank_type = 1;
-	kof99_neogeo_gfx_decrypt(r, 0x07);
+	if (need_decrypt) kof99_neogeo_gfx_decrypt(r, 0x07);
 	return 0;
 }
 
 int init_s1945p(GAME_ROMS *r) {
 	neogeo_fix_bank_type = 1;
-	kof99_neogeo_gfx_decrypt(r, 0x05);
+	if (need_decrypt) kof99_neogeo_gfx_decrypt(r, 0x05);
 	return 0;
 }
 
 int init_preisle2(GAME_ROMS *r) {
 	neogeo_fix_bank_type = 1;
-	kof99_neogeo_gfx_decrypt(r, 0x9f);
+	if (need_decrypt) kof99_neogeo_gfx_decrypt(r, 0x9f);
 	return 0;
 }
 
 int init_bangbead(GAME_ROMS *r) {
 	neogeo_fix_bank_type = 1;
-	kof99_neogeo_gfx_decrypt(r, 0xf8);
+	if (need_decrypt) kof99_neogeo_gfx_decrypt(r, 0xf8);
 	return 0;
 }
 
 int init_nitd(GAME_ROMS *r) {
 	neogeo_fix_bank_type = 1;
-	kof99_neogeo_gfx_decrypt(r, 0xff);
+	if (need_decrypt) kof99_neogeo_gfx_decrypt(r, 0xff);
 	return 0;
 }
 
 int init_zupapa(GAME_ROMS *r) {
 	neogeo_fix_bank_type = 1;
-	kof99_neogeo_gfx_decrypt(r, 0xbd);
+	if (need_decrypt) kof99_neogeo_gfx_decrypt(r, 0xbd);
 	return 0;
 }
 
 int init_sengoku3(GAME_ROMS *r) {
 	neogeo_fix_bank_type = 1;
-	kof99_neogeo_gfx_decrypt(r, 0xfe);
+	if (need_decrypt) kof99_neogeo_gfx_decrypt(r, 0xfe);
 	return 0;
 }
 
 int init_kof98(GAME_ROMS *r) {
-	kof98_decrypt_68k(r);
+	if (need_decrypt) kof98_decrypt_68k(r);
 
 	//install_kof98_protection(r);
 	return 0;
 }
 
 int init_rotd(GAME_ROMS *r) {
-	neo_pcm2_snk_1999(r, 16);
+    if (need_decrypt) {
+        neo_pcm2_snk_1999(r, 16);
+        neogeo_cmc50_m1_decrypt(r);
+        kof2000_neogeo_gfx_decrypt(r, 0x3f);
+    }
 	neogeo_fix_bank_type = 1;
-	neogeo_cmc50_m1_decrypt(r);
-	kof2000_neogeo_gfx_decrypt(r, 0x3f);
 	return 0;
 }
 
 int init_kof2002(GAME_ROMS *r) {
-	kof2002_decrypt_68k(r);
-	neo_pcm2_swap(r, 0);
-	neogeo_cmc50_m1_decrypt(r);
-	kof2000_neogeo_gfx_decrypt(r, 0xec);
+    if (need_decrypt) {
+        kof2002_decrypt_68k(r);
+        neo_pcm2_swap(r, 0);
+        neogeo_cmc50_m1_decrypt(r);
+        kof2000_neogeo_gfx_decrypt(r, 0xec);
+    }
 	return 0;
 }
 int init_kof2002b(GAME_ROMS *r) {
 	/* TODO: Bootleg */
-	kof2002_decrypt_68k(r);
-	neo_pcm2_swap(r, 0);
-	neogeo_cmc50_m1_decrypt(r);
-	//kof2002b_gfx_decrypt(r, r->tiles.p,0x4000000);
-	//kof2002b_gfx_decrypt(r, r->game_sfix.p,0x20000);
+    if (need_decrypt) {
+        kof2002_decrypt_68k(r);
+        neo_pcm2_swap(r, 0);
+        neogeo_cmc50_m1_decrypt(r);
+        //kof2002b_gfx_decrypt(r, r->tiles.p,0x4000000);
+        //kof2002b_gfx_decrypt(r, r->game_sfix.p,0x20000);
+    }
 	return 0;
 }
 
 int init_kf2k2pls(GAME_ROMS *r) {
-	kof2002_decrypt_68k(r);
-	neo_pcm2_swap(r, 0);
-	neogeo_cmc50_m1_decrypt(r);
-	cmc50_neogeo_gfx_decrypt(r, 0xec);
+    if (need_decrypt) {
+        kof2002_decrypt_68k(r);
+        neo_pcm2_swap(r, 0);
+        neogeo_cmc50_m1_decrypt(r);
+        cmc50_neogeo_gfx_decrypt(r, 0xec);
+    }
 	return 0;
 }
 
 int init_kf2k2mp(GAME_ROMS *r) {
 	/* TODO: Bootleg */
-	//kf2k2mp_decrypt(r);
-	neo_pcm2_swap(r, 0);
-	//neogeo_bootleg_sx_decrypt(r, 2);
-	cmc50_neogeo_gfx_decrypt(r, 0xec);
+    if (need_decrypt) {
+        //kf2k2mp_decrypt(r);
+        neo_pcm2_swap(r, 0);
+        //neogeo_bootleg_sx_decrypt(r, 2);
+        cmc50_neogeo_gfx_decrypt(r, 0xec);
+    }
 	return 0;
 }
 
 int init_kof2km2(GAME_ROMS *r) {
 	/* TODO: Bootleg */
-	//kof2km2_px_decrypt(r);
-	neo_pcm2_swap(r, 0);
-	//neogeo_bootleg_sx_decrypt(r, 1);
-	cmc50_neogeo_gfx_decrypt(r, 0xec);
+    if (need_decrypt) {
+        //kof2km2_px_decrypt(r);
+        neo_pcm2_swap(r, 0);
+        //neogeo_bootleg_sx_decrypt(r, 1);
+        cmc50_neogeo_gfx_decrypt(r, 0xec);
+    }
 	return 0;
 }
 /* 
@@ -492,29 +529,35 @@ int init_kof2km2(GAME_ROMS *r) {
  */
 
 int init_matrim(GAME_ROMS *r) {
-	matrim_decrypt_68k(r);
-	neo_pcm2_swap(r, 1);
-	neogeo_fix_bank_type = 2;
-	neogeo_cmc50_m1_decrypt(r);
-	kof2000_neogeo_gfx_decrypt(r, 0x6a);
+    if (need_decrypt) {
+        matrim_decrypt_68k(r);
+        neo_pcm2_swap(r, 1);
+        neogeo_cmc50_m1_decrypt(r);
+        kof2000_neogeo_gfx_decrypt(r, 0x6a);
+    }
+    neogeo_fix_bank_type = 2;
 	return 0;
 }
 
 int init_pnyaa(GAME_ROMS *r) {
-	neo_pcm2_snk_1999(r, 4);
-	neogeo_fix_bank_type = 1;
-	neogeo_cmc50_m1_decrypt(r);
-	kof2000_neogeo_gfx_decrypt(r, 0x2e);
+    if (need_decrypt) {
+        neo_pcm2_snk_1999(r, 4);
+        neogeo_cmc50_m1_decrypt(r);
+        kof2000_neogeo_gfx_decrypt(r, 0x2e);
+    }
+    neogeo_fix_bank_type = 1;
 	return 0;
 }
 
 int init_mslug5(GAME_ROMS *r) {
-	mslug5_decrypt_68k(r);
-	neo_pcm2_swap(r, 2);
-	neogeo_fix_bank_type = 1;
-	neogeo_cmc50_m1_decrypt(r);
-	kof2000_neogeo_gfx_decrypt(r, 0x19);
-	//install_pvc_protection(r);
+    if (need_decrypt) {
+        mslug5_decrypt_68k(r);
+        neo_pcm2_swap(r, 2);
+        neogeo_cmc50_m1_decrypt(r);
+        kof2000_neogeo_gfx_decrypt(r, 0x19);
+    }
+    neogeo_fix_bank_type = 1;
+    //install_pvc_protection(r);
 	return 0;
 }
 /*
@@ -531,24 +574,26 @@ int init_ms5pcb(GAME_ROMS *r) {
 	/* TODO: start a timer that will check the BIOS select DIP every second */
 	//timer_set(machine, attotime_zero, NULL, 0, ms5pcb_bios_timer_callback);
 	//timer_pulse(machine, ATTOTIME_IN_MSEC(1000), NULL, 0, ms5pcb_bios_timer_callback);
-
-	mslug5_decrypt_68k(r);
-	svcpcb_gfx_decrypt(r);
-	neogeo_cmc50_m1_decrypt(r);
-	kof2000_neogeo_gfx_decrypt(r, 0x19);
-	neogeo_fix_bank_type = 2;
-	svcpcb_s1data_decrypt(r);
-	neo_pcm2_swap(r, 2);
-
+    if (need_decrypt) {
+        mslug5_decrypt_68k(r);
+        svcpcb_gfx_decrypt(r);
+        neogeo_cmc50_m1_decrypt(r);
+        kof2000_neogeo_gfx_decrypt(r, 0x19);
+        svcpcb_s1data_decrypt(r);
+        neo_pcm2_swap(r, 2);
+    }
+    neogeo_fix_bank_type = 2;
 	//install_pvc_protection(r);
 	return 0;
 }
 
 int init_ms5plus(GAME_ROMS *r) {
 	/* TODO: Bootleg */
-	cmc50_neogeo_gfx_decrypt(r, 0x19);
-	neo_pcm2_swap(r, 2);
-	//neogeo_bootleg_sx_decrypt(r, 1);
+    if (need_decrypt) {
+        cmc50_neogeo_gfx_decrypt(r, 0x19);
+        neo_pcm2_swap(r, 2);
+        //neogeo_bootleg_sx_decrypt(r, 1);
+    }
 	neogeo_fix_bank_type = 1;
 
 	//install_ms5plus_protection(r);
@@ -1236,16 +1281,16 @@ static int convert_roms_tile(Uint8 *g, int tileno) {
 
 }
 
-static void convert_all_tile(GAME_ROMS *r) {
+void convert_all_tile(GAME_ROMS *r) {
 	Uint32 i;
-	allocate_region(&r->spr_usage, (r->tiles.size >> 11) * sizeof(Uint32), -1);
+	allocate_region(&r->spr_usage, (r->tiles.size >> 11) * sizeof(Uint32), REGION_SPR_USAGE);
 	memset(r->spr_usage.p, 0, r->spr_usage.size);
 	for (i = 0; i < r->tiles.size >> 7; i++) {
 		((Uint32*) r->spr_usage.p)[i >> 4] |= convert_roms_tile(r->tiles.p, i);
 	}
 }
 
-static void convert_all_char(Uint8 *Ptr, int Taille, 
+void convert_all_char(Uint8 *Ptr, int Taille, 
 		      Uint8 *usage_ptr)
 {
     int		i,j;
@@ -1298,8 +1343,9 @@ static void convert_all_char(Uint8 *Ptr, int Taille,
 
 static int init_roms(GAME_ROMS *r) {
 	int i = 0;
-
+    printf("INIT ROM %s\n",r->info.name);
 	while (init_func_table[i].name) {
+        printf("INIT ROM ? %s %s\n",init_func_table[i].name,r->info.name);
 		if (strcmp(init_func_table[i].name, r->info.name) == 0
 				&& init_func_table[i].init != NULL) {
 			DEBUG_LOG("Special init func\n");
@@ -1458,6 +1504,9 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 	allocate_region(&r->tiles, drv->romsize[REGION_SPRITES], REGION_SPRITES);
 	allocate_region(&r->game_sfix, drv->romsize[REGION_FIXED_LAYER_CARTRIDGE],
 			REGION_FIXED_LAYER_CARTRIDGE);
+    allocate_region(&r->gfix_usage, r->game_sfix.size >> 5,
+			REGION_GAME_FIX_USAGE);
+    
 	allocate_region(&r->adpcma, drv->romsize[REGION_AUDIO_DATA_1],
 			REGION_AUDIO_DATA_1);
 	allocate_region(&r->adpcmb, drv->romsize[REGION_AUDIO_DATA_2],
@@ -1537,10 +1586,11 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 #endif
 	}
 
-	memory.fix_game_usage = malloc(r->game_sfix.size >> 5);
-	memory.pen_usage = malloc((r->tiles.size >> 11) * sizeof(Uint32));
+	memory.fix_game_usage = r->gfix_usage.p;//malloc(r->game_sfix.size >> 5);
+    /*	memory.pen_usage = malloc((r->tiles.size >> 11) * sizeof(Uint32));
 	CHECK_ALLOC(memory.pen_usage);
 	memset(memory.pen_usage, 0, (r->tiles.size >> 11) * sizeof(Uint32));
+    */
 	memory.nb_of_tiles = r->tiles.size >> 7;
 
 	free(iloadbuf);
@@ -1639,6 +1689,7 @@ static int dump_region(FILE *gno, ROM_REGION *rom, Uint8 id, Uint8 type,
 		Uint8 *outbuf;
 		uLongf outbuf_len;
 		uLongf outlen;
+        Uint32 outlen32;
 		Uint32 cmpsize = 0;
 		int rc;
 		printf("nb_block=%d\n", nb_block);
@@ -1656,15 +1707,18 @@ static int dump_region(FILE *gno, ROM_REGION *rom, Uint8 id, Uint8 type,
 		fseek(gno, nb_block * 4 + 4, SEEK_CUR); /* Skip all the offset table + the total compressed size */
 
 		for (i = 0; i < nb_block; i++) {
+            cur_offset = ftell(gno);
 			block_offset[i] = cur_offset;
 			outlen = outbuf_len;
 			rc = compress(outbuf, &outlen, inbuf, block_size);
 			printf("%d %ld\n", rc, outlen);
-			cur_offset += outlen;
+			//cur_offset += outlen;
 			cmpsize += outlen;
-			printf("cmpsize=%d\n", cmpsize);
+			printf("cmpsize=%d %d\n", cmpsize,sizeof(uLongf));
 			inbuf += block_size;
-			fwrite(&outlen, sizeof(uLongf), 1, gno);
+            outlen32=(Uint32)outlen;
+			fwrite(&outlen32, sizeof(Uint32), 1, gno);
+            printf("bank %d outlen=%d offset=%d\n",i,outlen32,cur_offset);
 			fwrite(outbuf, outlen, 1, gno);
 		}
 		/* Now, write the offset table */
@@ -1684,9 +1738,17 @@ int dr_save_gno(GAME_ROMS *r, char *filename) {
 	char *fid = "gnodmpv1";
 	char fname[9];
 	Uint8 nb_sec = 0;
+    int i;
+
 	gno = fopen(filename, "wb");
 	if (!gno)
 		return FALSE;
+
+    /* restore game vector */
+    memcpy(memory.rom.cpu_m68k.p, memory.game_vector, 0x80);
+    for (i=0;i<0x80;i++)
+        printf("%02x ",memory.rom.cpu_m68k.p[i]);
+    printf("\n");
 
 	if (r->cpu_m68k.p)
 		nb_sec++;
@@ -1694,13 +1756,22 @@ int dr_save_gno(GAME_ROMS *r, char *filename) {
 		nb_sec++;
 	if (r->adpcma.p)
 		nb_sec++;
-	if (r->adpcmb.p)
+	if (r->adpcmb.p && (r->adpcmb.p!=r->adpcma.p))
 		nb_sec++;
 	if (r->game_sfix.p)
 		nb_sec++;
 	if (r->tiles.p)
 		nb_sec += 2; /* Sprite + Sprite usage */
+    if (r->gfix_usage.p)
+        nb_sec++;
 	/* TODO: Custom bios dump */
+    if ((r->info.flags & HAS_CUSTOM_CPU_BIOS)) {
+        nb_sec++;
+    }
+    if ((r->info.flags & HAS_CUSTOM_SFIX_BIOS)) {
+        nb_sec++;
+    }
+
 
 	/* Header information */
 	fwrite(fid, 8, 1, gno);
@@ -1713,15 +1784,177 @@ int dr_save_gno(GAME_ROMS *r, char *filename) {
 	dump_region(gno, &r->cpu_m68k, REGION_MAIN_CPU_CARTRIDGE, 0, 0);
 	dump_region(gno, &r->cpu_z80, REGION_AUDIO_CPU_CARTRIDGE, 0, 0);
 	dump_region(gno, &r->adpcma, REGION_AUDIO_DATA_1, 0, 0);
-	dump_region(gno, &r->adpcmb, REGION_AUDIO_DATA_2, 0, 0);
+    if (r->adpcma.p!=r->adpcmb.p)
+        dump_region(gno, &r->adpcmb, REGION_AUDIO_DATA_2, 0, 0);
 	dump_region(gno, &r->game_sfix, REGION_FIXED_LAYER_CARTRIDGE, 0, 0);
-	dump_region(gno, &r->tiles, REGION_SPRITES, 1, 4096);
 	dump_region(gno, &r->spr_usage, REGION_SPR_USAGE, 0, 0);
-	/* TODO: Sprite usage */
+    dump_region(gno, &r->gfix_usage, REGION_GAME_FIX_USAGE, 0, 0);
+    if ((r->info.flags & HAS_CUSTOM_CPU_BIOS)) {
+        dump_region(gno, &r->bios_m68k, REGION_MAIN_CPU_BIOS, 0, 0);
+    }
+    if ((r->info.flags & HAS_CUSTOM_SFIX_BIOS)) {
+        dump_region(gno, &r->bios_sfix, REGION_FIXED_LAYER_BIOS , 0, 0);
+    }
+    /* TODO, there is a bug in the loading routine, only one type 1 region can be present at the end of the file */
+	dump_region(gno, &r->tiles, REGION_SPRITES, 1, 4096);
+
 
 	fclose(gno);
 	return TRUE;
 }
+
+int read_region(FILE *gno,GAME_ROMS *roms) {
+    Uint32 size;
+    Uint8 lid,type;
+    ROM_REGION *r;
+
+	fread(&size, sizeof(Uint32), 1, gno);
+	fread(&lid, sizeof(Uint8), 1, gno);
+	fread(&type, sizeof(Uint8), 1, gno);
+
+    switch(lid) {
+    case REGION_MAIN_CPU_CARTRIDGE:
+        r=&roms->cpu_m68k;break;
+    case REGION_AUDIO_CPU_CARTRIDGE:
+        r=&roms->cpu_z80;break;
+    case REGION_AUDIO_DATA_1:
+        r=&roms->adpcma;break;
+    case REGION_AUDIO_DATA_2:
+        r=&roms->adpcmb;break;        
+    case REGION_FIXED_LAYER_CARTRIDGE:
+        r=&roms->game_sfix;break;
+    case REGION_SPRITES:
+        r=&roms->tiles;break;
+    case REGION_SPR_USAGE:
+        r=&roms->spr_usage;break;
+    case REGION_GAME_FIX_USAGE:
+        r=&roms->gfix_usage;break;
+    case REGION_FIXED_LAYER_BIOS:
+        r=&roms->bios_sfix;break;
+    case REGION_MAIN_CPU_BIOS:break;
+        r=&roms->bios_m68k;break;
+    }
+
+    printf("Read region %d %08X type %d\n",lid,size,type);
+	if (type == 0) {
+        allocate_region(r, size,lid);
+		printf("Load %d %08x\n", lid, r->size);
+		fread(r->p, r->size, 1, gno);
+	} else {
+        Uint32 nb_block,block_size;
+        Uint32 cmp_size;
+        fread(&block_size, sizeof(Uint32), 1, gno);
+        nb_block=size/block_size;
+
+        printf("Region size=%08X\n",size);
+        r->size=size;
+
+
+        memory.vid.spr_cache.offset=malloc(sizeof(Uint32)* nb_block);
+        fread(memory.vid.spr_cache.offset, sizeof(Uint32), nb_block, gno);
+        memory.vid.spr_cache.gno=gno;
+            
+        fread(&cmp_size,sizeof(Uint32),1,gno);
+
+        fseek(gno, cmp_size, SEEK_CUR);
+        init_sprite_cache(24*1024*1024,block_size);        
+
+        /* Temporary */
+        //allocate_region(r, size,lid);
+
+    }
+    return TRUE;
+}
+
+int dr_open_gno(char *filename) {
+    FILE *gno;
+    char fid[9]; // = "gnodmpv1";
+    char name[9]={0,};
+    GAME_ROMS *r=&memory.rom;
+    Uint8 nb_sec;
+    int i;
+    char *a;
+
+	memory.bksw_handler = 0;
+	memory.bksw_unscramble = NULL;
+	memory.bksw_offset = NULL;
+
+    need_decrypt=0;
+
+    gno = fopen(filename, "rb");
+	if (!gno)
+		return FALSE;
+    
+    fread(fid,8,1,gno);
+    if (strncmp(fid,"gnodmpv1",8)!=0) {
+        printf("Invalid GNO file\n");
+        return FALSE;
+    }
+    fread(name,8,1,gno);
+    a=strchr(name,' ');if (a) a[0]=0;
+    r->info.name=strdup(name);
+
+    fread(&r->info.flags, sizeof(Uint32), 1, gno);
+    fread(&nb_sec, sizeof(Uint8), 1, gno);
+
+    for (i=0;i<nb_sec;i++)
+            read_region(gno, r);
+           /*    read_region(gno, r);
+	read_region(gno, r);
+	read_region(gno, r);
+	read_region(gno, r);
+           */
+
+    if (r->adpcmb.p==NULL) {
+        r->adpcmb.p=r->adpcma.p;
+        r->adpcmb.size=r->adpcma.size;
+    }
+    //fclose(gno);
+
+	memory.fix_game_usage = r->gfix_usage.p;
+    /*	memory.pen_usage = malloc((r->tiles.size >> 11) * sizeof(Uint32));
+	CHECK_ALLOC(memory.pen_usage);
+	memset(memory.pen_usage, 0, (r->tiles.size >> 11) * sizeof(Uint32));*/
+	memory.nb_of_tiles = r->tiles.size >> 7;
+
+	/* Init rom and bios */
+	init_roms(r);
+	//convert_all_tile(r);
+	dr_load_bios(r);
+
+    conf.game = memory.rom.info.name;
+	/* TODO *///neogeo_fix_bank_type =0;
+	/* TODO */
+	set_bankswitchers(0);
+
+	memcpy(memory.game_vector, memory.rom.cpu_m68k.p, 0x80);
+	memcpy(memory.rom.cpu_m68k.p, memory.rom.bios_m68k.p, 0x80);
+	init_video();
+
+    return TRUE;
+}
+
+char *dr_gno_romname(char *filename) {
+    FILE *gno;
+    char fid[9]; // = "gnodmpv1";
+    char name[9]={0,};
+    
+    gno = fopen(filename, "rb");
+	if (!gno)
+		return NULL;
+    
+    fread(fid,8,1,gno);
+    if (strncmp(fid,"gnodmpv1",8)!=0) {
+        printf("Invalid GNO file\n");
+        return NULL;
+    }
+    
+    fread(name,8,1,gno);
+    fclose(gno);
+    return strdup(name);
+}
+
+
 #else
 static int dump_region(FILE *gno,ROM_REGION *rom,Uint8 id,Uint8 type,Uint32 block_size) {
 	return TRUE;
@@ -1735,7 +1968,13 @@ void dr_free_roms(GAME_ROMS *r) {
 	free_region(&r->cpu_m68k);
 	free_region(&r->cpu_z80);
 	free_region(&r->cpu_z80c);
-	free_region(&r->tiles);
+
+    if (!memory.vid.spr_cache.data) {
+        printf("Free tiles\n");
+        free_region(&r->tiles);
+    } else {
+        fclose(memory.vid.spr_cache.gno);
+    }
 	free_region(&r->game_sfix);
 	if (r->adpcmb.p != r->adpcma.p)
 		free_region(&r->adpcmb);
@@ -1751,7 +1990,7 @@ void dr_free_roms(GAME_ROMS *r) {
 	free_region(&r->bios_audio);
 
 	free(memory.ng_lo);
-	free(memory.pen_usage);
+    //	free(memory.pen_usage);
 	free(memory.fix_game_usage);
 
 	free(r->info.name);

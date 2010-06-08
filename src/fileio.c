@@ -270,7 +270,7 @@ void free_game_memory(void) {
     memory.rom.adpcmb.p=NULL;
     free(memory.rom.adpcma.p);memory.rom.adpcma.p=NULL;
     free(memory.rom.tiles.p);memory.rom.tiles.p=NULL;
-    free(memory.pen_usage);memory.pen_usage=NULL;
+    //    free(memory.pen_usage);memory.pen_usage=NULL;
 
 }
 
@@ -287,35 +287,26 @@ SDL_bool close_game(void) {
 
 SDL_bool init_game(char *rom_name) {
 
-	//open_bios();
-/*
-	if (conf.game!=NULL) {
-		save_nvram(conf.game);
-		save_memcard(conf.game);
-		if (conf.sound) {
-			close_sdl_audio();
-#ifndef ENABLE_940T
-			YM2610_sh_stop();
-#endif
-			//streams_sh_stop();
-		}
-		free_game_memory();
-	}
-*/
 	/* open transpack if need */
 	trans_pack_open(CF_STR(cf_get_item_by_name("transpack")));
+    
+    if (strstr(rom_name,".gno")!=NULL) {
+        dr_open_gno(rom_name);
+        
+    } else {
 
-	//open_rom(rom_name);
-	if (dr_load_game(rom_name)==SDL_FALSE) {
+        //open_rom(rom_name);
+        if (dr_load_game(rom_name)==SDL_FALSE) {
 #if defined(GP2X)
-		gn_popup_error(" Error! :","Couldn't load %s",
-			       file_basename(rom_name));
+            gn_popup_error(" Error! :","Couldn't load %s",
+                           file_basename(rom_name));
 #else
-		printf("Can't load %s\n",rom_name);
+            printf("Can't load %s\n",rom_name);
 #endif
-		return SDL_FALSE;
-	}
+            return SDL_FALSE;
+        }
 
+    }
 
 	open_nvram(conf.game);
 	open_memcard(conf.game);

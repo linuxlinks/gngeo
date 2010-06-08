@@ -15,6 +15,7 @@
 #define REGION_MAIN_CPU_CARTRIDGE    8
 #define REGION_SPRITES               9
 #define REGION_SPR_USAGE             10
+#define REGION_GAME_FIX_USAGE        11
 
 #define HAS_CUSTOM_CPU_BIOS 0x1
 #define HAS_CUSTOM_AUDIO_BIOS 0x2
@@ -49,6 +50,7 @@ typedef struct ROM_REGION {
 	Uint32 size;
 }ROM_REGION;
 
+
 typedef struct GAME_ROMS {
 	GAME_INFO info;
 	ROM_REGION cpu_m68k;
@@ -68,10 +70,13 @@ typedef struct GAME_ROMS {
 }GAME_ROMS;
 
 
+
 int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name);
 void dr_free_roms(GAME_ROMS *r);
 int dr_save_gno(GAME_ROMS *r,char *filename);
 SDL_bool dr_load_game(char *zip);
 ROM_DEF *dr_check_zip(char *filename);
+char *dr_gno_romname(char *filename);
+int dr_open_gno(char *filename);
 
 #endif

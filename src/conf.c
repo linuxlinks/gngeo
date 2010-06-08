@@ -44,6 +44,7 @@
 //#include "driver.h"
 #include "emu.h"
 #include "fileio.h"
+#include "memory.h"
 
 #if defined (__AMIGA__)
 # ifdef DATA_DIRECTORY
@@ -424,9 +425,10 @@ void cf_init(void)
     cf_create_action_item("help","Print this help and exit",'h',print_help);
     cf_create_action_item("listgame","Show all the game available in the romrc",'l',show_all_game);
     cf_create_action_item("version","Show version and exit",'v',show_version);
-    //cf_create_action_arg_item("dumpsprite","Dump all the sprite data in a .gfx file",0,dump_sprite);
+    //cf_create_action_arg_item("dump","Create a gno dump in the current directory","GAME",0,dump_gno);
     //cf_create_action_arg_item("scandir","Scan the given directory, and show available rom",0,scan_dir);
     cf_create_bool_item("forcepc","Force the PC to a correct value at startup",0,SDL_FALSE);
+    cf_create_bool_item("dump","Create a gno dump in the current dir and exit",0,SDL_FALSE);
     cf_create_bool_item("fullscreen","Start gngeo in fullscreen",'f',SDL_FALSE);
     cf_create_bool_item("interpolation","Merge the last frame and the current",'I',SDL_FALSE);
     cf_create_bool_item("raster","Enable the raster interrupt",'r',SDL_FALSE);

@@ -35,6 +35,7 @@
 #include "emu.h"
 #include "state.h"
 #include "debug.h"
+#include "conf.h"
 
 extern unsigned int cpu68k_clocks;
 extern Uint8 *cpu68k_rom;
@@ -282,11 +283,14 @@ static void cpu_68k_init_save_state(void) {
 
 void cpu_68k_init(void)
 {
-
+    printf("GEN68k CPU INIT\n");
     //#ifdef WORDS_BIGENDIAN
+    
+    if (!CF_BOOL(cf_get_item_by_name("dump"))) {
     swap_memory(memory.rom.cpu_m68k.p, memory.rom.cpu_m68k.size);
     swap_memory(memory.rom.bios_m68k.p, memory.rom.bios_m68k.size);
     swap_memory(memory.game_vector, 0x80);
+    }
     //#endif
 
     cpu68k_ram = memory.ram;

@@ -24,7 +24,30 @@
 #endif
 
 #include "SDL.h"
-
+/*
+typedef struct GNO_SPRITE_CACHE {
+    FILE *gno;
+    Uint32 b_size;
+    Uint32 b_count;
+    Uint32 c_size;
+    Uint32 c_count;
+    Uint32 *bf_offset;
+    Uint32 *c_data;
+    Uint32 *c_index;
+}GNO_SPRITE_CACHE;
+*/
+typedef struct gfx_cache {
+	Uint8 *data;  /* The cache */
+	Uint32 size;  /* Tha allocated size of the cache */      
+	Uint32 total_bank;  /* total number of rom bank */
+	Uint8 **ptr/*[TOTAL_GFX_BANK]*/; /* ptr[i] Contain a pointer to cached data for bank i */
+	int max_slot; /* Maximal numer of bank that can be cached (depend on cache size) */
+	int slot_size;
+	int *usage;   /* contain index to the banks in used order */
+	FILE *gno;
+    Uint32 *offset;
+    Uint8* in_buf;
+}GFX_CACHE;
 
 typedef struct VIDEO {
 	/* Video Ram&Pal */
@@ -48,6 +71,8 @@ typedef struct VIDEO {
 	Uint32 irq2taken;
 	Uint32 irq2start;
 	Uint32 irq2pos;
+
+    GFX_CACHE spr_cache;
 }VIDEO;
 
 #ifdef GP2X_
@@ -82,6 +107,6 @@ void draw_screen(void);
 //		      unsigned char *usage_ptr);
 //void convert_mgd2_tiles(unsigned char *buf, int len);
 //void convert_tile(int tileno);
-
+void init_sprite_cache(Uint32 size,Uint32 bsize);
 
 #endif

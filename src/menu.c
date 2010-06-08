@@ -686,8 +686,10 @@ void gn_init_menu(void) {
 	main_menu->item=NULL;
 	/* Create item */
 
+    /*
 	main_menu->item=list_append(main_menu->item,(void*)gn_menu_create_item("Load game",ACTION,rbrowser_action));
 	main_menu->nb_elem++;
+    */
 
 	main_menu->item=list_append(main_menu->item,(void*)gn_menu_create_item("Load state",ACTION,load_state_action));
 	main_menu->nb_elem++;

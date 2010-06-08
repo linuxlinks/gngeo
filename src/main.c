@@ -163,16 +163,29 @@ int main(int argc, char *argv[])
 	    cf_print_help();
 	    exit(0);
     }
-   
+    
+
 /* per game config */
 #if defined(GP2X) || defined(WIN32)
     gpath="conf/";
 #else
     gpath=get_gngeo_dir();
 #endif
-    
-    drconf=alloca(strlen(gpath)+strlen(rom_name)+strlen(".cf")+1);
-    sprintf(drconf,"%s%s.cf",gpath,rom_name);
+
+    if (strstr(rom_name,".gno")!=NULL) {
+        char *name=dr_gno_romname(rom_name);
+        if (name) {
+            printf("Tring to load a gno file %s %s\n",rom_name,name);
+            drconf=alloca(strlen(gpath)+strlen(name)+strlen(".cf")+1);
+            sprintf(drconf,"%s%s.cf",gpath,name);
+        } else {
+            printf("Error while loading %s\n",rom_name);
+            return 0;
+        }
+    } else {
+        drconf=alloca(strlen(gpath)+strlen(rom_name)+strlen(".cf")+1);
+        sprintf(drconf,"%s%s.cf",gpath,rom_name);
+    }
     cf_open_file(drconf);
 
 
@@ -196,6 +209,15 @@ int main(int argc, char *argv[])
 	    printf("Can't init %s...\n",rom_name);
             exit(1);
     }    
+
+    if (CF_BOOL(cf_get_item_by_name("dump"))) {
+        char dump[8+4+1];
+        sprintf(dump,"%s.gno",rom_name);
+        dr_save_gno(&memory.rom,dump);
+        close_game();
+        return 0;
+    }
+
     if (conf.debug)
 	    debug_loop();
     else
