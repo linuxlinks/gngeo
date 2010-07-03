@@ -6013,7 +6013,7 @@ $as_echo "#define ALIGNLONGS ALIGNLONGS" >>confdefs.h
 
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/raze/Makefile src/star/Makefile src/mamez80/Makefile src/generator68k/Makefile src/cyclone/Makefile src/drz80/Makefile src/effect/Makefile src/blitter/Makefile src/ym2610/Makefile src/gui/Makefile romrc.d/Makefile data/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile src/raze/Makefile src/star/Makefile src/mamez80/Makefile src/generator68k/Makefile src/cyclone/Makefile src/drz80/Makefile src/effect/Makefile src/blitter/Makefile src/ym2610/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -6787,9 +6787,6 @@ do
     "src/effect/Makefile") CONFIG_FILES="$CONFIG_FILES src/effect/Makefile" ;;
     "src/blitter/Makefile") CONFIG_FILES="$CONFIG_FILES src/blitter/Makefile" ;;
     "src/ym2610/Makefile") CONFIG_FILES="$CONFIG_FILES src/ym2610/Makefile" ;;
-    "src/gui/Makefile") CONFIG_FILES="$CONFIG_FILES src/gui/Makefile" ;;
-    "romrc.d/Makefile") CONFIG_FILES="$CONFIG_FILES romrc.d/Makefile" ;;
-    "data/Makefile") CONFIG_FILES="$CONFIG_FILES data/Makefile" ;;
 
   *) as_fn_error "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -7506,7 +7503,6 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
-
 
 
 

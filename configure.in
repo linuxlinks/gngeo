@@ -275,12 +275,8 @@ AC_CONFIG_FILES([Makefile
 	 src/drz80/Makefile
 	 src/effect/Makefile
 	 src/blitter/Makefile
-	 src/ym2610/Makefile
-	 src/gui/Makefile
-	 romrc.d/Makefile
-	 data/Makefile])
+	 src/ym2610/Makefile])
 AC_OUTPUT
-
 
 
 

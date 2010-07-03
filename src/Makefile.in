@@ -56,11 +56,11 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am__gngeo_SOURCES_DIST = fileio.c pd4990a.c gngeo_icon.h crypt.h \
-	sound.h video.c fileio.h profiler.c main.c pd4990a.h video.h \
-	list.c memory.c profiler.h list.h blitter.h font.h memory.h \
-	resfile.c timer.c effect.h frame_skip.c messages.c screen.c \
-	timer.h emu.c frame_skip.h messages.h screen.h unzip.h emu.h \
+am__gngeo_SOURCES_DIST = fileio.c pd4990a.c gngeo_icon.h sound.h \
+	video.c fileio.h profiler.c main.c pd4990a.h video.h list.c \
+	memory.c profiler.h list.h blitter.h font.h memory.h resfile.c \
+	timer.c effect.h frame_skip.c messages.c screen.c timer.h \
+	emu.c frame_skip.h messages.h screen.h unzip.h emu.h \
 	neocrypt.c sound.c unzip.c resfile.h debug.c debug.h \
 	neocrypt.h state.c state.h video_template.h conf.c conf.h \
 	transpack.h transpack.c menu.c menu.h roms.h roms.c \
@@ -278,21 +278,22 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 INCLUDES = -DDATA_DIRECTORY='"${pkgdatadir}"'
 SUBDIRS = effect blitter ym2610 $(m68k_subdir) $(z80_subdir) $(gui_subdir)
-gngeo_SOURCES = fileio.c pd4990a.c gngeo_icon.h crypt.h sound.h \
-	video.c fileio.h profiler.c main.c pd4990a.h video.h list.c \
-	memory.c profiler.h list.h blitter.h font.h memory.h resfile.c \
-	timer.c effect.h frame_skip.c messages.c screen.c timer.h \
-	emu.c frame_skip.h messages.h screen.h unzip.h emu.h \
-	neocrypt.c sound.c unzip.c resfile.h debug.c debug.h \
-	neocrypt.h state.c state.h video_template.h conf.c conf.h \
-	transpack.h transpack.c menu.c menu.h roms.h roms.c \
-	mame_layer.h mame_layer.c neoboot.c event.h event.c \
-	stb_image.c stb_image.h stb_zlib.c stb_zlib.h $(am__append_1) \
-	$(am__append_2) $(am__append_3) $(am__append_4) \
-	$(am__append_5) $(am__append_6) $(am__append_7) \
-	$(am__append_8)
+gngeo_SOURCES = fileio.c pd4990a.c gngeo_icon.h sound.h video.c \
+	fileio.h profiler.c main.c pd4990a.h video.h list.c memory.c \
+	profiler.h list.h blitter.h font.h memory.h resfile.c timer.c \
+	effect.h frame_skip.c messages.c screen.c timer.h emu.c \
+	frame_skip.h messages.h screen.h unzip.h emu.h neocrypt.c \
+	sound.c unzip.c resfile.h debug.c debug.h neocrypt.h state.c \
+	state.h video_template.h conf.c conf.h transpack.h transpack.c \
+	menu.c menu.h roms.h roms.c mame_layer.h mame_layer.c \
+	neoboot.c event.h event.c stb_image.c stb_image.h stb_zlib.c \
+	stb_zlib.h $(am__append_1) $(am__append_2) $(am__append_3) \
+	$(am__append_4) $(am__append_5) $(am__append_6) \
+	$(am__append_7) $(am__append_8)
 @USE_CYCLONE_TRUE@m68k_subdir = cyclone
 @USE_GENERATOR68K_TRUE@m68k_subdir = generator68k
+
+# Platform dependant source and lib
 @USE_STARSCREAM_TRUE@m68k_subdir = star
 @USE_CYCLONE_TRUE@m68k_lib = cyclone/libcyclone.a
 @USE_GENERATOR68K_TRUE@m68k_lib = generator68k/libgenerator68k.a

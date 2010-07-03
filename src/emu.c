@@ -42,7 +42,7 @@
 #include "neocrypt.h"
 #include "conf.h"
 //#include "driver.h"
-#include "gui_interf.h"
+//#include "gui_interf.h"
 #ifdef FULL_GL
 #include "videogl.h"
 #endif

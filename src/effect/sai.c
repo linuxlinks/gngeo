@@ -47,7 +47,7 @@ effect_sai_update()
 	Uint8 *dptr = deltaptr;
 		
 	Uint8 height = visible_area.h;
-	printf("Update sai %p %p %p\n",src,dst,dptr);
+	//printf("Update sai %p %p %p\n",src,dst,dptr);
 	while(height--)
 	{
 	/* Params:

@@ -15,16 +15,10 @@
 
 #include "blitter.h"
 #include "effect.h"
-#ifdef FULL_GL
-#include "videogl.h"
-#endif
 
 SDL_bool effect_none_init(void);
 
 blitter_func blitter[] = {
-#ifdef FULL_GL
-    {"fullgl","Full Opengl",fgl_init_video,NULL,NULL,NULL},
-#else
     {"soft","Software blitter",blitter_soft_init, NULL, blitter_soft_update, blitter_soft_fullscreen,
      blitter_soft_close},
 #ifndef GP2X
@@ -37,7 +31,6 @@ blitter_func blitter[] = {
      blitter_overlay_fullscreen, blitter_overlay_close},
 #endif
 #endif
-#endif
     {NULL,NULL,NULL,NULL,NULL,NULL,NULL}
 };
 
@@ -45,7 +38,6 @@ effect_func effect[] = {
     {"none","No effect",1,1,effect_none_init, NULL},
 #ifndef GP2X
 #ifndef WII
-#ifndef FULL_GL
     {"scanline","Scanline effect",2,2,effect_scanline_init, effect_scanline_update},	// 1
     {"scanline50","Scanline 50% effect",2,2,effect_scanline_init, effect_scanline50_update},	// 2
     {"scale2x","Scale2x effect",2,2,effect_scale2x_init, effect_scale2x_update},	// 3
@@ -63,7 +55,6 @@ effect_func effect[] = {
     {"sai","SAI effect",2,2,effect_sai_init, effect_sai_update},	//7
     {"supersai","SuperSAI effect",2,2,effect_sai_init, effect_supersai_update},	//8
     {"eagle","Eagle effect",2,2,effect_sai_init, effect_eagle_update},	//9
-#endif
 #endif
 #endif
 #endif

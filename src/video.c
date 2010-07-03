@@ -290,7 +290,7 @@ static void fix_value_init(void) {
 
 #define fix_add_old(x, y) (0x1000 * (((READ_WORD(&memory.vid.ram[fix_addr[x][y-1]]) >> fix_shift[x] * 2) & 3) ^ 3))
 
-#define fix_add(x, y) (0x1000 * (((memory.vid.ram[0x7500 + ((y-1)&31) + 32 * (x/6)] >> (5-(x%6))*2) & 3) ^ 3))
+#define fix_add(x, y) ((((READ_WORD(memory.vid.ram + 0xEA00 + (((y-1)&31)*2 + 64 * (x/6))) >> (5-(x%6))*2) & 3) ^ 3))
 
 /* Drawing function generation */
 #define RENAME(name) name##_tile
@@ -310,13 +310,7 @@ static __inline__ void draw_tile_arm(unsigned int tileno,int sx,int sy,int zx,in
 			 int color,int xflip,int yflip,unsigned char *bmp) {
 	Uint32 pitch=352/*buffer->pitch>>1*/;
 	//static SDL_Rect blit_rect={0,0,16,16};
-#if 0
-	if (memory.gp2x_gfx_mapped==GZX_MAPPED) {
-		mem_gfx=cache_get_gfx_ptr(tileno);
-		tileno=(tileno&((gcache.slot_size>>7)-1));
-		//printf("%08X\n",((gcache.slot_size>>7)-1));
-	}
-#endif
+
 	if(zy==16)
 		ldda_y_skip=full_y_skip;
 	else
@@ -438,7 +432,7 @@ static __inline__ void draw_fix_char(unsigned char *buf,int start,int end)
 			byte1 += 0x1000 * (garouoffsets[(y-2)&31] ^ 3);
 			break;
 		case 2:
-			byte1 += fix_add(x, y); 
+			byte1 += 0x1000 * fix_add(x, y); 
 			/* byte1 += 0x1000 * (((READ_WORD(&memory.vid.ram[(0xea00 >> 1) + ((y-1)&31) + 32 * (x/6)])
 			   >> (5-(x%6))*2) & 3) ^ 3);*/
 			break;

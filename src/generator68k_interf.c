@@ -169,12 +169,12 @@ static void swap_memory(Uint8 * mem, Uint32 length)
 /*** initialise memory tables ***/
 
 void bankswitcher_init() {
-    mem68k_def[2].fetch_byte=mem68k_fetch_bksw_byte;
-    mem68k_def[2].fetch_word=mem68k_fetch_bksw_word;
-    mem68k_def[2].fetch_long=mem68k_fetch_bksw_long;
-    mem68k_def[2].store_byte=mem68k_store_bksw_byte;
-    mem68k_def[2].store_word=mem68k_store_bksw_word;
-    mem68k_def[2].store_long=mem68k_store_bksw_long;
+    mem68k_def[2].fetch_byte=mem68k_fetch_bk_normal_byte;
+    mem68k_def[2].fetch_word=mem68k_fetch_bk_normal_word;
+    mem68k_def[2].fetch_long=mem68k_fetch_bk_normal_long;
+    mem68k_def[2].store_byte=mem68k_store_bk_normal_byte;
+    mem68k_def[2].store_word=mem68k_store_bk_normal_word;
+    mem68k_def[2].store_long=mem68k_store_bk_normal_long;
 }
 
 int mem68k_init(void)

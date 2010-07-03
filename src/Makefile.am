@@ -3,7 +3,7 @@ INCLUDES = -DDATA_DIRECTORY='"${pkgdatadir}"'
 SUBDIRS = effect blitter ym2610 $(m68k_subdir) $(z80_subdir) $(gui_subdir)
 
 bin_PROGRAMS = gngeo
-gngeo_SOURCES = fileio.c         pd4990a.c        gngeo_icon.h      crypt.h         \
+gngeo_SOURCES = fileio.c         pd4990a.c        gngeo_icon.h              \
 		sound.h          video.c          fileio.h          profiler.c      \
 		main.c           pd4990a.h        video.h           list.c          \
 		memory.c         profiler.h                list.h          \

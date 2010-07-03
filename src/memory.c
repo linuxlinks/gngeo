@@ -917,6 +917,19 @@ Uint16 sma_random(void) {
 /* Normal bankswitcher */
 Uint8 mem68k_fetch_bk_normal_byte(Uint32 addr) {
 	addr &= 0xFFFFF;
+    if (memory.bksw_unscramble) { /* SMA prot & random number generator */
+        Uint32 a=addr&0xFFFFFE;
+		if (a == 0xfe446) {
+			printf("Prot reading B %08x\n", addr);
+			return (addr&0x1?0x9a:0x37);
+		}
+		if (memory.sma_rng_addr && addr>=0x2fff00 &&
+            (((a & 0xFF) == (memory.sma_rng_addr & 0xFF)) || 
+             ((a & 0xFF) == memory.sma_rng_addr >> 8))) {
+            printf("SMA_Random B %08x\n",addr);
+			return (addr&0x1?sma_random()>>8:sma_random()&0xFF);
+        }
+	}
 	return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
 }
 
@@ -924,12 +937,15 @@ Uint16 mem68k_fetch_bk_normal_word(Uint32 addr) {
 	addr &= 0xFFFFF;
 	if (memory.bksw_unscramble) { /* SMA prot & random number generator */
 		if (addr == 0xfe446) {
-			printf("Prot reading %08x\n", addr);
+			printf("Prot reading W %08x\n", addr);
 			return 0x9a37;
 		}
-		if (memory.sma_rng_addr && (((addr & 0xFF) == (memory.sma_rng_addr
-				& 0xFF)) || ((addr & 0xFF) == memory.sma_rng_addr >> 8)))
+		if (memory.sma_rng_addr && addr>=0x2fff00 &&
+            (((addr & 0xFF) == (memory.sma_rng_addr & 0xFF)) || 
+             ((addr & 0xFF) == memory.sma_rng_addr >> 8))) {
+            printf("SMA_Random W %08x\n",addr);
 			return sma_random();
+        }
 	}
 	return (READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
 }
@@ -955,20 +971,22 @@ static void bankswitch(Uint32 address, Uint8 data) {
 
 void mem68k_store_bk_normal_byte(Uint32 addr, Uint8 data) {
 	//if (addr<0x2FFFF0)
-	//printf("bankswitch_b %x %x\n", addr, data);
+	printf("bankswitch_b %x %x\n", addr, data);
 	bankswitch(addr, data);
 }
 
 void mem68k_store_bk_normal_word(Uint32 addr, Uint16 data) {
-	//if (addr<0x2FFFF0)  printf("bankswitch_w %x %x\n",addr,data);
+	//if (addr<0x2FFFF0) 
+    //printf("bankswitch_w %x %x\n",addr,data);
 	if (memory.bksw_unscramble && (addr & 0xFF) == memory.bksw_unscramble[0]) {
 		/* unscramble bank number */
-		data = (((data >> memory.bksw_unscramble[1]) & 1) << 0) + (((data
-				>> memory.bksw_unscramble[2]) & 1) << 1) + (((data
-				>> memory.bksw_unscramble[3]) & 1) << 2) + (((data
-				>> memory.bksw_unscramble[4]) & 1) << 3) + (((data
-				>> memory.bksw_unscramble[5]) & 1) << 4) + (((data
-				>> memory.bksw_unscramble[6]) & 1) << 5);
+		data = 
+            (((data >> memory.bksw_unscramble[1]) & 1) << 0) + 
+            (((data	>> memory.bksw_unscramble[2]) & 1) << 1) + 
+            (((data	>> memory.bksw_unscramble[3]) & 1) << 2) + 
+            (((data	>> memory.bksw_unscramble[4]) & 1) << 3) + 
+            (((data	>> memory.bksw_unscramble[5]) & 1) << 4) + 
+            (((data	>> memory.bksw_unscramble[6]) & 1) << 5);
 
 		bankaddress = 0x100000 + memory.bksw_offset[data];
 		cpu_68k_bankswitch(bankaddress);

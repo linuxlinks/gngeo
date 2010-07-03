@@ -163,10 +163,10 @@ static void cpu_68k_init_save_state(void) {
 }
 
 void bankswitcher_init() {
-    pretend_readbyte[1].memorycall=mem68k_fetch_bksw_byte;
-    pretend_readword[1].memorycall=mem68k_fetch_bksw_word;
-    pretend_writebyte[7].memorycall=mem68k_store_bksw_byte;
-    pretend_writeword[7].memorycall=mem68k_store_bksw_word;
+    pretend_readbyte[1].memorycall=mem68k_fetch_bk_normal_byte;
+    pretend_readword[1].memorycall=mem68k_fetch_bk_normal_word;
+    pretend_writebyte[7].memorycall=mem68k_store_bk_normal_byte;
+    pretend_writeword[7].memorycall=mem68k_store_bk_normal_word;
 }
 
 void cpu_68k_init(void)

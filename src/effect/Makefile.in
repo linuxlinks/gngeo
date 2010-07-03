@@ -35,6 +35,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
+@HAVE_NASM_TRUE@am__append_1 = sai.c 
 subdir = src/effect
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -57,10 +58,14 @@ am__v_at_0 = @
 libeffect_a_AR = $(AR) $(ARFLAGS)
 @HAVE_NASM_TRUE@libeffect_a_DEPENDENCIES = 2xsaimmx.o effect_i386.o \
 @HAVE_NASM_TRUE@	hq2x16.o hq3x16.o
-am_libeffect_a_OBJECTS = sai.$(OBJEXT) scale2x.$(OBJEXT) \
-	scanline.$(OBJEXT) hq2x.$(OBJEXT) interp.$(OBJEXT) \
-	lq2x.$(OBJEXT) hq3x.$(OBJEXT) lq3x.$(OBJEXT) \
-	hqx_common.$(OBJEXT)
+am__libeffect_a_SOURCES_DIST = scale2x.c scanline.c scale2x.h \
+	scale3x.h hq2x.c hq2x.h hq2x.dat interp.h interp.c lq2x.c \
+	lq2x.h lq2x.dat hq3x.c hq3x.h hq3x.dat lq3x.c lq3x.h lq3x.dat \
+	hqx_common.c hqx_common.h sai.c
+@HAVE_NASM_TRUE@am__objects_1 = sai.$(OBJEXT)
+am_libeffect_a_OBJECTS = scale2x.$(OBJEXT) scanline.$(OBJEXT) \
+	hq2x.$(OBJEXT) interp.$(OBJEXT) lq2x.$(OBJEXT) hq3x.$(OBJEXT) \
+	lq3x.$(OBJEXT) hqx_common.$(OBJEXT) $(am__objects_1)
 libeffect_a_OBJECTS = $(am_libeffect_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -80,7 +85,7 @@ AM_V_GEN = $(am__v_GEN_$(V))
 am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
 am__v_GEN_0 = @echo "  GEN   " $@;
 SOURCES = $(libeffect_a_SOURCES)
-DIST_SOURCES = $(libeffect_a_SOURCES)
+DIST_SOURCES = $(am__libeffect_a_SOURCES_DIST)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -193,11 +198,10 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 noinst_LIBRARIES = libeffect.a
-libeffect_a_SOURCES = sai.c  scale2x.c  scanline.c scale2x.h scale3x.h \
-		      hq2x.c hq2x.h hq2x.dat interp.h interp.c lq2x.c lq2x.h \
-		      lq2x.dat hq3x.c hq3x.h hq3x.dat lq3x.c lq3x.h lq3x.dat \
-		      hqx_common.c hqx_common.h
-
+libeffect_a_SOURCES = scale2x.c scanline.c scale2x.h scale3x.h hq2x.c \
+	hq2x.h hq2x.dat interp.h interp.c lq2x.c lq2x.h lq2x.dat \
+	hq3x.c hq3x.h hq3x.dat lq3x.c lq3x.h lq3x.dat hqx_common.c \
+	hqx_common.h $(am__append_1)
 @HAVE_NASM_TRUE@libeffect_a_LIBADD = 2xsaimmx.o effect_i386.o hq2x16.o hq3x16.o
 EXTRA_DIST = 2xsaimmx.asm effect_i386.asm hq2x16.asm hq3x16.asm 
 all: all-am
@@ -469,18 +473,6 @@ uninstall-am:
 	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
 	uninstall-am
 
-
-#2xsaimmx.o : 2xsaimmx.asm
-#	nasm -f elf -I $(srcdir)/ $(srcdir)/2xsaimmx.asm && mv $(srcdir)/
-
-#effect_i386.o : effect_i386.asm
-#	nasm -f elf -I $(srcdir)/ $(srcdir)/effect_i386.asm  -o $(srcdir)/%.o
-
-#hq2x16.o : hq2x16.asm
-#	nasm -f elf -I $(srcdir)/ $(srcdir)/hq2x16.asm  -o $(srcdir)/%.o
-
-#hq3x16.o : hq3x16.asm
-#	nasm -f elf -I $(srcdir)/ $(srcdir)/hq3x16.asm  -o $(srcdir)/%.o
 
 2xsaimmx.o effect_i386.o hq2x16.o hq3x16.o: %.o: %.asm
 	nasm -f elf -I $(srcdir)/ $< -o $@ 
