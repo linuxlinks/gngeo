@@ -50,6 +50,12 @@ CONFIG_CLEAN_VPATH_FILES =
 LIBRARIES = $(noinst_LIBRARIES)
 AR = ar
 ARFLAGS = cru
+AM_V_AR = $(am__v_AR_$(V))
+am__v_AR_ = $(am__v_AR_$(AM_DEFAULT_VERBOSITY))
+am__v_AR_0 = @echo "  AR    " $@;
+AM_V_at = $(am__v_at_$(V))
+am__v_at_ = $(am__v_at_$(AM_DEFAULT_VERBOSITY))
+am__v_at_0 = @
 libgenerator68k_a_AR = $(AR) $(ARFLAGS)
 am_libgenerator68k_a_OBJECTS = cpu68k.$(OBJEXT) reg68k.$(OBJEXT) \
 	diss68k.$(OBJEXT) tab68k.$(OBJEXT)
@@ -67,8 +73,17 @@ am__depfiles_maybe = depfiles
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+AM_V_CC = $(am__v_CC_$(V))
+am__v_CC_ = $(am__v_CC_$(AM_DEFAULT_VERBOSITY))
+am__v_CC_0 = @echo "  CC    " $@;
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_CCLD = $(am__v_CCLD_$(V))
+am__v_CCLD_ = $(am__v_CCLD_$(AM_DEFAULT_VERBOSITY))
+am__v_CCLD_0 = @echo "  CCLD  " $@;
+AM_V_GEN = $(am__v_GEN_$(V))
+am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
+am__v_GEN_0 = @echo "  GEN   " $@;
 SOURCES = $(libgenerator68k_a_SOURCES) def68k.c $(gen68k_SOURCES)
 DIST_SOURCES = $(libgenerator68k_a_SOURCES) def68k.c $(gen68k_SOURCES)
 ETAGS = etags
@@ -76,6 +91,7 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -190,6 +206,20 @@ BUILT_SOURCES = def68k-iibs.h def68k-funcs.h def68k-proto.h \
 
 #def68k_SOURCES = def68k.c tab68k.c
 INCLUDES = -I../ -I.
+
+#head_SOURCES = def68k-iibs.h def68k-funcs.h def68k-proto.h
+
+#head$(EXEEXT):	def68k-iibs.h def68k-funcs.h def68k-proto.h
+
+#def68k-iibs.h:	def68k def68k.def
+#	./def68k
+#def68k-funcs.h:	def68k def68k.def
+#	./def68k
+#def68k-proto.h:	def68k def68k.def
+#	./def68k
+gcc_build_verbose = $(gcc_build_verbose_$(V))
+gcc_build_verbose_ = $(gcc_build_verbose_$(AM_DEFAULT_VERBOSITY))
+gcc_build_verbose_0 = @echo "  HCC    $@";
 gen68k_SOURCES = gen68k.c tab68k2.c
 gen68k_DEPENDENCIES = def68k-iibs.h def68k
 noinst_LIBRARIES = libgenerator68k.a
@@ -265,9 +295,9 @@ $(am__aclocal_m4_deps):
 clean-noinstLIBRARIES:
 	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
 libgenerator68k.a: $(libgenerator68k_a_OBJECTS) $(libgenerator68k_a_DEPENDENCIES) 
-	-rm -f libgenerator68k.a
-	$(libgenerator68k_a_AR) libgenerator68k.a $(libgenerator68k_a_OBJECTS) $(libgenerator68k_a_LIBADD)
-	$(RANLIB) libgenerator68k.a
+	$(AM_V_at)-rm -f libgenerator68k.a
+	$(AM_V_AR)$(libgenerator68k_a_AR) libgenerator68k.a $(libgenerator68k_a_OBJECTS) $(libgenerator68k_a_LIBADD)
+	$(AM_V_at)$(RANLIB) libgenerator68k.a
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
@@ -287,15 +317,17 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tab68k2.Po@am__quote@
 
 .c.o:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
@@ -501,20 +533,9 @@ uninstall-am:
 	uninstall-am
 
 
-#head_SOURCES = def68k-iibs.h def68k-funcs.h def68k-proto.h
-
-#head$(EXEEXT):	def68k-iibs.h def68k-funcs.h def68k-proto.h
-
-#def68k-iibs.h:	def68k def68k.def
-#	./def68k
-#def68k-funcs.h:	def68k def68k.def
-#	./def68k
-#def68k-proto.h:	def68k def68k.def
-#	./def68k
-
 def68k-proto.h def68k-funcs.h def68k-iibs.h : def68k def68k.def
-	if [ ! -f def68k.def ] ; then cp $(srcdir)/def68k.def . ;fi
-	./def68k
+	$(AM_V_at)if [ ! -f def68k.def ] ; then cp $(srcdir)/def68k.def . ;fi
+	$(AM_V_GEN)./def68k 2>&1 >/dev/null
 
 cpu68k.c : def68k-proto.h
 
@@ -527,19 +548,19 @@ cpu68k.c : def68k-proto.h
 #def68k : def68k.c
 #	gcc def68k.c tab68k.c -o def68k -I .. -I ../.. -I . `sdl-config --cflags`
 def68k.o gen68k.o tab68k2.o : %.o : %.c
-	$(CC_FOR_BUILD) -c $< -o $@ -I .. -I ../.. -I . `sdl-config --cflags`
+	$(gcc_build_verbose)$(CC_FOR_BUILD) -c $< -o $@ -I .. -I ../.. -I . `sdl-config --cflags`
 
 def68k : def68k.o tab68k2.o
-	$(CC_FOR_BUILD) def68k.o tab68k2.o -o $@ 
+	$(gcc_build_verbose)$(CC_FOR_BUILD) def68k.o tab68k2.o -o $@ 
 
 gen68k : gen68k.o tab68k2.o 
-	$(CC_FOR_BUILD) gen68k.o tab68k2.o -o $@
+	$(gcc_build_verbose)$(CC_FOR_BUILD) gen68k.o tab68k2.o -o $@
 
 $(CPU_SOURCE) : gen68k
-	./gen68k
+	$(AM_V_GEN)./gen68k 2>&1 >/dev/null
 
 $(CPU_OBJ) : %.o : %.c
-	$(COMPILE) -c $< -o $@
+	$(AM_V_CC)$(COMPILE) -c $< -o $@
 
 #cpu68k-0.c:	gen68k
 #	./gen68k

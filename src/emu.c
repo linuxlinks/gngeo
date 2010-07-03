@@ -118,19 +118,7 @@ void setup_misc_patch(char *name) {
 	if (!strcmp(name, "fatfury3")) {
 		WRITE_WORD_ROM(memory.rom.cpu_m68k.p, 0x0010);
 	}
-#if 0
-	/* Many mgd2 dump have a strange initial PC, so as some MVS */
-	if ((!strcmp(name, "aodk")) || (!strcmp(name, "bjourney")) || (!strcmp(
-			name, "maglord")) || (!strcmp(name, "mosyougi")) || (!strcmp(name,
-			"twinspri")) || (!strcmp(name, "whp")) ||
-	/*(conf.rom_type == MGD2) ||*/
-	(CF_BOOL(cf_get_item_by_name("forcepc")))) {
-		Uint8 *RAM = memory.rom.cpu_m68k.p;
-		printf("Force PC\n");
-		WRITE_WORD_ROM(&RAM[4], 0x00c0);
-		WRITE_WORD_ROM(&RAM[6], 0x0402);
-	}
-#endif
+
 	if (!strcmp(name, "mslugx")) {
 		/* patch out protection checks */
 		int i;
@@ -159,7 +147,7 @@ void setup_misc_patch(char *name) {
 }
 
 void neogeo_reset(void) {
-	memory.vid.modulo = 1; /* TODO: Move to init_video */
+    //	memory.vid.modulo = 1; /* TODO: Move to init_video */
 	sram_lock = 0;
 	sound_code = 0;
 	pending_command = 0;

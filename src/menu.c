@@ -45,6 +45,8 @@
 #include "video.h"
 #include "conf.h"
 #include "resfile.h"
+#include "fileio.h"
+
 //#include "driver.h"
 typedef struct GNFONT {
 	SDL_Surface *bmp;

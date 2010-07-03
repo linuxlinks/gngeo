@@ -48,16 +48,34 @@ CONFIG_CLEAN_VPATH_FILES =
 LIBRARIES = $(noinst_LIBRARIES)
 AR = ar
 ARFLAGS = cru
+AM_V_AR = $(am__v_AR_$(V))
+am__v_AR_ = $(am__v_AR_$(AM_DEFAULT_VERBOSITY))
+am__v_AR_0 = @echo "  AR    " $@;
+AM_V_at = $(am__v_at_$(V))
+am__v_at_ = $(am__v_at_$(AM_DEFAULT_VERBOSITY))
+am__v_at_0 = @
 libdrz80_a_AR = $(AR) $(ARFLAGS)
 libdrz80_a_DEPENDENCIES = DrZ80.o
 am_libdrz80_a_OBJECTS = DrZ80.$(OBJEXT)
 libdrz80_a_OBJECTS = $(am_libdrz80_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 CCASCOMPILE = $(CCAS) $(AM_CCASFLAGS) $(CCASFLAGS)
+AM_V_CCAS = $(am__v_CCAS_$(V))
+am__v_CCAS_ = $(am__v_CCAS_$(AM_DEFAULT_VERBOSITY))
+am__v_CCAS_0 = @echo "  CCAS  " $@;
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+AM_V_CC = $(am__v_CC_$(V))
+am__v_CC_ = $(am__v_CC_$(AM_DEFAULT_VERBOSITY))
+am__v_CC_0 = @echo "  CC    " $@;
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_CCLD = $(am__v_CCLD_$(V))
+am__v_CCLD_ = $(am__v_CCLD_$(AM_DEFAULT_VERBOSITY))
+am__v_CCLD_0 = @echo "  CCLD  " $@;
+AM_V_GEN = $(am__v_GEN_$(V))
+am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
+am__v_GEN_0 = @echo "  GEN   " $@;
 SOURCES = $(libdrz80_a_SOURCES)
 DIST_SOURCES = $(libdrz80_a_SOURCES)
 ETAGS = etags
@@ -65,6 +83,7 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -212,9 +231,9 @@ $(am__aclocal_m4_deps):
 clean-noinstLIBRARIES:
 	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
 libdrz80.a: $(libdrz80_a_OBJECTS) $(libdrz80_a_DEPENDENCIES) 
-	-rm -f libdrz80.a
-	$(libdrz80_a_AR) libdrz80.a $(libdrz80_a_OBJECTS) $(libdrz80_a_LIBADD)
-	$(RANLIB) libdrz80.a
+	$(AM_V_at)-rm -f libdrz80.a
+	$(AM_V_AR)$(libdrz80_a_AR) libdrz80.a $(libdrz80_a_OBJECTS) $(libdrz80_a_LIBADD)
+	$(AM_V_at)$(RANLIB) libdrz80.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -223,9 +242,11 @@ distclean-compile:
 	-rm -f *.tab.c
 
 .s.o:
+	$(AM_V_CCAS) @AM_BACKSLASH@
 	$(CCASCOMPILE) -c -o $@ $<
 
 .s.obj:
+	$(AM_V_CCAS) @AM_BACKSLASH@
 	$(CCASCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)

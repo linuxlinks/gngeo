@@ -403,6 +403,7 @@ int cpu_68k_run_step(void)
 
 int cpu_68k_debuger(void (*execstep)(void),void (*dump)(void)) {
     char buf[200];
+    char *res;
     char *args,*argsend;
     Uint8 debug_end=0;
     Uint32 hex=0;
@@ -411,7 +412,7 @@ int cpu_68k_debuger(void (*execstep)(void),void (*dump)(void)) {
     
     do{
 	printf("cpu1> ");fflush(stdout);
-	fgets(buf, 200, stdin);
+	res=fgets(buf, 200, stdin);
 	
 	args = buf + 1;
 	while((*args) && ((*args) < 32)) args++;

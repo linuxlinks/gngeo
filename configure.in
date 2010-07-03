@@ -6,8 +6,8 @@ AC_CANONICAL_TARGET
 AM_CONFIG_HEADER(config.h)
 
 
-AM_INIT_AUTOMAKE
-
+AM_INIT_AUTOMAKE(silent-rules)
+AM_SILENT_RULES
 
 # it's not optimal, but at least, it work
 if test -z "$CC_FOR_BUILD"; then
@@ -39,21 +39,27 @@ GN_ARG_ENABLE(pandora,[--enable-pandora        Enable PANDORA build])
 GN_ARG_ENABLE(win32,  [--enable-win32          Enable WIN32 build])
 
 
-#echo GP2X $enable_gp2x
-
+# Check for SDL
 SDL_VERSION=1.2.0
 AM_PATH_SDL($SDL_VERSION,,AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!]))
 CFLAGS="$CFLAGS $SDL_CFLAGS"
 LIBS="$LIBS $SDL_LIBS"
 
+# Setup platform specific optimisation/source/cflags/libs/etc.
 if test "x$enable_gp2x" = xtrue ; then
 	AC_DEFINE([GP2X],[1],[Define if you build for gp2x])
 	AC_DEFINE([ENABLE_940T],[1],[Define to process audio on the 940t])
 	CFLAGS="$CFLAGS -mtune=arm920t"
 	LIBS="$LIBS -lpthread -static";
+    #PDEP_SOURCE=$PDEP_SOURCE 'gp2x.$(OBJEXT)'
 fi
 if test "x$enable_wiz" = xtrue ; then
 	AC_DEFINE([WIZ],[1],[Define if you build for wiz])
+#	CFLAGS="$CFLAGS -mtune=arm920t"
+#	LIBS="$LIBS -lpthread -static";
+fi
+if test "x$enable_pandora" = xtrue ; then
+	AC_DEFINE([PANDORA],[1],[Define if you build for pandora])
 #	CFLAGS="$CFLAGS -mtune=arm920t"
 #	LIBS="$LIBS -lpthread -static";
 fi
@@ -88,7 +94,7 @@ use_mamez80=false
 # TODO: check mmx support
 AC_ARG_ENABLE(i386asm,     [  --disable-i386asm       disable the use of i386 optimisation],
                            [case "${enableval}" in
-       						yes) enablei386asm=true ;;
+       						yes) enablei386asm=true  ;;
        						no)  enablei386asm=false ;;
        						*) AC_MSG_ERROR([bad value ${enableval} for --disable-i386asm]) ;;
      						esac],
@@ -106,7 +112,7 @@ case $target_cpu in
 if  test "$enablei386asm" = true ; then
 	AC_CHECK_PROG(have_nasm, nasm, true,false)
 	CFLAGS="$CFLAGS -m32 -DI386_ASM"
-	#Todo: make a 32bit version possible under 64bit host
+#    PDEP_SOURCE=$PDEP_SOURCE 'gp2x.$(OBJEXT)'
 else
 	have_nasm=false
 fi
@@ -205,8 +211,7 @@ AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([atexit floor gettimeofday memset mkdir pow strchr strstr strtoul])
 
 
-dnl Check for processor.
-
+# Check for processor.
   case $target_cpu in
     i?86)  AC_MSG_RESULT(Turning on x86 processor optimisations)
            AC_DEFINE(PROCESSOR_INTEL, 1, [Define if you have an x86 processor])
@@ -222,7 +227,7 @@ dnl Check for processor.
            AC_DEFINE(PROCESSOR_ADM64, 1, [Define if you have an x86_64 processor])
            ALIGNLONGS=0
 	   proc_x64=true
-		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -funroll-loops \
+		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -Wno-unused -funroll-loops \
                     -ffast-math  -fexpensive-optimizations \
                      -malign-double -fomit-frame-pointer -g \
 		    -fno-strict-aliasing -pipe -DCPU=$target_cpu"
@@ -263,7 +268,7 @@ AC_DEFINE(ALIGNLONGS, ALIGNLONGS,
 AC_CONFIG_FILES([Makefile
 	 src/Makefile
 	 src/raze/Makefile
-         src/star/Makefile
+     src/star/Makefile
 	 src/mamez80/Makefile
 	 src/generator68k/Makefile
 	 src/cyclone/Makefile

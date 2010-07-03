@@ -47,7 +47,7 @@ typedef struct PKZIP {
 }PKZIP;
 
 void gn_unzip_fclose(ZFILE *z);
-int gn_unzip_fread(ZFILE *z,uint8_t *data,int size);
+int gn_unzip_fread(ZFILE *z,uint8_t *data,unsigned int size);
 ZFILE *gn_unzip_fopen(PKZIP *zf,char *filename,uint32_t file_crc);
 PKZIP *gn_open_zip(char *file);
 uint8_t *gn_unzip_file_malloc(PKZIP *zf,char *filename,uint32_t file_crc,unsigned int *outlen);

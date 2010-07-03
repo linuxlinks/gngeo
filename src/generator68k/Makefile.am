@@ -25,10 +25,13 @@ INCLUDES = -I../ -I.
 #def68k-proto.h:	def68k def68k.def
 #	./def68k
 
+gcc_build_verbose = $(gcc_build_verbose_$(V))
+gcc_build_verbose_ = $(gcc_build_verbose_$(AM_DEFAULT_VERBOSITY))
+gcc_build_verbose_0 = @echo "  HCC    $@";
 
 def68k-proto.h def68k-funcs.h def68k-iibs.h : def68k def68k.def
-	if [ ! -f def68k.def ] ; then cp $(srcdir)/def68k.def . ;fi
-	./def68k
+	$(AM_V_at)if [ ! -f def68k.def ] ; then cp $(srcdir)/def68k.def . ;fi
+	$(AM_V_GEN)./def68k 2>&1 >/dev/null
 
 cpu68k.c : def68k-proto.h
 
@@ -69,13 +72,13 @@ MOSTLYCLEANFILES = ${BUILT_SOURCES} ${head_SOURCES}
 #def68k : def68k.c
 #	gcc def68k.c tab68k.c -o def68k -I .. -I ../.. -I . `sdl-config --cflags`
 def68k.o gen68k.o tab68k2.o : %.o : %.c
-	$(CC_FOR_BUILD) -c $< -o $@ -I .. -I ../.. -I . `sdl-config --cflags`
+	$(gcc_build_verbose)$(CC_FOR_BUILD) -c $< -o $@ -I .. -I ../.. -I . `sdl-config --cflags`
 
 def68k : def68k.o tab68k2.o
-	$(CC_FOR_BUILD) def68k.o tab68k2.o -o $@ 
+	$(gcc_build_verbose)$(CC_FOR_BUILD) def68k.o tab68k2.o -o $@ 
 
 gen68k : gen68k.o tab68k2.o 
-	$(CC_FOR_BUILD) gen68k.o tab68k2.o -o $@
+	$(gcc_build_verbose)$(CC_FOR_BUILD) gen68k.o tab68k2.o -o $@
 
 #compile.o : compile.c 
 #	$(COMPILE) -c $< -o $@
@@ -91,10 +94,10 @@ CPU_OBJ    = cpu68k-0.o  cpu68k-1.o  cpu68k-2.o  cpu68k-3.o  \
 	     cpu68k-c.o  cpu68k-d.o  cpu68k-e.o  cpu68k-f.o
 
 $(CPU_SOURCE) : gen68k
-	./gen68k
+	$(AM_V_GEN)./gen68k 2>&1 >/dev/null
 
 $(CPU_OBJ) : %.o : %.c
-	$(COMPILE) -c $< -o $@
+	$(AM_V_CC)$(COMPILE) -c $< -o $@
 
 #cpu68k-0.c:	gen68k
 #	./gen68k

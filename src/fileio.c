@@ -141,6 +141,7 @@ char *get_gngeo_dir(void) {
 void open_nvram(char *name)
 {
     char *filename;
+    size_t totread=0;
 #if defined (GP2X) || defined (WIN32)
     const char *gngeo_dir="save/";
 #elif defined(__AMIGA__)
@@ -157,24 +158,15 @@ void open_nvram(char *name)
     
     if ((f = fopen(filename, "rb")) == 0)
 	return;
-    fread(memory.sram, 1, 0x10000, f);
+    totread=fread(memory.sram, 1, 0x10000, f);
     fclose(f);
-#if 0
-    /* save memcard */
-    len =strlen("memcard") + strlen(gngeo_dir) + 1; /* ".nv\0" => 4 */
-    filename = (char *) alloca(len);
-    sprintf(filename,"%s%s",gngeo_dir,"memcard");
-    
-    if ((f = fopen(filename, "rb")) == 0)
-	return;
-    fread(memory.memcard, 1, 0x800, f);
-    fclose(f);
-#endif
+
 }
 
 /* TODO: multiple memcard */
 void open_memcard(char *name) {
 	char *filename;
+    size_t totread=0;
 #if defined (GP2X) || defined (WIN32)
 	const char *gngeo_dir="save/";
 #elif defined(__AMIGA__)
@@ -190,7 +182,7 @@ void open_memcard(char *name) {
 	
 	if ((f = fopen(filename, "rb")) == 0)
 		return;
-	fread(memory.memcard, 1, 0x800, f);
+	totread=fread(memory.memcard, 1, 0x800, f);
 	fclose(f);
 }
 

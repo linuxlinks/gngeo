@@ -62,6 +62,7 @@ int bankoffset_kof99[64] = { 0x000000, 0x100000, 0x200000, 0x300000, 0x3cc000,
 		0x529000, 0x42e800, 0x52e800, 0x431800, 0x531800, 0x54d000, 0x551000,
 		0x567000, 0x592800, 0x588800, 0x581800, 0x599800, 0x594800, 0x598000, /* rest not used? */
 };
+
 /* addr,uncramblecode,.... */
 Uint8 scramblecode_kof99[7] = { 0xF0, 14, 6, 8, 10, 12, 5, };
 int bankoffset_garou[64] = { 0x000000, 0x100000, 0x200000, 0x300000, // 00
@@ -1362,7 +1363,8 @@ SDL_bool dr_load_bios(GAME_ROMS *r) {
 	int i;
 	PKZIP *pz;
 	ZFILE *z;
-	int size;
+    size_t totread=0;
+	unsigned int size;
 	char *rpath = CF_STR(cf_get_item_by_name("rompath"));
 	char *fpath;
 	char *romfile;
@@ -1397,7 +1399,7 @@ SDL_bool dr_load_bios(GAME_ROMS *r) {
 				return SDL_FALSE;
 			}
 			r->bios_m68k.p = malloc(0x20000);
-			fread(r->bios_m68k.p, 0x20000, 1, f);
+			totread=fread(r->bios_m68k.p, 0x20000, 1, f);
 			r->bios_m68k.size = 0x20000;
 			fclose(f);
 			free(unipath);
@@ -1714,7 +1716,7 @@ static int dump_region(FILE *gno, ROM_REGION *rom, Uint8 id, Uint8 type,
 			printf("%d %ld\n", rc, outlen);
 			//cur_offset += outlen;
 			cmpsize += outlen;
-			printf("cmpsize=%d %d\n", cmpsize,sizeof(uLongf));
+			printf("cmpsize=%d %ld\n", cmpsize,sizeof(uLongf));
 			inbuf += block_size;
             outlen32=(Uint32)outlen;
 			fwrite(&outlen32, sizeof(Uint32), 1, gno);
@@ -1806,11 +1808,12 @@ int dr_save_gno(GAME_ROMS *r, char *filename) {
 int read_region(FILE *gno,GAME_ROMS *roms) {
     Uint32 size;
     Uint8 lid,type;
-    ROM_REGION *r;
+    ROM_REGION *r=NULL;
+    size_t totread=0;
 
-	fread(&size, sizeof(Uint32), 1, gno);
-	fread(&lid, sizeof(Uint8), 1, gno);
-	fread(&type, sizeof(Uint8), 1, gno);
+	totread=fread(&size, sizeof(Uint32), 1, gno);
+	totread+=fread(&lid, sizeof(Uint8), 1, gno);
+	totread+=fread(&type, sizeof(Uint8), 1, gno);
 
     switch(lid) {
     case REGION_MAIN_CPU_CARTRIDGE:
@@ -1833,17 +1836,19 @@ int read_region(FILE *gno,GAME_ROMS *roms) {
         r=&roms->bios_sfix;break;
     case REGION_MAIN_CPU_BIOS:break;
         r=&roms->bios_m68k;break;
+    default:
+        return FALSE;
     }
 
     printf("Read region %d %08X type %d\n",lid,size,type);
 	if (type == 0) {
         allocate_region(r, size,lid);
 		printf("Load %d %08x\n", lid, r->size);
-		fread(r->p, r->size, 1, gno);
+		totread+=fread(r->p, r->size, 1, gno);
 	} else {
         Uint32 nb_block,block_size;
         Uint32 cmp_size;
-        fread(&block_size, sizeof(Uint32), 1, gno);
+        totread+=fread(&block_size, sizeof(Uint32), 1, gno);
         nb_block=size/block_size;
 
         printf("Region size=%08X\n",size);
@@ -1851,13 +1856,17 @@ int read_region(FILE *gno,GAME_ROMS *roms) {
 
 
         memory.vid.spr_cache.offset=malloc(sizeof(Uint32)* nb_block);
-        fread(memory.vid.spr_cache.offset, sizeof(Uint32), nb_block, gno);
+        totread+=fread(memory.vid.spr_cache.offset, sizeof(Uint32), nb_block, gno);
         memory.vid.spr_cache.gno=gno;
             
-        fread(&cmp_size,sizeof(Uint32),1,gno);
+        totread+=fread(&cmp_size,sizeof(Uint32),1,gno);
 
         fseek(gno, cmp_size, SEEK_CUR);
-        init_sprite_cache(24*1024*1024,block_size);        
+#ifdef WIZ
+        init_sprite_cache(6*1024*1024,block_size);        
+#else
+        init_sprite_cache(16*1024*1024,block_size);        
+#endif
 
         /* Temporary */
         //allocate_region(r, size,lid);
@@ -1874,6 +1883,7 @@ int dr_open_gno(char *filename) {
     Uint8 nb_sec;
     int i;
     char *a;
+    size_t totread=0;
 
 	memory.bksw_handler = 0;
 	memory.bksw_unscramble = NULL;
@@ -1885,17 +1895,17 @@ int dr_open_gno(char *filename) {
 	if (!gno)
 		return FALSE;
     
-    fread(fid,8,1,gno);
+    totread+=fread(fid,8,1,gno);
     if (strncmp(fid,"gnodmpv1",8)!=0) {
         printf("Invalid GNO file\n");
         return FALSE;
     }
-    fread(name,8,1,gno);
+    totread+=fread(name,8,1,gno);
     a=strchr(name,' ');if (a) a[0]=0;
     r->info.name=strdup(name);
 
-    fread(&r->info.flags, sizeof(Uint32), 1, gno);
-    fread(&nb_sec, sizeof(Uint8), 1, gno);
+    totread+=fread(&r->info.flags, sizeof(Uint32), 1, gno);
+    totread+=fread(&nb_sec, sizeof(Uint8), 1, gno);
 
     for (i=0;i<nb_sec;i++)
             read_region(gno, r);
@@ -1938,18 +1948,19 @@ char *dr_gno_romname(char *filename) {
     FILE *gno;
     char fid[9]; // = "gnodmpv1";
     char name[9]={0,};
-    
+    size_t totread=0;
+
     gno = fopen(filename, "rb");
 	if (!gno)
 		return NULL;
     
-    fread(fid,8,1,gno);
+    totread+=fread(fid,8,1,gno);
     if (strncmp(fid,"gnodmpv1",8)!=0) {
         printf("Invalid GNO file\n");
         return NULL;
     }
     
-    fread(name,8,1,gno);
+    totread+=fread(name,8,1,gno);
     fclose(gno);
     return strdup(name);
 }

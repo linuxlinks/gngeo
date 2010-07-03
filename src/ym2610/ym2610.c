@@ -3080,7 +3080,7 @@ int YM2610TimerOver(int ch)
 
 s16 mixing_buffer[2][16384];
 extern Uint16 play_buffer[16384];
-static Uint32 buf_pos;
+//static Uint32 buf_pos;
 
 /* Generate samples for one of the YM2610s */
 void YM2610Update_stream(int length)

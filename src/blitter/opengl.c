@@ -179,7 +179,9 @@ blitter_opengl_resize(int w,int h)
 void 
 blitter_opengl_update()
 {
+#ifndef USE_GL2
     float VALA=512/(float)visible_area.w-1.0; /* 240.0f*2.0f/304.0f - 1.0f */
+#endif
 //    int VALB=.0625; /* 16.0f/256.0f  */
 //    int VALC=.9375; /* 240.0f/256.0f */
 //int VALD .25   /* 64.0f/256.0f */

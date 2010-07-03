@@ -136,7 +136,7 @@ int init_event(void) {
 	create_joymap_from_string(2,CF_STR(cf_get_item_by_name("p2control")));
 	return SDL_TRUE;
 }
-#ifdef GP2X
+#if defined(GP2X) //|| defined (WIZ)
 int handle_pdep_event(SDL_Event *event) {
 	static int snd_volume=75;
 	char volbuf[21];
@@ -259,7 +259,7 @@ int handle_event(void) {
 			int player=jmap->jaxe[event.jaxis.which][event.jaxis.axis].player;
 			int map=jmap->jaxe[event.jaxis.which][event.jaxis.axis].map;
 			int oldvalue=jmap->jaxe[event.jaxis.which][event.jaxis.axis].value;
-			int value;
+			int value=0;
 			if (player) {
 				player-=1;
 				
@@ -401,7 +401,7 @@ int handle_event(void) {
 	if (joy_state[1][GN_D])
 	    memory.intern_p2 &= 0x7F;	// D
 
-#ifdef GP2X
+#if defined(GP2X) || defined (WIZ)
 	if (joy_state[0][GN_HOTKEY1] && joy_state[0][GN_HOTKEY2]
 	&& (joy_state[0][GN_START] || joy_state[0][GN_SELECT_COIN]))
 		return 1;

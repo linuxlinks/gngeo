@@ -38,10 +38,11 @@ static uint8_t fget8u(FILE *f) {
 }
 static void fskip(FILE *f, int n) {
 	uint8_t a, i;
+    size_t tr;
 	if (!f)
 		return;//fseek(f,n,SEEK_CUR);
 	for (i = 0; i < n; i++)
-		fread(&a, 1, 1, f);
+		tr=fread(&a, 1, 1, f);
 }
 static uint16_t fget16(FILE *f) {
 	int z = fget8(f);
@@ -110,11 +111,13 @@ static int search_sig32(PKZIP *zf, uint8_t sig[4]) {
 	int i = 0, pos;
 	uint8_t a;
 	int t = 0;
+    size_t tr=0;
+
 	if (!zf || !zf->file)
 		return -1;
 	//pos=ftell(zf->file);
 	while (!feof(zf->file)) {
-		fread(&a, sizeof(char), 1, zf->file);
+		tr+=fread(&a, sizeof(char), 1, zf->file);
 		//printf("Search sig %d\n",a);
 		if (sig[i] == a) {
 			//printf("%02x %d\n",a,t);
@@ -183,6 +186,8 @@ static int unzip_locate_file(PKZIP *zf, char *filename, uint32_t file_crc) {
 	uint16_t xf_len, fcomment_len, fname_len;
 	uint32_t sig;
 	char *fname = NULL;
+    size_t tr=0;
+
 	fseek(zf->file, zf->cd_offset, SEEK_SET);
 	pos = ftell(zf->file);
 	if (file_crc == 0)
@@ -197,7 +202,7 @@ static int unzip_locate_file(PKZIP *zf, char *filename, uint32_t file_crc) {
 			if (fname)
 				free(fname);
 			fname = calloc(fname_len + 1, sizeof(unsigned char));
-			fread(fname, fname_len, 1, zf->file);
+			tr+=fread(fname, fname_len, 1, zf->file);
 			fskip(zf->file, xf_len + fcomment_len);
 			//printf("0x%08x %s=%s?\n",crc,fname,filename);
 			if ((strcmp(fname, filename) == 0 && strlen(fname) == strlen(
@@ -277,10 +282,11 @@ ZFILE *gn_unzip_fopen(PKZIP *zf, char *filename, uint32_t file_crc) {
 
 }
 
-int gn_unzip_fread(ZFILE *z, uint8_t *data, int size) {
+int gn_unzip_fread(ZFILE *z, uint8_t *data, unsigned int size) {
 	int readed;
 	int todo;
 	int ret;
+    size_t tr=0;
 	if (!z)
 		return -1;
 	//if (z->pos!=ftell(z->f))

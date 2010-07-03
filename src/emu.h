@@ -125,6 +125,8 @@ void debug_loop(void);
 void main_loop(void);
 void init_neo(void);
 void cpu_68k_dpg_step(void);
+void setup_misc_patch(char *name);
+void neogeo_reset(void);
 
 #ifdef ENABLE_PROFILER
 #define PROFILER_START profiler_start

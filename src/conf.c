@@ -470,7 +470,7 @@ void cf_init(void)
 #ifdef GP2X
     cf_create_string_item("frontend","Execute CMD when exit. Usefull to return to Selector or Rage2x","CMD",0,"./gngeo2x.gpe");
 #endif
-#ifdef GP2X
+#if defined(GP2X) || defined (WIZ)
     cf_create_string_item("p1control","Player1 control configutation","...",0,
 			  "UP=J0B0,DOWN=J0B4,LEFT=J0B2,RIGHT=J0B6,A=J0B14,B=J0B13,C=J0B12,D=J0B15,COIN=J0B9,START=J0B8,HOTKEY1=J0B10,HOTKEY2=J0B11");
     cf_create_string_item("p2control","Player2 control configutation","...",0,"");

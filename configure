@@ -647,6 +647,8 @@ LDFLAGS
 CFLAGS
 CC
 CC_FOR_BUILD
+AM_BACKSLASH
+AM_DEFAULT_VERBOSITY
 am__untar
 am__tar
 AMTAR
@@ -723,6 +725,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+enable_silent_rules
 enable_dependency_tracking
 enable_gp2x
 enable_wiz
@@ -1367,6 +1370,8 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-silent-rules          less verbose build output (undo: `make V=1')
+  --disable-silent-rules         verbose build output (undo: `make V=0')
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
   --enable-gp2x           Enable GP2X build
@@ -2729,6 +2734,18 @@ else
 fi
 rmdir .tst 2>/dev/null
 
+# Check whether --enable-silent-rules was given.
+if test "${enable_silent_rules+set}" = set; then :
+  enableval=$enable_silent_rules;
+fi
+
+case $enable_silent_rules in
+yes) AM_DEFAULT_VERBOSITY=0;;
+no)  AM_DEFAULT_VERBOSITY=1;;
+*)   AM_DEFAULT_VERBOSITY=1;;
+esac
+AM_BACKSLASH='\'
+
 if test "`cd $srcdir && pwd`" != "`pwd`"; then
   # Use -I$(srcdir) only when $(srcdir) != ., so that make's output
   # is not polluted with repeated "-I."
@@ -2791,6 +2808,17 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 
 
 
+# Check whether --enable-silent-rules was given.
+if test "${enable_silent_rules+set}" = set; then :
+  enableval=$enable_silent_rules;
+fi
+
+case $enable_silent_rules in
+yes) AM_DEFAULT_VERBOSITY=0;;
+no)  AM_DEFAULT_VERBOSITY=1;;
+*)   AM_DEFAULT_VERBOSITY=1;;
+esac
+AM_BACKSLASH='\'
 
 
 # it's not optimal, but at least, it work
@@ -4080,8 +4108,7 @@ fi
 
 
 
-#echo GP2X $enable_gp2x
-
+# Check for SDL
 SDL_VERSION=1.2.0
 
 
@@ -4342,6 +4369,7 @@ rm -f core conftest.err conftest.$ac_objext \
 CFLAGS="$CFLAGS $SDL_CFLAGS"
 LIBS="$LIBS $SDL_LIBS"
 
+# Setup platform specific optimisation/source/cflags/libs/etc.
 if test "x$enable_gp2x" = xtrue ; then
 
 $as_echo "#define GP2X 1" >>confdefs.h
@@ -4351,10 +4379,18 @@ $as_echo "#define ENABLE_940T 1" >>confdefs.h
 
 	CFLAGS="$CFLAGS -mtune=arm920t"
 	LIBS="$LIBS -lpthread -static";
+    #PDEP_SOURCE=$PDEP_SOURCE 'gp2x.$(OBJEXT)'
 fi
 if test "x$enable_wiz" = xtrue ; then
 
 $as_echo "#define WIZ 1" >>confdefs.h
+
+#	CFLAGS="$CFLAGS -mtune=arm920t"
+#	LIBS="$LIBS -lpthread -static";
+fi
+if test "x$enable_pandora" = xtrue ; then
+
+$as_echo "#define PANDORA 1" >>confdefs.h
 
 #	CFLAGS="$CFLAGS -mtune=arm920t"
 #	LIBS="$LIBS -lpthread -static";
@@ -4517,7 +4553,7 @@ use_mamez80=false
 # Check whether --enable-i386asm was given.
 if test "${enable_i386asm+set}" = set; then :
   enableval=$enable_i386asm; case "${enableval}" in
-       						yes) enablei386asm=true ;;
+       						yes) enablei386asm=true  ;;
        						no)  enablei386asm=false ;;
        						*) as_fn_error "bad value ${enableval} for --disable-i386asm" "$LINENO" 5 ;;
      						esac
@@ -4587,7 +4623,7 @@ fi
 
 
 	CFLAGS="$CFLAGS -m32 -DI386_ASM"
-	#Todo: make a 32bit version possible under 64bit host
+#    PDEP_SOURCE=$PDEP_SOURCE 'gp2x.$(OBJEXT)'
 else
 	have_nasm=false
 fi
@@ -5902,7 +5938,7 @@ done
 
 
 
-
+# Check for processor.
   case $target_cpu in
     i?86)  { $as_echo "$as_me:${as_lineno-$LINENO}: result: Turning on x86 processor optimisations" >&5
 $as_echo "Turning on x86 processor optimisations" >&6; }
@@ -5924,7 +5960,7 @@ $as_echo "#define PROCESSOR_ADM64 1" >>confdefs.h
 
            ALIGNLONGS=0
 	   proc_x64=true
-		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -funroll-loops \
+		CFLAGS="$CFLAGS -O3 -fstrength-reduce -frerun-loop-opt -Wall -Wno-unused -funroll-loops \
                     -ffast-math  -fexpensive-optimizations \
                      -malign-double -fomit-frame-pointer -g \
 		    -fno-strict-aliasing -pipe -DCPU=$target_cpu"

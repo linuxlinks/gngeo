@@ -2,7 +2,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-
+#ifdef I386_ASM
 #include <stdlib.h>
 #include "SDL.h"
 #include "../screen.h"
@@ -123,3 +123,4 @@ effect_eagle_update()
 		dptr+= 352*4;
 	}						
 }
+#endif

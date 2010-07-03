@@ -66,6 +66,7 @@ void trans_pack_open(char *filename)
 {
     FILE *f;
     char buf[256];
+    char *res;
     char range[32];
     int type, begin, end;
     char *t;
@@ -81,7 +82,7 @@ void trans_pack_open(char *filename)
 	return;
     }
     while (!feof(f)) {
-	fgets(buf, 256, f);
+	res=fgets(buf, 256, f);
 
 	t = strchr(buf, ';');
 	if (t)

@@ -29,6 +29,7 @@ void save_nvram(char *name);
 void open_memcard(char *name);
 void save_memcard(char *name);
 void list_game(void);
+SDL_bool close_game(void);
 
 char *get_gngeo_dir(void);
 void chomp(char *str);

@@ -21,7 +21,7 @@ static SDL_Rect buf_rect	 =	{16, 16, 304, 224};
 */
 static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
 
-static SDL_Surface *offscreen;
+//static SDL_Surface *offscreen;
 
 SDL_bool
 blitter_soft_init()

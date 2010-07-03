@@ -138,6 +138,9 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
+/* Define if you build for pandora */
+#undef PANDORA
+
 /* Define if you have an x86_64 processor */
 #undef PROCESSOR_ADM64
 

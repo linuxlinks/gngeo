@@ -36,6 +36,14 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 bin_PROGRAMS = gngeo$(EXEEXT)
+@USE_STARSCREAM_TRUE@am__append_1 = star_interf.c
+@USE_GENERATOR68K_TRUE@am__append_2 = generator68k_interf.c
+@USE_CYCLONE_TRUE@am__append_3 = cyclone_interf.c
+@USE_RAZE_TRUE@am__append_4 = raze_interf.c
+@USE_MAMEZ80_TRUE@am__append_5 = mamez80_interf.c
+@USE_DRZ80_TRUE@am__append_6 = drz80_interf.c
+@PROCESSOR_ARM_TRUE@am__append_7 = video_arm.s memcpy.S
+@USE_GP2X_TRUE@am__append_8 = gp2x.h gp2x.c
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -57,23 +65,19 @@ am__gngeo_SOURCES_DIST = fileio.c pd4990a.c gngeo_icon.h crypt.h \
 	neocrypt.h state.c state.h video_template.h conf.c conf.h \
 	transpack.h transpack.c menu.c menu.h roms.h roms.c \
 	mame_layer.h mame_layer.c neoboot.c event.h event.c \
-	stb_image.c stb_image.h stb_zlib.c stb_zlib.h video_arm.s \
-	memcpy.S gp2x.h gp2x.c gui_interf.c gui_interf.h \
-	cyclone_interf.c generator68k_interf.c star_interf.c \
-	drz80_interf.c mamez80_interf.c raze_interf.c
-@HAVE_NASM_FALSE@@PROCESSOR_ARM_TRUE@@USE_GP2X_FALSE@am__objects_1 = video_arm.$(OBJEXT) \
-@HAVE_NASM_FALSE@@PROCESSOR_ARM_TRUE@@USE_GP2X_FALSE@	memcpy.$(OBJEXT)
-@HAVE_NASM_FALSE@@PROCESSOR_ARM_TRUE@@USE_GP2X_TRUE@am__objects_1 = video_arm.$(OBJEXT) \
-@HAVE_NASM_FALSE@@PROCESSOR_ARM_TRUE@@USE_GP2X_TRUE@	memcpy.$(OBJEXT) \
-@HAVE_NASM_FALSE@@PROCESSOR_ARM_TRUE@@USE_GP2X_TRUE@	gp2x.$(OBJEXT)
-@USE_GUI_TRUE@am__objects_2 = gui_interf.$(OBJEXT)
-@USE_CYCLONE_TRUE@@USE_GENERATOR68K_FALSE@@USE_STARSCREAM_FALSE@am__objects_3 = cyclone_interf.$(OBJEXT)
-@USE_GENERATOR68K_TRUE@@USE_STARSCREAM_FALSE@am__objects_3 = generator68k_interf.$(OBJEXT)
-@USE_STARSCREAM_TRUE@am__objects_3 = star_interf.$(OBJEXT)
-@USE_DRZ80_TRUE@@USE_MAMEZ80_FALSE@@USE_RAZE_FALSE@am__objects_4 = drz80_interf.$(OBJEXT)
-@USE_MAMEZ80_TRUE@@USE_RAZE_FALSE@am__objects_4 =  \
-@USE_MAMEZ80_TRUE@@USE_RAZE_FALSE@	mamez80_interf.$(OBJEXT)
+	stb_image.c stb_image.h stb_zlib.c stb_zlib.h star_interf.c \
+	generator68k_interf.c cyclone_interf.c raze_interf.c \
+	mamez80_interf.c drz80_interf.c video_arm.s memcpy.S gp2x.h \
+	gp2x.c
+@USE_STARSCREAM_TRUE@am__objects_1 = star_interf.$(OBJEXT)
+@USE_GENERATOR68K_TRUE@am__objects_2 = generator68k_interf.$(OBJEXT)
+@USE_CYCLONE_TRUE@am__objects_3 = cyclone_interf.$(OBJEXT)
 @USE_RAZE_TRUE@am__objects_4 = raze_interf.$(OBJEXT)
+@USE_MAMEZ80_TRUE@am__objects_5 = mamez80_interf.$(OBJEXT)
+@USE_DRZ80_TRUE@am__objects_6 = drz80_interf.$(OBJEXT)
+@PROCESSOR_ARM_TRUE@am__objects_7 = video_arm.$(OBJEXT) \
+@PROCESSOR_ARM_TRUE@	memcpy.$(OBJEXT)
+@USE_GP2X_TRUE@am__objects_8 = gp2x.$(OBJEXT)
 am_gngeo_OBJECTS = fileio.$(OBJEXT) pd4990a.$(OBJEXT) video.$(OBJEXT) \
 	profiler.$(OBJEXT) main.$(OBJEXT) list.$(OBJEXT) \
 	memory.$(OBJEXT) resfile.$(OBJEXT) timer.$(OBJEXT) \
@@ -83,13 +87,13 @@ am_gngeo_OBJECTS = fileio.$(OBJEXT) pd4990a.$(OBJEXT) video.$(OBJEXT) \
 	transpack.$(OBJEXT) menu.$(OBJEXT) roms.$(OBJEXT) \
 	mame_layer.$(OBJEXT) neoboot.$(OBJEXT) event.$(OBJEXT) \
 	stb_image.$(OBJEXT) stb_zlib.$(OBJEXT) $(am__objects_1) \
-	$(am__objects_2) $(am__objects_3) $(am__objects_4)
+	$(am__objects_2) $(am__objects_3) $(am__objects_4) \
+	$(am__objects_5) $(am__objects_6) $(am__objects_7) \
+	$(am__objects_8)
 gngeo_OBJECTS = $(am_gngeo_OBJECTS)
-@HAVE_NASM_TRUE@am__DEPENDENCIES_1 = screen_i386.o video_i386.o
 @USE_GP2X_FALSE@gngeo_DEPENDENCIES = effect/libeffect.a \
 @USE_GP2X_FALSE@	blitter/libblitter.a ym2610/libym2610.a \
-@USE_GP2X_FALSE@	$(m68k_lib) $(z80_lib) $(am__DEPENDENCIES_1) \
-@USE_GP2X_FALSE@	$(gui_lib)
+@USE_GP2X_FALSE@	$(m68k_lib) $(z80_lib) $(asm_lib)
 @USE_GP2X_TRUE@gngeo_DEPENDENCIES = blitter/libblitter.a $(m68k_lib)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -97,11 +101,29 @@ am__depfiles_maybe = depfiles
 am__mv = mv -f
 CPPASCOMPILE = $(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CCASFLAGS) $(CCASFLAGS)
+AM_V_CPPAS = $(am__v_CPPAS_$(V))
+am__v_CPPAS_ = $(am__v_CPPAS_$(AM_DEFAULT_VERBOSITY))
+am__v_CPPAS_0 = @echo "  CPPAS " $@;
+AM_V_at = $(am__v_at_$(V))
+am__v_at_ = $(am__v_at_$(AM_DEFAULT_VERBOSITY))
+am__v_at_0 = @
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+AM_V_CC = $(am__v_CC_$(V))
+am__v_CC_ = $(am__v_CC_$(AM_DEFAULT_VERBOSITY))
+am__v_CC_0 = @echo "  CC    " $@;
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_CCLD = $(am__v_CCLD_$(V))
+am__v_CCLD_ = $(am__v_CCLD_$(AM_DEFAULT_VERBOSITY))
+am__v_CCLD_0 = @echo "  CCLD  " $@;
 CCASCOMPILE = $(CCAS) $(AM_CCASFLAGS) $(CCASFLAGS)
+AM_V_CCAS = $(am__v_CCAS_$(V))
+am__v_CCAS_ = $(am__v_CCAS_$(AM_DEFAULT_VERBOSITY))
+am__v_CCAS_0 = @echo "  CCAS  " $@;
+AM_V_GEN = $(am__v_GEN_$(V))
+am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
+am__v_GEN_0 = @echo "  GEN   " $@;
 SOURCES = $(gngeo_SOURCES)
 DIST_SOURCES = $(am__gngeo_SOURCES_DIST)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
@@ -119,7 +141,7 @@ AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \
 ETAGS = etags
 CTAGS = ctags
 DIST_SUBDIRS = effect blitter ym2610 cyclone generator68k star drz80 \
-	mamez80 raze gui
+	mamez80 raze
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 am__relativize = \
   dir0=`pwd`; \
@@ -148,6 +170,7 @@ am__relativize = \
   reldir="$$dir2"
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -253,57 +276,37 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-@USE_CYCLONE_TRUE@@USE_GENERATOR68K_FALSE@@USE_STARSCREAM_FALSE@m68k_subdir = cyclone
-@USE_GENERATOR68K_TRUE@@USE_STARSCREAM_FALSE@m68k_subdir = generator68k
-@USE_STARSCREAM_TRUE@m68k_subdir = star
-@USE_CYCLONE_TRUE@@USE_GENERATOR68K_FALSE@@USE_STARSCREAM_FALSE@m68k_lib = cyclone/libcyclone.a
-@USE_GENERATOR68K_TRUE@@USE_STARSCREAM_FALSE@m68k_lib = generator68k/libgenerator68k.a
-@USE_STARSCREAM_TRUE@m68k_lib = star/libstar.a
-@USE_CYCLONE_TRUE@@USE_GENERATOR68K_FALSE@@USE_STARSCREAM_FALSE@m68ki_src = cyclone_interf.c
-@USE_GENERATOR68K_TRUE@@USE_STARSCREAM_FALSE@m68ki_src = generator68k_interf.c
-@USE_STARSCREAM_TRUE@m68ki_src = star_interf.c
-@USE_DRZ80_TRUE@@USE_MAMEZ80_FALSE@@USE_RAZE_FALSE@z80_subdir = drz80
-@USE_MAMEZ80_TRUE@@USE_RAZE_FALSE@z80_subdir = mamez80
-@USE_RAZE_TRUE@z80_subdir = raze
-@USE_DRZ80_TRUE@@USE_MAMEZ80_FALSE@@USE_RAZE_FALSE@z80_lib = drz80/libdrz80.a
-@USE_MAMEZ80_TRUE@@USE_RAZE_FALSE@z80_lib = mamez80/libmamez80.a
-@USE_RAZE_TRUE@z80_lib = raze/libraze.a
-@USE_DRZ80_TRUE@@USE_MAMEZ80_FALSE@@USE_RAZE_FALSE@z80i_src = drz80_interf.c
-@USE_MAMEZ80_TRUE@@USE_RAZE_FALSE@z80i_src = mamez80_interf.c
-@USE_RAZE_TRUE@z80i_src = raze_interf.c
-@USE_GUI_TRUE@gui_lib = gui/libgui.a
-@USE_GUI_TRUE@gui_subdir = gui
-@USE_GUI_TRUE@gui_src = gui_interf.c gui_interf.h
-@HAVE_NASM_FALSE@@PROCESSOR_ARM_FALSE@asm_lib = 
-@HAVE_NASM_TRUE@asm_lib = screen_i386.o video_i386.o
-@HAVE_NASM_FALSE@@PROCESSOR_ARM_TRUE@@USE_GP2X_FALSE@pdep_src = video_arm.s memcpy.S
-#asm_lib = video_arm.o memcpy.o
-@HAVE_NASM_FALSE@@PROCESSOR_ARM_TRUE@@USE_GP2X_TRUE@pdep_src = video_arm.s memcpy.S gp2x.h gp2x.c
 INCLUDES = -DDATA_DIRECTORY='"${pkgdatadir}"'
 SUBDIRS = effect blitter ym2610 $(m68k_subdir) $(z80_subdir) $(gui_subdir)
-gngeo_SOURCES = fileio.c         pd4990a.c        gngeo_icon.h      crypt.h         \
-		sound.h          video.c          fileio.h          profiler.c      \
-		main.c           pd4990a.h        video.h           list.c          \
-		memory.c         profiler.h                list.h          \
-		blitter.h        font.h           memory.h          resfile.c       \
-		timer.c          effect.h         frame_skip.c      messages.c      \
-		screen.c         timer.h          emu.c             frame_skip.h    \
-		messages.h       screen.h         unzip.h           emu.h           \
-		neocrypt.c       sound.c          unzip.c           resfile.h       \
-		debug.c          debug.h          neocrypt.h	    state.c         \
-		state.h          video_template.h conf.c            conf.h          \
-		transpack.h      transpack.c              \
-		menu.c           menu.h           \
-			         roms.h           roms.c            mame_layer.h    \
-		mame_layer.c     neoboot.c        event.h           event.c         \
-		stb_image.c      stb_image.h      stb_zlib.c		stb_zlib.h       \
-		$(pdep_src) $(gui_src) $(m68ki_src) $(z80i_src)
-
+gngeo_SOURCES = fileio.c pd4990a.c gngeo_icon.h crypt.h sound.h \
+	video.c fileio.h profiler.c main.c pd4990a.h video.h list.c \
+	memory.c profiler.h list.h blitter.h font.h memory.h resfile.c \
+	timer.c effect.h frame_skip.c messages.c screen.c timer.h \
+	emu.c frame_skip.h messages.h screen.h unzip.h emu.h \
+	neocrypt.c sound.c unzip.c resfile.h debug.c debug.h \
+	neocrypt.h state.c state.h video_template.h conf.c conf.h \
+	transpack.h transpack.c menu.c menu.h roms.h roms.c \
+	mame_layer.h mame_layer.c neoboot.c event.h event.c \
+	stb_image.c stb_image.h stb_zlib.c stb_zlib.h $(am__append_1) \
+	$(am__append_2) $(am__append_3) $(am__append_4) \
+	$(am__append_5) $(am__append_6) $(am__append_7) \
+	$(am__append_8)
+@USE_CYCLONE_TRUE@m68k_subdir = cyclone
+@USE_GENERATOR68K_TRUE@m68k_subdir = generator68k
+@USE_STARSCREAM_TRUE@m68k_subdir = star
+@USE_CYCLONE_TRUE@m68k_lib = cyclone/libcyclone.a
+@USE_GENERATOR68K_TRUE@m68k_lib = generator68k/libgenerator68k.a
+@USE_STARSCREAM_TRUE@m68k_lib = star/libstar.a
+@USE_DRZ80_TRUE@z80_subdir = drz80
+@USE_MAMEZ80_TRUE@z80_subdir = mamez80
+@USE_RAZE_TRUE@z80_subdir = raze
+@USE_DRZ80_TRUE@z80_lib = drz80/libdrz80.a
+@USE_MAMEZ80_TRUE@z80_lib = mamez80/libmamez80.a
+@USE_RAZE_TRUE@z80_lib = raze/libraze.a
+@HAVE_NASM_TRUE@asm_lib = screen_i386.o video_i386.o
 EXTRA_DIST = c32.mac screen_i386.asm video_i386.asm video_i386.inc getopt.h
-@USE_GP2X_FALSE@gngeo_LDADD = effect/libeffect.a blitter/libblitter.a ym2610/libym2610.a $(m68k_lib) $(z80_lib) $(asm_lib) $(gui_lib) #$(LIBOBJS)
-
-#gngeo_LDADD = blitter/libblitter.a ym2610/libym2610.a $(m68k_lib) $(z80_lib) $(asm_lib) $(gui_lib) #$(LIBOBJS)
-@USE_GP2X_TRUE@gngeo_LDADD = blitter/libblitter.a $(m68k_lib)  #$(LIBOBJS)
+@USE_GP2X_FALSE@gngeo_LDADD = effect/libeffect.a blitter/libblitter.a ym2610/libym2610.a $(m68k_lib) $(z80_lib) $(asm_lib)
+@USE_GP2X_TRUE@gngeo_LDADD = blitter/libblitter.a $(m68k_lib)
 all: all-recursive
 
 .SUFFIXES:
@@ -377,7 +380,7 @@ clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
 gngeo$(EXEEXT): $(gngeo_OBJECTS) $(gngeo_DEPENDENCIES) 
 	@rm -f gngeo$(EXEEXT)
-	$(LINK) $(gngeo_OBJECTS) $(gngeo_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(gngeo_OBJECTS) $(gngeo_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -395,7 +398,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/frame_skip.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/generator68k_interf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gp2x.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gui_interf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/list.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mame_layer.Po@am__quote@
@@ -423,37 +425,43 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/video.Po@am__quote@
 
 .S.o:
-@am__fastdepCCAS_TRUE@	$(CPPASCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCCAS_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCCAS_TRUE@	$(AM_V_CPPAS)$(CPPASCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCCAS_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCCAS_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCCAS_FALSE@	DEPDIR=$(DEPDIR) $(CCASDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCCAS_FALSE@	$(CPPASCOMPILE) -c -o $@ $<
 
 .S.obj:
-@am__fastdepCCAS_TRUE@	$(CPPASCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCCAS_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCCAS_TRUE@	$(AM_V_CPPAS)$(CPPASCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCCAS_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCCAS_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCCAS_FALSE@	DEPDIR=$(DEPDIR) $(CCASDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCCAS_FALSE@	$(CPPASCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .c.o:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
 
 .s.o:
+	$(AM_V_CCAS) @AM_BACKSLASH@
 	$(CCASCOMPILE) -c -o $@ $<
 
 .s.obj:
+	$(AM_V_CCAS) @AM_BACKSLASH@
 	$(CCASCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 # This directory's subdirectories are mostly independent; you can cd
@@ -769,12 +777,6 @@ uninstall-am: uninstall-binPROGRAMS
 	ps ps-am tags tags-recursive uninstall uninstall-am \
 	uninstall-binPROGRAMS
 
-
-#video_i386.o : video_i386.asm video_i386.inc
-#	nasm -f elf  video_i386.asm -o video_i386.o
-
-#screen_i386.o : screen_i386.asm
-#	nasm -f elf  screen_i386.asm -o screen_i386.o
 
 video_i386.o : video_i386.inc
 video_i386.o screen_i386.o : %.o: %.asm

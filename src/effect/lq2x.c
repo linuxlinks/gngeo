@@ -44,7 +44,7 @@
 /*
  * This effect is derived from the hq2x effect made by Maxim Stepin
  */
-static Uint16 *dst0, *dst1, *dst2, *src0, *src1, *src2;
+static Uint16 *dst0, *dst1, *src0, *src1, *src2;
 static Uint16 height;
 
 SDL_bool effect_lq2x_init(void)

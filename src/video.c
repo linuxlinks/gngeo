@@ -157,9 +157,12 @@ void init_sprite_cache(Uint32 size,Uint32 bsize) {
     gcache->usage=malloc(gcache->max_slot*sizeof(Uint32));
     for (i=0;i<gcache->max_slot;i++)
         gcache->usage[i]=-1;
-    printf("inbuf size= %d\n",compressBound(bsize));
+    //printf("inbuf size= %d\n",compressBound(bsize));
+#ifdef WIZ
+    gcache->in_buf = malloc(bsize+1024);
+#else
     gcache->in_buf = malloc(compressBound(bsize));
-
+#endif
     return;
 }
 
@@ -754,6 +757,7 @@ void draw_screen_scanline(int start_line, int end_line,int refresh)
     int zoom_line;
     int invert;
     Uint8 *zoomy_rom;
+    Uint8 penusage;
 
     if (start_line>255) start_line=255;  
     if (end_line>255) end_line=255;  
@@ -881,9 +885,15 @@ void draw_screen_scanline(int start_line, int end_line,int refresh)
 	    if (memory.pen_usage[tileno]==TILE_INVISIBLE)
 		continue;
 */
+        penusage=PEN_USAGE(tileno);
+        if (memory.vid.spr_cache.data) {
+            memory.rom.tiles.p=get_cached_sprite_ptr(tileno);
+            tileno=(tileno&((memory.vid.spr_cache.slot_size>>7)-1));
+        }
 
-	    switch (PEN_USAGE(tileno)) {
+	    switch (penusage) {
 #ifdef I386_ASM
+            mem_gfx=&memory.rom.tiles.p;
 	    case TILE_NORMAL:
 		draw_scanline_tile_i386_norm(tileno,yoffs,sx+16  ,yy,zx,tileatr>>8,
 				   tileatr & 0x01,(unsigned char*)buffer->pixels);
@@ -944,5 +954,5 @@ void init_video(void) {
 	mem_video=memory.vid.ram;
 #endif
 	fix_value_init();
-
+	memory.vid.modulo = 1;
 }
