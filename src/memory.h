@@ -109,9 +109,7 @@ typedef struct neo_mem {
 	int *bksw_offset;
 	Uint16 sma_rng_addr;
 	Uint8 memcard[0x800];
-#ifdef GP2X
-	Uint8 gp2x_gfx_mapped;
-#endif
+
 	Uint32 watchdog;
 } neo_mem;
 

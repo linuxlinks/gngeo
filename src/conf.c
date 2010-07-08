@@ -459,9 +459,16 @@ void cf_init(void)
 
     cf_create_string_item("country","Set the contry to japan, asia, usa or europe","...",0,"europe");
     cf_create_string_item("system","Set the system to home, arcade or unibios","...",0,"arcade");
+#ifdef EMBEDDED_FS
+    cf_create_string_item("rompath","Tell gngeo where your roms are","PATH",'i',"./roms");
+    cf_create_string_item("biospath","Tell gngeo where your neogeo bios is","PATH",'B',"./roms");
+    cf_create_string_item("gngeo.dat","Tell gngeo where his ressource file is","PATH",'d',"./gngeo.dat");
+	
+#else
     cf_create_string_item("rompath","Tell gngeo where your roms are","PATH",'i',DATA_DIRECTORY);
     cf_create_string_item("biospath","Tell gngeo where your neogeo bios is","PATH",'B',DATA_DIRECTORY);
     cf_create_string_item("gngeo.dat","Tell gngeo where his ressource file is","PATH",'d',DATA_DIRECTORY"/gngeo.dat");
+#endif
     //cf_create_string_item("romrcdir","Use STRING as romrc.d directory",0,DATA_DIRECTORY"/romrc.d");
     cf_create_string_item("libglpath","Path to your libGL.so","PATH",0,"/usr/lib/libGL.so");
     cf_create_string_item("effect","Use the specified effect (help for a list)","Effetc",'e',"none");
@@ -475,9 +482,14 @@ void cf_init(void)
 			  "UP=J0B0,DOWN=J0B4,LEFT=J0B2,RIGHT=J0B6,A=J0B14,B=J0B13,C=J0B12,D=J0B15,COIN=J0B9,START=J0B8,HOTKEY1=J0B10,HOTKEY2=J0B11");
     cf_create_string_item("p2control","Player2 control configutation","...",0,"");
 #else
+#ifdef PANDORA
+	cf_create_string_item("p1control","Player1 control configutation","...",0,"A=K281,B=K279,C=K278,D=K280,START=K308,COIN=K306,UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K113");
+    cf_create_string_item("p2control","Player2 control configutation","...",0,"");
+#else
     /* TODO: Make Querty default instead of azerty */
     cf_create_string_item("p1control","Player1 control configutation","...",0,"A=K119,B=K120,C=K113,D=K115,START=K38,COIN=K34,UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K27");
     cf_create_string_item("p2control","Player2 control configutation","...",0,"");
+#endif
 #endif
 #if 0   
     cf_create_array_item("p1key","Player1 Keyboard configuration","...",0,14,default_key1);
@@ -536,7 +548,7 @@ SDL_bool cf_save_file(char *filename,int flags) {
 	CONF_ITEM *cf;
 
 	if (!conf_file) {
-#if defined (GP2X) || defined (WIN32)
+#ifdef EMBEDDED_FS
 		int len = strlen("gngeorc") + strlen("conf/") +	1;
 		conf_file = (char *) alloca(len*sizeof(char));
 		sprintf(conf_file, "conf/gngeorc");	    
@@ -662,7 +674,7 @@ SDL_bool cf_open_file(char *filename)
     CONF_ITEM *cf;
 
     if (!conf_file) {
-#if defined (GP2X) || defined (WIN32)
+#ifdef EMBEDDED_FS
 	int len = strlen("gngeorc") + strlen("conf/") +	1;
 	conf_file = (char *) alloca(len*sizeof(char));
 	sprintf(conf_file, "conf/gngeorc");	    

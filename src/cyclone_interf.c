@@ -148,6 +148,8 @@ static unsigned int  MyRead8  (unsigned int a) {
 		return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + addr))&0xFF;
 		break;
 	case 0x2:
+		if (memory.bksw_unscramble)
+			return mem68k_fetch_bk_normal_byte(a);
 		return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + bankaddress + addr))&0xFF;
 		break;
 	case 0x1:
@@ -187,7 +189,10 @@ static unsigned int MyRead16 (unsigned int a) {
 		return (READ_WORD_ROM(memory.rom.cpu_m68k.p + addr))&0xFFFF;
 		break;
 	case 0x2:
+		if (memory.bksw_unscramble)
+			return mem68k_fetch_bk_normal_word(a);
 		return (READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + addr))&0xFFFF;
+
 		break;
 	case 0x1:
 		return (READ_WORD_ROM(memory.ram + (addr&0xFFFF)))&0xFFFF;
@@ -230,6 +235,8 @@ static unsigned int   MyRead32 (unsigned int a) {
 		break;
 	case 0x2:
 		//return mem68k_fetch_bk_normal_long(a);
+		if (memory.bksw_unscramble)
+			return mem68k_fetch_bk_normal_long(a);
 		return ((READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + addr))<<16) | 
 			(READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + (addr+2)));
 		break;

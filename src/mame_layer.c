@@ -44,3 +44,10 @@ UINT32 memory_region_length( GAME_ROMS *r, char *region ) {
 	return 0;
 }
 
+void *malloc_or_die(UINT32 b) {
+	void *a=malloc(b);
+	if (a) return a;
+	printf("Not enough memory :( exiting\n");
+	exit(1);
+	return NULL;
+}

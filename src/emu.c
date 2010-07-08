@@ -178,6 +178,7 @@ void init_neo(void) {
 
 	if (conf.sound) {
 		init_sdl_audio();
+
 #ifdef ENABLE_940T
 		printf("Init all neo");
 		shared_data->sample_rate = conf.sample_rate;
@@ -192,7 +193,7 @@ void init_neo(void) {
 		//streams_sh_start();
 		YM2610_sh_start();
 #endif
-		SDL_PauseAudio(0);
+		pause_audio(0);
 		conf.snd_st_reg_create = 1;
 	}
 
@@ -387,7 +388,7 @@ void main_loop(void) {
 	reset_frame_skip();
 	my_timer();
 
-	//SDL_PauseAudio(0);
+	//pause_audio(0);
 	while (!neo_emu_done) {
 		if (conf.test_switch == 1)
 			conf.test_switch = 0;
@@ -398,7 +399,7 @@ void main_loop(void) {
 			SDL_BlitSurface(buffer, &buf_rect, state_img, &screen_rect);
 			interpolation = 0;
 			if (conf.sound) {
-				SDL_PauseAudio(1); /*SDL_LockAudio()*/
+				pause_audio(1); /*SDL_LockAudio()*/
 				;
 			}
 			if (run_menu() == 2) {
@@ -406,7 +407,7 @@ void main_loop(void) {
 				;
 			} // A bit ugly...
 			if (conf.sound) {
-				SDL_PauseAudio(0); /*SDL_UnlockAudio()*/
+				pause_audio(0); /*SDL_UnlockAudio()*/
 				;
 			}
 			//neo_emu_done = 1;
@@ -523,9 +524,9 @@ void main_loop(void) {
 					joy_button[0][GP2X_START] = joy_button[0][GP2X_SELECT] = 0;
 
 					SDL_BlitSurface(buffer, &buf_rect, state_img, &screen_rect);
-					if (conf.sound) {SDL_PauseAudio(1); SDL_LockAudio();}
+					if (conf.sound) {pause_audio(1); SDL_LockAudio();}
 					if (run_menu()==2) {neo_emu_done = 1;SDL_UnlockAudio();} // A bit ugly...
-					if (conf.sound) {SDL_PauseAudio(0); SDL_UnlockAudio();}
+					if (conf.sound) {pause_audio(0); SDL_UnlockAudio();}
 					//neo_emu_done = 1;
 					reset_frame_skip();
 					break;
@@ -753,7 +754,7 @@ void main_loop(void) {
 #endif
 		PROFILER_START(PROF_ALL);
 	}
-	SDL_PauseAudio(1);
+	pause_audio(1);
 #ifdef ENABLE_940T
 	//while(CHECK_BUSY(JOB940_RUN_Z80));
 	//while(CHECK_BUSY(JOB940_RUN_Z80_NMI));

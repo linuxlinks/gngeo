@@ -263,7 +263,7 @@ SDL_bool load_state(char *game,int slot) {
     if (rate==0 && conf.sound) {
 	/* disable sound */
 	conf.sound=0;
-	SDL_PauseAudio(1);
+	pause_audio(1);
 	close_sdl_audio();
     } else if (rate!=0 && conf.sound==0) {
 	/* enable sound */
@@ -277,7 +277,7 @@ SDL_bool load_state(char *game,int slot) {
 	    conf.snd_st_reg_create=1;
 	} else 
 	    init_sdl_audio();
-	SDL_PauseAudio(0);
+	pause_audio(0);
     } else if (rate!=conf.sample_rate && conf.sound) {
 	conf.sample_rate=rate;
 	close_sdl_audio();

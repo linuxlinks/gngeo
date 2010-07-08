@@ -106,32 +106,34 @@ int create_joymap_from_string(int player,char *jconf) {
 
 int init_event(void) {
 	int i;
+	printf("sizeof joymap=%d nb_joy=%d\n",sizeof(JOYMAP),conf.nb_joy);
 	jmap=calloc(sizeof(JOYMAP),1);
 	
 	conf.nb_joy = SDL_NumJoysticks();
 
-	if (conf.joy!=NULL) free(conf.joy);
-	conf.joy=calloc(sizeof(SDL_Joystick*),conf.nb_joy);
+	if( conf.nb_joy>0) {
+		if (conf.joy!=NULL) free(conf.joy);
+		conf.joy=calloc(sizeof(SDL_Joystick*),conf.nb_joy);
+		
+		SDL_JoystickEventState(SDL_ENABLE);
+		
+		jmap->jbutton=calloc(conf.nb_joy,sizeof(struct BUT_MAP*));
+		jmap->jaxe=   calloc(conf.nb_joy,sizeof(struct BUT_MAPJAXIS*));
+		jmap->jhat=   calloc(conf.nb_joy,sizeof(struct BUT_MAP*));
+		
 
-	SDL_JoystickEventState(SDL_ENABLE);
-
-	jmap->jbutton=calloc(conf.nb_joy,sizeof(struct BUT_MAP*));
-	jmap->jaxe=   calloc(conf.nb_joy,sizeof(struct BUT_MAPJAXIS*));
-	jmap->jhat=   calloc(conf.nb_joy,sizeof(struct BUT_MAP*));
-
-
-	/* Open all the available joystick */
-	for (i=0;i<conf.nb_joy;i++) {
-		conf.joy[i]=SDL_JoystickOpen(i);
-		printf("joy \"%s\", axe:%d, button:%d\n",
-		       SDL_JoystickName(i),
-		       SDL_JoystickNumAxes(conf.joy[i])+ (SDL_JoystickNumHats(conf.joy[i]) * 2),
-		       SDL_JoystickNumButtons(conf.joy[i]));
-		jmap->jbutton[i]=calloc(SDL_JoystickNumButtons(conf.joy[i]),sizeof(struct BUT_MAP));
-		jmap->jaxe[i]=calloc(SDL_JoystickNumAxes(conf.joy[i]),sizeof(struct BUT_MAPJAXIS));
-		jmap->jhat[i]=calloc(SDL_JoystickNumHats(conf.joy[i]),sizeof(struct BUT_MAP));
+		/* Open all the available joystick */
+		for (i=0;i<conf.nb_joy;i++) {
+			conf.joy[i]=SDL_JoystickOpen(i);
+			printf("joy \"%s\", axe:%d, button:%d\n",
+				   SDL_JoystickName(i),
+				   SDL_JoystickNumAxes(conf.joy[i])+ (SDL_JoystickNumHats(conf.joy[i]) * 2),
+				   SDL_JoystickNumButtons(conf.joy[i]));
+			jmap->jbutton[i]=calloc(SDL_JoystickNumButtons(conf.joy[i]),sizeof(struct BUT_MAP));
+			jmap->jaxe[i]=calloc(SDL_JoystickNumAxes(conf.joy[i]),sizeof(struct BUT_MAPJAXIS));
+			jmap->jhat[i]=calloc(SDL_JoystickNumHats(conf.joy[i]),sizeof(struct BUT_MAP));
+		}
 	}
-
 	create_joymap_from_string(1,CF_STR(cf_get_item_by_name("p1control")));
 	create_joymap_from_string(2,CF_STR(cf_get_item_by_name("p2control")));
 	return SDL_TRUE;

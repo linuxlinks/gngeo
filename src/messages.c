@@ -151,7 +151,7 @@ void text_input(const char *message,int x,int y,char *string,int size)
     if (!save)
 	save=SDL_CreateRGBSurface(SDL_SWSURFACE,320,16,16, 0xF800, 0x7E0,0x1F, 0);
 
-    if (conf.sound) SDL_PauseAudio(1);
+    if (conf.sound) pause_audio(1);
 
     memset(string,0,size+1);
 
@@ -197,6 +197,6 @@ void text_input(const char *message,int x,int y,char *string,int size)
 	screen_update();
     }
     SDL_EnableUNICODE(0);
-    if (conf.sound) SDL_PauseAudio(0);
+    if (conf.sound) pause_audio(0);
     reset_frame_skip();
 }

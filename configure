@@ -732,6 +732,7 @@ enable_wiz
 enable_wii
 enable_pandora
 enable_win32
+enable_embedded
 with_sdl_prefix
 with_sdl_exec_prefix
 enable_sdltest
@@ -1379,6 +1380,7 @@ Optional Features:
   --enable-wii            Enable WII build
   --enable-pandora        Enable PANDORA build
   --enable-win32          Enable WIN32 build
+  --enable-embedded       Enable Embedded directory structure
   --disable-sdltest       Do not try to compile and run a test SDL program
   --disable-i386asm       disable the use of i386 optimisation
 
@@ -4107,6 +4109,20 @@ fi
 
 
 
+	# Check whether --enable-embedded was given.
+if test "${enable_embedded+set}" = set; then :
+  enableval=$enable_embedded; case "${enableval}" in
+       	 yes) enable_embedded=true ;;
+       	 no)  enable_embedded=false ;;
+       	 *) as_fn_error "bad value ${enableval} for --enable-embedded" "$LINENO" 5 ;;
+     	 esac;
+else
+  enable_embedded=false;
+fi
+
+
+
+
 
 # Check for SDL
 SDL_VERSION=1.2.0
@@ -4379,12 +4395,14 @@ $as_echo "#define ENABLE_940T 1" >>confdefs.h
 
 	CFLAGS="$CFLAGS -mtune=arm920t"
 	LIBS="$LIBS -lpthread -static";
+	enable_embedded=true
     #PDEP_SOURCE=$PDEP_SOURCE 'gp2x.$(OBJEXT)'
 fi
 if test "x$enable_wiz" = xtrue ; then
 
 $as_echo "#define WIZ 1" >>confdefs.h
 
+	enable_embedded=true
 #	CFLAGS="$CFLAGS -mtune=arm920t"
 #	LIBS="$LIBS -lpthread -static";
 fi
@@ -4392,6 +4410,7 @@ if test "x$enable_pandora" = xtrue ; then
 
 $as_echo "#define PANDORA 1" >>confdefs.h
 
+	enable_embedded=true
 #	CFLAGS="$CFLAGS -mtune=arm920t"
 #	LIBS="$LIBS -lpthread -static";
 fi
@@ -4399,16 +4418,23 @@ if test "x$enable_wii" = xtrue ; then
 
 $as_echo "#define WII 1" >>confdefs.h
 
+	enable_embedded=true
 	CFLAGS="$CFLAGS -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float -MMD -MP"
 	LIBS="$LIBS -lSDL -lfat -lwiiuse -lbte -logc -lm -lwiikeyboard";
 fi
-
 if test "x$enable_win32" = xtrue ; then
+   enable_embedded=true
 
 $as_echo "#define WIN32 1" >>confdefs.h
 
-	NASMENV="--prefix_"
+   NASMENV="--prefix_"
 fi
+if test "x$enable_embedded" = xtrue ; then
+
+$as_echo "#define EMBEDDED_FS 1" >>confdefs.h
+
+fi
+
 
 # Checks for libraries.
 #AC_SUBST(LIBOBJS)

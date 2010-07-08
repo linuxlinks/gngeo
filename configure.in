@@ -32,11 +32,12 @@ AC_DEFUN([GN_ARG_ENABLE],[
 ]
 )
 
-GN_ARG_ENABLE(gp2x,   [--enable-gp2x           Enable GP2X build])
-GN_ARG_ENABLE(wiz,    [--enable-wiz            Enable WIZ build])
-GN_ARG_ENABLE(wii,    [--enable-wii            Enable WII build])
-GN_ARG_ENABLE(pandora,[--enable-pandora        Enable PANDORA build])
-GN_ARG_ENABLE(win32,  [--enable-win32          Enable WIN32 build])
+GN_ARG_ENABLE(gp2x,    [--enable-gp2x           Enable GP2X build])
+GN_ARG_ENABLE(wiz,     [--enable-wiz            Enable WIZ build])
+GN_ARG_ENABLE(wii,     [--enable-wii            Enable WII build])
+GN_ARG_ENABLE(pandora, [--enable-pandora        Enable PANDORA build])
+GN_ARG_ENABLE(win32,   [--enable-win32          Enable WIN32 build])
+GN_ARG_ENABLE(embedded,[--enable-embedded       Enable Embedded directory structure])
 
 
 # Check for SDL
@@ -51,28 +52,36 @@ if test "x$enable_gp2x" = xtrue ; then
 	AC_DEFINE([ENABLE_940T],[1],[Define to process audio on the 940t])
 	CFLAGS="$CFLAGS -mtune=arm920t"
 	LIBS="$LIBS -lpthread -static";
+	enable_embedded=true
     #PDEP_SOURCE=$PDEP_SOURCE 'gp2x.$(OBJEXT)'
 fi
 if test "x$enable_wiz" = xtrue ; then
 	AC_DEFINE([WIZ],[1],[Define if you build for wiz])
+	enable_embedded=true
 #	CFLAGS="$CFLAGS -mtune=arm920t"
 #	LIBS="$LIBS -lpthread -static";
 fi
 if test "x$enable_pandora" = xtrue ; then
 	AC_DEFINE([PANDORA],[1],[Define if you build for pandora])
+	enable_embedded=true
 #	CFLAGS="$CFLAGS -mtune=arm920t"
 #	LIBS="$LIBS -lpthread -static";
 fi
 if test "x$enable_wii" = xtrue ; then
 	AC_DEFINE([WII],[1],[Define if you build for wii])
+	enable_embedded=true
 	CFLAGS="$CFLAGS -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float -MMD -MP"
 	LIBS="$LIBS -lSDL -lfat -lwiiuse -lbte -logc -lm -lwiikeyboard";
 fi
-
 if test "x$enable_win32" = xtrue ; then
-	AC_DEFINE([WIN32],[1],[Define if you build for win32])
-	NASMENV="--prefix_"
+   enable_embedded=true
+   AC_DEFINE([WIN32],[1],[Define if you build for win32])
+   NASMENV="--prefix_"
 fi
+if test "x$enable_embedded" = xtrue ; then
+   AC_DEFINE([EMBEDDED_FS],[1],[Define for embedded directory structure])
+fi
+
 
 # Checks for libraries.
 #AC_SUBST(LIBOBJS)

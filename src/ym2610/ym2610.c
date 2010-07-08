@@ -3091,7 +3091,7 @@ void YM2610Update_stream(int length)
 	FM_CH *cch[6];
 	Uint16 *pl = play_buffer;
 
-
+    //printf("AAA %d\n",length);
 	cch[0] = &YM2610.CH[1];
 	cch[1] = &YM2610.CH[2];
 	cch[2] = &YM2610.CH[4];
@@ -3122,6 +3122,7 @@ void YM2610Update_stream(int length)
 	/* buffering */
 	for (i = 0; i < length; i++)
 	{
+
 		advance_lfo(OPN);
 
 		/* clear output acc. */
@@ -3143,7 +3144,7 @@ void YM2610Update_stream(int length)
 		{
 			OPN->eg_timer -= OPN->eg_timer_overflow;
 			OPN->eg_cnt++;
-
+            //printf("%d\n",OPN->eg_cnt);
 			advance_eg_channel(OPN, &cch[0]->SLOT[SLOT1]);
 			advance_eg_channel(OPN, &cch[1]->SLOT[SLOT1]);
 			advance_eg_channel(OPN, &cch[2]->SLOT[SLOT1]);

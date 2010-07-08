@@ -27,5 +27,6 @@
 extern SDL_AudioSpec * desired, *obtain;
 int init_sdl_audio(void);
 void close_sdl_audio(void);
+void pause_audio(int on);
 
 #endif

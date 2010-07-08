@@ -890,6 +890,9 @@ static int allocate_region(ROM_REGION *r, Uint32 size, int region) {
 		if (r->p == 0) {
 		  r->size=0;
 		  printf("Error allocating\n");
+		  /* TODO: Be more permissive, allow at least a dump */
+		  printf("Not enough memory :( exiting\n");
+		  exit(1);
 		  return 1;
 		}
 		memset(r->p, 0, size);
@@ -1201,10 +1204,24 @@ SDL_bool dr_load_bios(GAME_ROMS *r) {
 	}
 
 	memory.ng_lo = gn_unzip_file_malloc(pz, "000-lo.lo", 0x0, &size);
+	if (memory.ng_lo==NULL) {
+		printf("Couldn't find 000-lo.lo, please check your bios\n");
+		return SDL_FALSE;
+	}
 
 	if (!(r->info.flags & HAS_CUSTOM_SFIX_BIOS)) {
+		printf("Load Sfix\n");
 	  r->bios_sfix.p = gn_unzip_file_malloc(pz, "sfix.sfx", 0x0,
 						&r->bios_sfix.size);
+	  if (r->bios_sfix.p==NULL) {
+		  printf("Couldn't find sfix.sfx, try sfix.sfix\n");
+		  r->bios_sfix.p = gn_unzip_file_malloc(pz, "sfix.sfix", 0x0,
+												&r->bios_sfix.size);
+		  if (r->bios_sfix.p==NULL) {
+			  printf("Couldn't find sfix.sfx nor sfix.sfix, please check your bios\n");
+			  return SDL_FALSE;
+		  }
+	  }
 	}
 	/* convert bios fix char */
 	convert_all_char(memory.rom.bios_sfix.p, 0x20000, memory.fix_board_usage);

@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
     
 
 /* per game config */
-#if defined(GP2X) || defined(WIN32)
+#ifdef EMBEDDED_FS
     gpath="conf/";
 #else
     gpath=get_gngeo_dir();

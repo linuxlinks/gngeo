@@ -6,6 +6,9 @@
 /* Undefine if your processor can read unaligned 32-bit values */
 #undef ALIGNLONGS
 
+/* Define for embedded directory structure */
+#undef EMBEDDED_FS
+
 /* Define to process audio on the 940t */
 #undef ENABLE_940T
 

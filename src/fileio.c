@@ -111,7 +111,7 @@ SDL_bool check_dir(char *dir_name)
 /* return a char* to $HOME/.gngeo/ 
    DO NOT free it!
 */
-#if defined (GP2X) || defined (WIN32)
+#ifdef EMBEDDED_FS
 char *get_gngeo_dir(void) {
     static char *filename="";
     return filename;
@@ -142,7 +142,7 @@ void open_nvram(char *name)
 {
     char *filename;
     size_t totread=0;
-#if defined (GP2X) || defined (WIN32)
+#ifdef EMBEDDED_FS
     const char *gngeo_dir="save/";
 #elif defined(__AMIGA__)
     const char *gngeo_dir="/PROGDIR/save/";
@@ -167,7 +167,7 @@ void open_nvram(char *name)
 void open_memcard(char *name) {
 	char *filename;
     size_t totread=0;
-#if defined (GP2X) || defined (WIN32)
+#ifdef EMBEDDED_FS
 	const char *gngeo_dir="save/";
 #elif defined(__AMIGA__)
 	const char *gngeo_dir="/PROGDIR/save/";
@@ -189,7 +189,7 @@ void open_memcard(char *name) {
 void save_nvram(char *name)
 {
     char *filename;
-#if defined (GP2X) || defined (WIN32)
+#ifdef EMBEDDED_FS
     const char *gngeo_dir="save/";
 #elif defined(__AMIGA__)
     const char *gngeo_dir=strdup("/PROGDIR/save/");
@@ -230,7 +230,7 @@ void save_nvram(char *name)
 }
 void save_memcard(char *name) {
 	char *filename;
-#if defined (GP2X) || defined (WIN32)
+#ifdef EMBEDDED_FS
 	const char *gngeo_dir="save/";
 #elif defined(__AMIGA__)
 	const char *gngeo_dir=strdup("/PROGDIR/save/");

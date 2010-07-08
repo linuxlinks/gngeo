@@ -34,11 +34,20 @@
 #include "ym2610-940/940shared.h"
 #endif
 
+#ifdef USE_OSS
+#include <sys/soundcard.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <pthread.h>
+
+#endif
+
 SDL_AudioSpec * desired, *obtain;
 
 #define MIXER_MAX_CHANNELS 16
 //#define CPU_FPS 60
 #define BUFFER_LEN 16384
+//#define BUFFER_LEN 
 extern int throttle;
 static int audio_sample_rate;
 Uint16 play_buffer[BUFFER_LEN];
@@ -50,6 +59,8 @@ Uint16 play_buffer[BUFFER_LEN];
 #define NB_SAMPLES 64
 //#define NB_SAMPLES 512
 #endif
+
+#ifndef USE_OSS
 
 void update_sdl_stream(void *userdata, Uint8 * stream, int len)
 {
@@ -126,5 +137,93 @@ void close_sdl_audio(void) {
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
+void pause_audio(int on) {
+    SDL_PauseAudio(on);
+}
+
+#else
+int dev_dsp=0;
+pthread_t audio_thread;
+volatile int paused=0;
+int buflen=0;
 
 
+void *fill_audio_data(void *ptr) {
+    printf("Update audio\n");
+
+    while(1) {
+        //printf("--\n");
+            
+
+        if (!paused) {
+            //printf("++\n");
+            YM2610Update_stream(buflen/4);
+            //printf("aa\n");
+            
+            write(dev_dsp,play_buffer,buflen);
+            //printf("bb\n");
+        }
+            
+        //memcpy(stream, (Uint8 *) play_buffer, len);
+    }
+}
+void pause_audio(int on) {
+    static init=0;
+    if (init==0) {
+        pthread_create(&audio_thread,NULL,fill_audio_data,NULL);
+        init=1;
+    }
+    	paused=on;
+}
+
+
+int init_sdl_audio(void) {
+    int format;
+    int channels=2;
+    int speed=conf.sample_rate;
+    int arg = 0x9;
+
+    dev_dsp=open("/dev/dsp",O_WRONLY);
+    if (dev_dsp==0) {
+        printf("Couldn't open /dev/dsp\n");
+        return 0;
+    }
+
+    if (ioctl(dev_dsp, SNDCTL_DSP_SETFRAGMENT, &arg))
+        return 0;
+
+#ifdef WORDS_BIGENDIAN
+    format = AFMT_S16_BE;
+#else	/* */
+    format = AFMT_S16_LE;
+#endif	/* */
+
+    if (ioctl(dev_dsp, SNDCTL_DSP_SETFMT, &format) == -1) {
+        perror("SNDCTL_DSP_SETFMT");
+        return 0;
+    }
+    if (ioctl(dev_dsp, SNDCTL_DSP_CHANNELS, &channels) == -1) {
+        perror("SNDCTL_DSP_CHANNELS");
+        return 0;
+    }
+    if (ioctl(dev_dsp, SNDCTL_DSP_SPEED, &speed)==-1) {
+        perror("SNDCTL_DSP_SPEED");
+        return 0;
+    }
+    
+    
+
+    if (ioctl(dev_dsp, SNDCTL_DSP_GETBLKSIZE, &buflen) == -1) {
+        return 0;
+    }
+    printf("Buf Len=%d\n",buflen);
+    buflen*=2;
+
+    return 1;
+}
+
+void close_sdl_audio(void) {
+    close(dev_dsp);
+}
+
+#endif
