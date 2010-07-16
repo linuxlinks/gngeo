@@ -27,6 +27,7 @@ void gp2x_set_cpu_speed(void);
 Uint32 gp2x_is_tvout_on(void);
 void gp2x_init_940(void);
 void gp2x_add_job940(int job);
+void gp2x_ram_ptr_reset(void);
 
 enum  { GP2X_UP=0,
 	GP2X_UP_LEFT,

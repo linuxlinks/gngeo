@@ -19,9 +19,11 @@
 #ifndef _FILEIO_H_
 #define _FILEIO_H_
 
+#include <stdbool.h>
+
 int open_rom(char *romname);
 
-SDL_bool init_game(char *rom_name);
+bool init_game(char *rom_name);
 void open_bios(void);
 void open_conf(void);
 void open_nvram(char *name);
@@ -29,7 +31,7 @@ void save_nvram(char *name);
 void open_memcard(char *name);
 void save_memcard(char *name);
 void list_game(void);
-SDL_bool close_game(void);
+bool close_game(void);
 
 char *get_gngeo_dir(void);
 void chomp(char *str);

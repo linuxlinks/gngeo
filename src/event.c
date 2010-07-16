@@ -2,6 +2,7 @@
 #include "config.h"
 #endif
 
+#include <stdbool.h>
 
 #include "SDL.h"
 #include "screen.h"
@@ -40,7 +41,7 @@ static int get_mapid(char *butid) {
 	return GN_NONE;
 }
 
-int create_joymap_from_string(int player,char *jconf) {
+bool create_joymap_from_string(int player,char *jconf) {
 	char *v;
 	char butid[32]={0,};
 	char jevt;
@@ -101,10 +102,10 @@ int create_joymap_from_string(int player,char *jconf) {
 
 		v=strtok(NULL,",");
 	}
-	return 1;
+	return true;
 }
 
-int init_event(void) {
+bool init_event(void) {
 	int i;
 	printf("sizeof joymap=%d nb_joy=%d\n",sizeof(JOYMAP),conf.nb_joy);
 	jmap=calloc(sizeof(JOYMAP),1);
@@ -136,9 +137,9 @@ int init_event(void) {
 	}
 	create_joymap_from_string(1,CF_STR(cf_get_item_by_name("p1control")));
 	create_joymap_from_string(2,CF_STR(cf_get_item_by_name("p2control")));
-	return SDL_TRUE;
+	return true;
 }
-#if defined(GP2X) //|| defined (WIZ)
+#ifdef GP2X
 int handle_pdep_event(SDL_Event *event) {
 	static int snd_volume=75;
 	char volbuf[21];
@@ -403,7 +404,7 @@ int handle_event(void) {
 	if (joy_state[1][GN_D])
 	    memory.intern_p2 &= 0x7F;	// D
 
-#if defined(GP2X) || defined (WIZ)
+#if defined(GP2X) || defined(WIZ)
 	if (joy_state[0][GN_HOTKEY1] && joy_state[0][GN_HOTKEY2]
 	&& (joy_state[0][GN_START] || joy_state[0][GN_SELECT_COIN]))
 		return 1;

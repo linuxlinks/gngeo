@@ -74,9 +74,10 @@ ROM_DEF *res_load_drv(char *name) {
 		zread_uint32le(z, &drv->rom[i].crc);
 	}
 	gn_unzip_fclose(z);
-
+	gn_close_zip(pz);
 	return drv;
 }
+
 
 
 /*

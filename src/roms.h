@@ -3,6 +3,7 @@
 #define H_ROMS
 
 #include "SDL.h"
+#include <stdbool.h>
 
 #define REGION_AUDIO_CPU_BIOS        0
 #define REGION_AUDIO_CPU_CARTRIDGE   1
@@ -74,7 +75,7 @@ typedef struct GAME_ROMS {
 int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name);
 void dr_free_roms(GAME_ROMS *r);
 int dr_save_gno(GAME_ROMS *r,char *filename);
-SDL_bool dr_load_game(char *zip);
+bool dr_load_game(char *zip);
 ROM_DEF *dr_check_zip(char *filename);
 char *dr_gno_romname(char *filename);
 int dr_open_gno(char *filename);

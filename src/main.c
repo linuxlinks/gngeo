@@ -159,10 +159,12 @@ int main(int argc, char *argv[])
 	exit(0);
     }
     /* Print help and exit if no game specified */
-    if (!rom_name) {
-	    cf_print_help();
-	    exit(0);
-    }
+	/*
+	  if (!rom_name) {
+	  cf_print_help();
+	  exit(0);
+	  }
+	*/
     
 
 /* per game config */
@@ -171,22 +173,23 @@ int main(int argc, char *argv[])
 #else
     gpath=get_gngeo_dir();
 #endif
-
-    if (strstr(rom_name,".gno")!=NULL) {
-        char *name=dr_gno_romname(rom_name);
-        if (name) {
-            printf("Tring to load a gno file %s %s\n",rom_name,name);
-            drconf=alloca(strlen(gpath)+strlen(name)+strlen(".cf")+1);
-            sprintf(drconf,"%s%s.cf",gpath,name);
-        } else {
-            printf("Error while loading %s\n",rom_name);
-            return 0;
-        }
-    } else {
-        drconf=alloca(strlen(gpath)+strlen(rom_name)+strlen(".cf")+1);
-        sprintf(drconf,"%s%s.cf",gpath,rom_name);
-    }
-    cf_open_file(drconf);
+	if (rom_name) {
+		if (strstr(rom_name,".gno")!=NULL) {
+			char *name=dr_gno_romname(rom_name);
+			if (name) {
+				printf("Tring to load a gno file %s %s\n",rom_name,name);
+				drconf=alloca(strlen(gpath)+strlen(name)+strlen(".cf")+1);
+				sprintf(drconf,"%s%s.cf",gpath,name);
+			} else {
+				printf("Error while loading %s\n",rom_name);
+				return 0;
+			}
+		} else {
+			drconf=alloca(strlen(gpath)+strlen(rom_name)+strlen(".cf")+1);
+			sprintf(drconf,"%s%s.cf",gpath,rom_name);
+		}
+		cf_open_file(drconf);
+	}
 
 
 
@@ -203,12 +206,17 @@ int main(int argc, char *argv[])
 
     if (conf.debug) conf.sound=0;
 
-
+	if (!rom_name) {
+		rom_browser_menu();
+		printf("GAME %s\n",conf.game);
+		if (conf.game==NULL) return 0;
+	} else {
        
-    if (init_game(rom_name)!=SDL_TRUE) {
-	    printf("Can't init %s...\n",rom_name);
+		if (init_game(rom_name)!=SDL_TRUE) {
+			printf("Can't init %s...\n",rom_name);
             exit(1);
-    }    
+		}    
+	}
 
     if (CF_BOOL(cf_get_item_by_name("dump"))) {
         char dump[8+4+1];

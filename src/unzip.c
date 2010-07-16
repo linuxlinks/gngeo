@@ -354,7 +354,10 @@ void gn_unzip_fclose(ZFILE *z) {
 	if (!z)
 		return;
 #ifdef HAVE_LIBZ
-	if (z->cmeth==8) inflateEnd(z->zb);
+	if (z->cmeth==8) {
+		inflateEnd(z->zb);
+		free(z->zb);
+	}
 #else
 	if (z->cmeth==8) free(z->zb->cbuf);
 #endif

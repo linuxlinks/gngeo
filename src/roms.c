@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <string.h>
+#include <stdbool.h>
 #include "roms.h"
 #include "emu.h"
 #include "memory.h"
@@ -1170,6 +1171,12 @@ void convert_all_char(Uint8 *Ptr, int Taille,
 static int init_roms(GAME_ROMS *r) {
 	int i = 0;
     //printf("INIT ROM %s\n",r->info.name);
+	neogeo_fix_bank_type = 0;
+	memory.bksw_handler=0;
+	memory.bksw_unscramble=NULL;
+	memory.bksw_offset=NULL;
+	memory.sma_rng_addr=0;
+
 	while (init_func_table[i].name) {
         //printf("INIT ROM ? %s %s\n",init_func_table[i].name,r->info.name);
 		if (strcmp(init_func_table[i].name, r->info.name) == 0
@@ -1183,7 +1190,7 @@ static int init_roms(GAME_ROMS *r) {
 	return 0;
 }
 
-SDL_bool dr_load_bios(GAME_ROMS *r) {
+bool dr_load_bios(GAME_ROMS *r) {
 	FILE *f;
 	int i;
 	PKZIP *pz;
@@ -1200,13 +1207,13 @@ SDL_bool dr_load_bios(GAME_ROMS *r) {
 	if (pz == NULL) {
 		fprintf(stderr, "Can't open BIOS (%s)\n", fpath);
 		free(fpath);
-		return SDL_FALSE;
+		return false;
 	}
 
 	memory.ng_lo = gn_unzip_file_malloc(pz, "000-lo.lo", 0x0, &size);
 	if (memory.ng_lo==NULL) {
 		printf("Couldn't find 000-lo.lo, please check your bios\n");
-		return SDL_FALSE;
+		return false;
 	}
 
 	if (!(r->info.flags & HAS_CUSTOM_SFIX_BIOS)) {
@@ -1219,7 +1226,7 @@ SDL_bool dr_load_bios(GAME_ROMS *r) {
 												&r->bios_sfix.size);
 		  if (r->bios_sfix.p==NULL) {
 			  printf("Couldn't find sfix.sfx nor sfix.sfix, please check your bios\n");
-			  return SDL_FALSE;
+			  return false;
 		  }
 	  }
 	}
@@ -1235,7 +1242,7 @@ SDL_bool dr_load_bios(GAME_ROMS *r) {
 				fprintf(stderr, "Can't open Universal BIOS (%s)\n", unipath);
 				free(fpath);
 				free(unipath);
-				return SDL_FALSE;
+				return false;
 			}
 			r->bios_m68k.p = malloc(0x20000);
 			totread=fread(r->bios_m68k.p, 0x20000, 1, f);
@@ -1273,26 +1280,27 @@ SDL_bool dr_load_bios(GAME_ROMS *r) {
 
 	gn_close_zip(pz);
 	free(fpath);
-	return SDL_TRUE;
+	return true;
 
 	error: gn_close_zip(pz);
 	free(fpath);
-	return SDL_FALSE;
+	return false;
 }
 
 ROM_DEF *dr_check_zip(char *filename) {
 	char *game = strdup(basename(filename));
 	char *z;
 	ROM_DEF *drv;
-	printf("Game=%s\n", game);
+	//	printf("Game=%s\n", game);
 	if (game == NULL)
 		return NULL;
 	z = strstr(game, ".zip");
-	printf("z=%s\n", game);
+	//	printf("z=%s\n", game);
 	if (z == NULL)
 		return NULL;
 	z[0] = 0;
 	drv = res_load_drv(game);
+	free(game);
 	return drv;
 }
 
@@ -1307,13 +1315,13 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 	drv = res_load_drv(name);
 	if (!drv) {
 		fprintf(stderr, "Can't find rom driver for %s\n", name);
-		return SDL_FALSE;
+		return false;
 	}
 
 	gz = open_rom_zip(rom_path, name);
 	if (gz == NULL) {
 		printf("File %s/%s.zip not found\n", rom_path, name);
-		return SDL_FALSE;
+		return false;
 	}
 
 	/* Open Parent.
@@ -1446,37 +1454,11 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 		gn_close_zip(gzp);
 
 	free(drv);
-	return SDL_FALSE;
+	return false;
 }
-/* TODO: */
-#if 0
-void set_bankswitchers(int bt) {
-	switch (bt) {
-	case 0:
-		mem68k_fetch_bksw_byte = mem68k_fetch_bk_normal_byte;
-		mem68k_fetch_bksw_word = mem68k_fetch_bk_normal_word;
-		mem68k_fetch_bksw_long = mem68k_fetch_bk_normal_long;
-		mem68k_store_bksw_byte = mem68k_store_bk_normal_byte;
-		mem68k_store_bksw_word = mem68k_store_bk_normal_word;
-		mem68k_store_bksw_long = mem68k_store_bk_normal_long;
-		break;
-		/*
-		 case BANKSW_KOF2003:
-		 mem68k_fetch_bksw_byte=mem68k_fetch_bk_kof2003_byte;
-		 mem68k_fetch_bksw_word=mem68k_fetch_bk_kof2003_word;
-		 mem68k_fetch_bksw_long=mem68k_fetch_bk_kof2003_long;
-		 mem68k_store_bksw_byte=mem68k_store_bk_kof2003_byte;
-		 mem68k_store_bksw_word=mem68k_store_bk_kof2003_word;
-		 mem68k_store_bksw_long=mem68k_store_bk_kof2003_long;
-		 break;
-		 case BANKSW_SCRAMBLE:
-		 case BANKSW_MAX:
-		 break;
-		 */
-	}
-}
-#endif
-SDL_bool dr_load_game(char *name) {
+
+
+bool dr_load_game(char *name) {
 	//GAME_ROMS rom;
 	char *rpath = CF_STR(cf_get_item_by_name("rompath"));
 	int rc;
@@ -1486,8 +1468,8 @@ SDL_bool dr_load_game(char *name) {
 	memory.bksw_offset = NULL;
 
 	rc = dr_load_roms(&memory.rom, rpath, name);
-	if (rc == SDL_FALSE) {
-		return SDL_FALSE;
+	if (rc == false) {
+		return false;
 	}
 	conf.game = memory.rom.info.name;
 	/* TODO *///neogeo_fix_bank_type =0;
@@ -1503,7 +1485,7 @@ SDL_bool dr_load_game(char *name) {
 	/* TODO: Move this somewhere else. */
 	init_video();
 
-	return SDL_TRUE;
+	return true;
 
 }
 
@@ -1647,6 +1629,8 @@ int read_region(FILE *gno,GAME_ROMS *roms) {
     Uint8 lid,type;
     ROM_REGION *r=NULL;
     size_t totread=0;
+	Uint32 cache_size[]={64,32,24,16,8,6,4,2,1,0};
+	int i=0;
 
     /* Read region header */
 	totread=fread(&size, sizeof(Uint32), 1, gno);
@@ -1703,11 +1687,19 @@ int read_region(FILE *gno,GAME_ROMS *roms) {
         fseek(gno, cmp_size, SEEK_CUR);
 
         /* TODO: Find the best cache size dynamically! */
+		for (i=0;cache_size[i]!=0;i++) {
+			if (init_sprite_cache(cache_size[i]*1024*1024,block_size)==0) {
+				printf("Cache size=%dMB\n",cache_size[i]);
+				break;
+			}
+		}
+		/*
 #ifdef WIZ
         init_sprite_cache(6*1024*1024,block_size);        
 #else
         init_sprite_cache(16*1024*1024,block_size);        
 #endif
+		*/
     }
     return TRUE;
 }
@@ -1729,7 +1721,7 @@ int dr_open_gno(char *filename) {
     need_decrypt=0;
 
     gno = fopen(filename, "rb");
-	if (!gno)
+if (!gno)
 		return FALSE;
     
     totread+=fread(fid,8,1,gno);
@@ -1813,7 +1805,9 @@ int dr_save_gno(GAME_ROMS *r,char *filename) {
 
 void dr_free_roms(GAME_ROMS *r) {
 	free_region(&r->cpu_m68k);
+#ifndef ENABLE_940T
 	free_region(&r->cpu_z80);
+#endif
 	free_region(&r->cpu_z80c);
 
     if (!memory.vid.spr_cache.data) {
@@ -1821,8 +1815,11 @@ void dr_free_roms(GAME_ROMS *r) {
         free_region(&r->tiles);
     } else {
         fclose(memory.vid.spr_cache.gno);
+		free_sprite_cache();
+		free(memory.vid.spr_cache.offset);
     }
 	free_region(&r->game_sfix);
+#ifndef ENABLE_940T
 	if (r->adpcmb.p != r->adpcma.p)
 		free_region(&r->adpcmb);
 	else {
@@ -1831,15 +1828,23 @@ void dr_free_roms(GAME_ROMS *r) {
 	}
 
 	free_region(&r->adpcma);
+#endif
 
 	free_region(&r->bios_m68k);
 	free_region(&r->bios_sfix);
+#ifndef ENABLE_940T
 	free_region(&r->bios_audio);
+#endif
+
+	
 
 	free(memory.ng_lo);
     //	free(memory.pen_usage);
 	free(memory.fix_game_usage);
+	free_region(&r->spr_usage);
 
 	free(r->info.name);
 	free(r->info.longname);
+
+	conf.game=NULL;
 }

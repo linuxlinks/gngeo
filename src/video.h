@@ -24,18 +24,7 @@
 #endif
 
 #include "SDL.h"
-/*
-typedef struct GNO_SPRITE_CACHE {
-    FILE *gno;
-    Uint32 b_size;
-    Uint32 b_count;
-    Uint32 c_size;
-    Uint32 c_count;
-    Uint32 *bf_offset;
-    Uint32 *c_data;
-    Uint32 *c_index;
-}GNO_SPRITE_CACHE;
-*/
+
 typedef struct gfx_cache {
 	Uint8 *data;  /* The cache */
 	Uint32 size;  /* Tha allocated size of the cache */      
@@ -75,23 +64,6 @@ typedef struct VIDEO {
     GFX_CACHE spr_cache;
 }VIDEO;
 
-#ifdef GP2X_
-#include "unzip.h"
-typedef struct gfx_cache {
-	Uint8 *data;  /* The cache */
-	Uint32 size;  /* Tha allocated size of the cache */      
-	Uint32 total_bank;  /* total number of rom bank */
-	Uint8 **ptr/*[TOTAL_GFX_BANK]*/; /* ptr[i] Contain a pointer to cached data for bank i */
-	int max_slot; /* Maximal numer of bank that can be cached (depend on cache size) */
-	int slot_size;
-	int *usage;   /* contain index to the banks in used order */
-	unz_file_pos *z_pos/*[TOTAL_GFX_BANK]*/;
-}GFX_CACHE;
-
-extern GFX_CACHE gcache;
-extern Uint32 *mem_bank_usage;
-#endif
-
 #define RASTER_LINES 261
 
 unsigned int neogeo_frame_counter;
@@ -103,10 +75,7 @@ void debug_draw_tile(unsigned int tileno,int sx,int sy,int zx,int zy,
 void draw_screen_scanline(int start_line, int end_line, int refresh);
 void draw_screen(void);
 // void show_cache(void);
-//void convert_all_char(unsigned char *Ptr, int Taille,
-//		      unsigned char *usage_ptr);
-//void convert_mgd2_tiles(unsigned char *buf, int len);
-//void convert_tile(int tileno);
-void init_sprite_cache(Uint32 size,Uint32 bsize);
+int init_sprite_cache(Uint32 size,Uint32 bsize);
+void free_sprite_cache(void);
 
 #endif

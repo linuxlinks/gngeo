@@ -24,9 +24,7 @@ static SDL_Surface *video_opengl;
 static SDL_Surface *tex_opengl;
 static SDL_Rect glrectef;
 
-static SDL_bool
-load_glproc()
-{
+static SDL_bool load_glproc() {
     static int init=0;
     CONF_ITEM *cf_libgl=cf_get_item_by_name("libglpath");
     if (init) return SDL_TRUE;

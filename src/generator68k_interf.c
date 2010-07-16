@@ -286,10 +286,15 @@ void cpu_68k_init(void)
     printf("GEN68k CPU INIT\n");
     //#ifdef WORDS_BIGENDIAN
     
+	cpu68k_clearcache();
+
     if (!CF_BOOL(cf_get_item_by_name("dump"))) {
-    swap_memory(memory.rom.cpu_m68k.p, memory.rom.cpu_m68k.size);
-    swap_memory(memory.rom.bios_m68k.p, memory.rom.bios_m68k.size);
-    swap_memory(memory.game_vector, 0x80);
+		swap_memory(memory.rom.cpu_m68k.p, memory.rom.cpu_m68k.size);
+		if (memory.rom.bios_m68k.p[0]==0x10) {
+			printf("BIOS BYTE1=%08x\n",memory.rom.bios_m68k.p[0]);
+			swap_memory(memory.rom.bios_m68k.p, memory.rom.bios_m68k.size);
+		}
+		swap_memory(memory.game_vector, 0x80);
     }
     //#endif
 

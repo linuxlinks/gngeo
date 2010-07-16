@@ -6,6 +6,7 @@
 #include "SDL_endian.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #ifdef HAVE_LIBZ
 #include <zlib.h>
 #endif
@@ -117,7 +118,7 @@ Uint32 how_many_slot(char *game) {
 	char *st_name;
 	FILE *f;
 //    char *st_name_len;
-#ifdef GP2X
+#ifdef EMBEDDED_FS
 	char *gngeo_dir="save/";
 #else
 	char *gngeo_dir=get_gngeo_dir();
@@ -137,7 +138,7 @@ Uint32 how_many_slot(char *game) {
 SDL_Surface *load_state_img(char *game,int slot) {
 	char *st_name;
 //    char *st_name_len;
-#ifdef GP2X
+#ifdef EMBEDDED_FS
 	char *gngeo_dir="save/";
 #else
 	char *gngeo_dir=get_gngeo_dir();
@@ -185,10 +186,10 @@ SDL_Surface *load_state_img(char *game,int slot) {
     return state_img_tmp;
 }
 
-SDL_bool load_state(char *game,int slot) {
+bool load_state(char *game,int slot) {
     char *st_name;
 //    char *st_name_len;
-#ifdef GP2X
+#ifdef EMBEDDED_FS
     char *gngeo_dir="save/";
 #else
     char *gngeo_dir=get_gngeo_dir();
@@ -216,7 +217,7 @@ SDL_bool load_state(char *game,int slot) {
 
     if ((gzf=gzopen(st_name,"rb"))==NULL) {
 	printf("%s not found\n",st_name);
-	return SDL_FALSE;
+	return false;
     }
 
     memset(string,0,20);
@@ -225,7 +226,7 @@ SDL_bool load_state(char *game,int slot) {
     if (strcmp(string,"GNGST1")) {
 	printf("%s is not a valid gngeo st file\n",st_name);
 	gzclose(gzf);
-	return SDL_FALSE; 
+	return false;
     }
 
 
@@ -234,7 +235,7 @@ SDL_bool load_state(char *game,int slot) {
     if (my_endian!=endian) {
 	printf("This save state comme from a different endian architecture.\n"
 	       "This is not currently supported :(\n");
-	return SDL_FALSE;
+	return false;
     }
 
     gzread(gzf,&rate,4);
@@ -246,14 +247,14 @@ SDL_bool load_state(char *game,int slot) {
 			   "This save state is incompatible "
 			   "because you have sound enabled "
 			   "and this save state don't have sound data");
-	    return SDL_FALSE;
+	    return false;
     }
     if (rate!=0 && conf.sound==0) {
 	    gn_popup_error("Failed!",
 			   "This save state is incompatible "
 			   "because you don't have sound enabled "
 			   "and this save state need it");
-	    return SDL_FALSE;
+	    return false;
     } else if (rate!=conf.sample_rate && conf.sound) {
 	    conf.sample_rate=rate;
 	    close_sdl_audio();
@@ -331,13 +332,13 @@ SDL_bool load_state(char *game,int slot) {
 	if (st_mod[i].post_load_state) st_mod[i].post_load_state();
     }
 
-    return SDL_TRUE;
+    return true;
 }
 
-SDL_bool save_state(char *game,int slot) {
+bool save_state(char *game,int slot) {
      char *st_name;
 //    char *st_name_len;
-#ifdef GP2X
+#ifdef EMBEDDED_FS
      char *gngeo_dir="save/";
 #else
      char *gngeo_dir=get_gngeo_dir();
@@ -362,7 +363,7 @@ SDL_bool save_state(char *game,int slot) {
 
     if ((gzf=gzopen(st_name,"wb"))==NULL) {
 	printf("can't write to %s\n",st_name);
-	return SDL_FALSE;
+	return false;
     }
 
 /*
@@ -394,7 +395,7 @@ SDL_bool save_state(char *game,int slot) {
 	}
     }
     gzclose(gzf);
-   return SDL_TRUE;
+   return true;
 
 }
 
@@ -437,8 +438,9 @@ void neogeo_init_save_state(void) {
     int i;
     ST_REG *t,*s;
     if (!state_img)
-	state_img=SDL_CreateRGBSurface(SDL_SWSURFACE,304, 224, 16, 0xF800, 0x7E0, 0x1F, 0);
-	state_img_tmp=SDL_CreateRGBSurface(SDL_SWSURFACE,304, 224, 16, 0xF800, 0x7E0, 0x1F, 0);
+		state_img=SDL_CreateRGBSurface(SDL_SWSURFACE,304, 224, 16, 0xF800, 0x7E0, 0x1F, 0);
+	if (!state_img_tmp)
+		state_img_tmp=SDL_CreateRGBSurface(SDL_SWSURFACE,304, 224, 16, 0xF800, 0x7E0, 0x1F, 0);
 
 /*
     for(i=0;i<ST_MODULE_END;i++) {
@@ -459,7 +461,7 @@ void neogeo_init_save_state(void) {
     create_state_register(ST_NEOGEO,"sound_code",1,(void *)&sound_code,sizeof(Uint8),REG_UINT8);
     create_state_register(ST_NEOGEO,"pending_command",1,(void *)&pending_command,sizeof(Uint8),REG_UINT8);
     create_state_register(ST_NEOGEO,"result_code",1,(void *)&result_code,sizeof(Uint8),REG_UINT8);
-    create_state_register(ST_NEOGEO,"sram",1,(void *)memory.sram,0x10000,REG_UINT8);
+    //create_state_register(ST_NEOGEO,"sram",1,(void *)memory.sram,0x10000,REG_UINT8);
     //create_state_register(ST_NEOGEO,"pal1",1,(void *)memory.pal1,0x2000,REG_UINT8);
     //create_state_register(ST_NEOGEO,"pal2",1,(void *)memory.pal2,0x2000,REG_UINT8);
     create_state_register(ST_NEOGEO,"video",1,(void *)memory.vid.ram,0x20000,REG_UINT8);

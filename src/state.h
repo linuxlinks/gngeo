@@ -2,6 +2,7 @@
 #define _STATE_H_
 
 #include "SDL.h"
+#include <stdbool.h>
 
 typedef enum ST_MODULE_TYPE {
     ST_68k=0,
@@ -84,8 +85,8 @@ void create_state_register(ST_MODULE_TYPE module,const char *reg_name,Uint8 num,
 void set_pre_save_function(ST_MODULE_TYPE module,void (*func)(void));
 void set_post_load_function(ST_MODULE_TYPE module,void (*func)(void));
 SDL_Surface *load_state_img(char *game,int slot);
-SDL_bool load_state(char *game,int slot);
-SDL_bool save_state(char *game,int slot);
+bool load_state(char *game,int slot);
+bool save_state(char *game,int slot);
 Uint32 how_many_slot(char *game);
 
 void neogeo_init_save_state(void);

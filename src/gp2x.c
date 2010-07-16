@@ -132,6 +132,8 @@ typedef struct
         unsigned short reg, valmask, val;
 }
 reg_setting;
+	static Uint8 *ram_ptr=0;
+	static Uint8 *ram_ptr2=0;
 
 // ~59.998, couldn't figure closer values
 static reg_setting rate_almost60[] =
@@ -357,16 +359,6 @@ void gp2x_init_940(void) {
         memset((void*)shared_ctl,  0, sizeof(*shared_ctl));
 	printf("Shared data reseted\n");
 
-	/* Ugliest hack ever? */
-	/*
-	  bucket=(struct video_bucket *)buffer->hwdata;
-	  while  (bucket->prev!=NULL) {
-	  bucket=bucket->prev;
-	  }
-	*/
-	//shared_data->buf=((Uint32)buffer->pixels-(Uint32)bucket->base)-0x1000000;
-	//shared_data->screen=((Uint32)screen->pixels-(Uint32)bucket->base)-0x1000000;
-	//printf("BUFFER %08x %p???\n",shared_data->buf,bucket->base);
 
 	gp2x_memregs[0x3B46>>1] = 0xffff; // clear pending DUALCPU interrupts for 940
         gp2x_memregl[0x4500>>2] = 0xffffffff; // clear pending IRQs in SRCPND
@@ -427,8 +419,6 @@ void gp2x_ram_init_uncached(void) {
 }
 
 Uint8 *gp2x_ram_malloc(size_t size,Uint32 page) {
-	static Uint8 *ram_ptr=0;
-	static Uint8 *ram_ptr2=0;
 	Uint8 *t;
 	if (page==0) {
 		if (!ram_ptr) {
@@ -460,6 +450,11 @@ Uint8 *gp2x_ram_malloc(size_t size,Uint32 page) {
 		}
 	}
 	return NULL;
+}
+
+void gp2x_ram_ptr_reset(void) {
+	ram_ptr=NULL;
+	ram_ptr2=NULL;
 }
 
 void gp2x_sound_volume_set(int l, int r) {

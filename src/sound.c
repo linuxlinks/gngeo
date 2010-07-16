@@ -126,7 +126,7 @@ int init_sdl_audio(void)
     desired->userdata = NULL;
     //SDL_OpenAudio(desired, NULL);
     SDL_OpenAudio(desired, obtain);
-    //printf("Obtained sample rate: %d\n",obtain->freq);
+    printf("Obtained sample rate: %d\n",obtain->freq);
     conf.sample_rate=obtain->freq;
     return 1;
 }
@@ -135,6 +135,8 @@ void close_sdl_audio(void) {
     SDL_PauseAudio(1);
     SDL_CloseAudio();
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
+	free(desired);
+	free(obtain);
 }
 
 void pause_audio(int on) {
@@ -152,19 +154,12 @@ void *fill_audio_data(void *ptr) {
     printf("Update audio\n");
 
     while(1) {
-        //printf("--\n");
-            
 
         if (!paused) {
-            //printf("++\n");
             YM2610Update_stream(buflen/4);
-            //printf("aa\n");
-            
             write(dev_dsp,play_buffer,buflen);
-            //printf("bb\n");
         }
             
-        //memcpy(stream, (Uint8 *) play_buffer, len);
     }
 }
 void pause_audio(int on) {
@@ -189,8 +184,10 @@ int init_sdl_audio(void) {
         return 0;
     }
 
-    if (ioctl(dev_dsp, SNDCTL_DSP_SETFRAGMENT, &arg))
+    if (ioctl(dev_dsp, SNDCTL_DSP_SETFRAGMENT, &arg)) {
+		printf(" SNDCTL_DSP_SETFRAGMENT Error\n");
         return 0;
+	}
 
 #ifdef WORDS_BIGENDIAN
     format = AFMT_S16_BE;

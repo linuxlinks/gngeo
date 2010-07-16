@@ -28,7 +28,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
-
+#include <stdbool.h>
 
 #ifdef HAVE_GETOPT_LONG
 #include <getopt.h>
@@ -52,11 +52,6 @@
 #  define DATA_DIRECTORY "/PROGDIR/data/"
 # endif
 #endif
-
-/*
-static CONF_ITEM *cf_hash[128];
-static cf_hash_size[128];
-*/
 
 /* 
 
@@ -101,8 +96,9 @@ void cf_cache_conf(void) {
 	char *country;
 	char *system;
     /* cache some frequently used conf item */
+//	printf("Update Conf Cache, sample rate=%d -> %d\n",conf.sample_rate,CF_VAL(cf_get_item_by_name("samplerate")));
     conf.sound=CF_BOOL(cf_get_item_by_name("sound"));
-    conf.sample_rate=CF_BOOL(cf_get_item_by_name("samplerate"));
+    conf.sample_rate=CF_VAL(cf_get_item_by_name("samplerate"));
     conf.debug=CF_BOOL(cf_get_item_by_name("debug"));
     conf.raster=CF_BOOL(cf_get_item_by_name("raster"));
     conf.pal=CF_BOOL(cf_get_item_by_name("pal"));
@@ -177,7 +173,7 @@ static CONF_ITEM * create_conf_item(const char *name,const char *help,char short
 
     t->name=strdup(name);
     t->help=strdup(help);
-    t->modified=SDL_FALSE;
+    t->modified=false;
     if (short_opt==0) {
 	val++;
 	t->short_opt=val;
@@ -198,12 +194,18 @@ static CONF_ITEM * create_conf_item(const char *name,const char *help,char short
     cf_hash[a].nb_item++;
     return t;
 }
-
-void cf_create_bool_item(const char *name,const char *help,char short_opt,SDL_bool def)
+/*
+ * Create a boolean confirutation item
+ * name: Name of conf item
+ * help: Brief description of the item
+ * short_opt: charatech use for short option
+ * def: default value
+ */
+void cf_create_bool_item(const char *name,const char *help,char short_opt,bool def)
 {
     CONF_ITEM *t=create_conf_item(name,help,short_opt,NULL);
     t->type=CFT_BOOLEAN;
-    t->data.dt_bool.bool=def;
+    t->data.dt_bool.boolean=def;
     t->data.dt_bool.default_bool=def;
 }
 void cf_create_action_item(const char *name,const char *help,char short_opt,int (*action)(struct CONF_ITEM *self))
@@ -285,7 +287,7 @@ CONF_ITEM* cf_get_item_by_val(int val){
 
 void cf_item_has_been_changed(CONF_ITEM * item) {
 	if (item)
-		item->modified=SDL_TRUE;
+		item->modified=true;
 }
 
 void cf_print_help(void) {
@@ -361,63 +363,7 @@ static int show_version(CONF_ITEM *self) {
 
     return 0;
 }
-#if 0
-static int scan_dir(CONF_ITEM *self) {
-#ifdef HAVE_SCANDIR
-    int nbf,i;
-    char filename[strlen(CF_STR(self))+256];
-    struct stat filestat;
-    struct dirent **namelist;
 
-    //dr_load_driver(CF_STR(cf_get_item_by_name("romrc")));
-    dr_load_driver_dir(CF_STR(cf_get_item_by_name("romrcdir")));
-
-
-    printf("ShortName:LongName:Filename\n");
-    if ((nbf = scandir(CF_STR(self), &namelist, NULL, alphasort )) != -1) {
-	for (i = 0; i < nbf; i++) {
-	    sprintf(filename, "%s/%s", CF_STR(self), namelist[i]->d_name);
-	    lstat(filename, &filestat);
-	    if (!S_ISDIR(filestat.st_mode)) {
-		DRIVER *dr;
-		if ((dr=get_driver_for_zip(filename))!=NULL) {
-		    printf("%8s:%s:%s\n",dr->name,dr->longname,namelist[i]->d_name);
-		}
-	    }
-	}
-    }
-#else
-    printf("TODO: Scandir is unavailable on your platform, sorry :(\n");
-#endif
-    return 0;
-}
-
-static int dump_sprite(CONF_ITEM *self) {
-	char *filename=strdup(CF_STR(self));
-	char *out=strdup(basename(filename));
-	DRIVER *dr;
-	unzFile *gz;
-	dr_load_driver_dir(CF_STR(cf_get_item_by_name("romrcdir")));
-	if ((dr=get_driver_for_zip(filename))!=NULL) {
-
-		sprintf(out,"%s.gzx",dr->name);
-		printf("%s\n",out);
-		gz = unzOpen(filename);
-		/* TODO: a real dump now, not just the light one */
-		//if (dr_dump_gfx_light(dr,gz,dr->section[SEC_GFX],out)!=SDL_TRUE) {
-		if (dr_dump_gzx(dr,gz,dr->section[SEC_GFX],out)!=SDL_TRUE) {
-			printf("Sorry, gngeo couldn't dump this roms :(");
-			unzClose(gz);
-			return 1;
-		}
-		unzClose(gz);
-	} else {
-		printf("Pfff Couldn't open %s\n",filename);
-		return 1;
-	}
-	return 0;
-}
-#endif
 
 void cf_init(void)
 {
@@ -427,33 +373,33 @@ void cf_init(void)
     cf_create_action_item("version","Show version and exit",'v',show_version);
     //cf_create_action_arg_item("dump","Create a gno dump in the current directory","GAME",0,dump_gno);
     //cf_create_action_arg_item("scandir","Scan the given directory, and show available rom",0,scan_dir);
-    cf_create_bool_item("forcepc","Force the PC to a correct value at startup",0,SDL_FALSE);
-    cf_create_bool_item("dump","Create a gno dump in the current dir and exit",0,SDL_FALSE);
-    cf_create_bool_item("fullscreen","Start gngeo in fullscreen",'f',SDL_FALSE);
-    cf_create_bool_item("interpolation","Merge the last frame and the current",'I',SDL_FALSE);
-    cf_create_bool_item("raster","Enable the raster interrupt",'r',SDL_FALSE);
-    cf_create_bool_item("sound","Enable sound",0,SDL_TRUE);
-    cf_create_bool_item("showfps","Show FPS at startup",0,SDL_FALSE);
-    cf_create_bool_item("autoframeskip","Enable auto frameskip",0,SDL_TRUE);
-    cf_create_bool_item("sleepidle","Sleep when idle",0,SDL_FALSE);
-    cf_create_bool_item("joystick","Enable joystick support",0,SDL_TRUE);
-    //cf_create_bool_item("invertjoy","Invert joystick order",0,SDL_FALSE);
-    cf_create_bool_item("debug","Start with inline debuger",'D',SDL_FALSE);
-    cf_create_bool_item("hwsurface","Use hardware surface for the screen",'H',SDL_TRUE);
+    cf_create_bool_item("forcepc","Force the PC to a correct value at startup",0,false);
+    cf_create_bool_item("dump","Create a gno dump in the current dir and exit",0,false);
+    cf_create_bool_item("fullscreen","Start gngeo in fullscreen",'f',false);
+    cf_create_bool_item("interpolation","Merge the last frame and the current",'I',false);
+    cf_create_bool_item("raster","Enable the raster interrupt",'r',false);
+    cf_create_bool_item("sound","Enable sound",0,true);
+    cf_create_bool_item("showfps","Show FPS at startup",0,false);
+    cf_create_bool_item("autoframeskip","Enable auto frameskip",0,true);
+    cf_create_bool_item("sleepidle","Sleep when idle",0,false);
+    cf_create_bool_item("joystick","Enable joystick support",0,true);
+    //cf_create_bool_item("invertjoy","Invert joystick order",0,false);
+    cf_create_bool_item("debug","Start with inline debuger",'D',false);
+    cf_create_bool_item("hwsurface","Use hardware surface for the screen",'H',true);
 #ifdef GP2X
-    cf_create_bool_item("ramhack","Enable CraigX's RAM timing hack",0,SDL_FALSE);
-    cf_create_bool_item("tvout","Enable Tvout (NTSC)",0,SDL_FALSE);
+    cf_create_bool_item("ramhack","Enable CraigX's RAM timing hack",0,false);
+    cf_create_bool_item("tvout","Enable Tvout (NTSC)",0,false);
     cf_create_array_item("tv_offset","Shift TV screen by x,y pixel","x,y",0,2,default_tvoffset);
-    cf_create_bool_item("vsync","Synchronise the display with VBLANK",0,SDL_FALSE);
-    cf_create_bool_item("940sync","Accurate synchronise between the both core",0,SDL_TRUE);
+    cf_create_bool_item("vsync","Synchronise the display with VBLANK",0,false);
+    cf_create_bool_item("940sync","Accurate synchronise between the both core",0,true);
 #endif
-    //cf_create_bool_item("convtile","Convert tile in internal format at loading",'c',SDL_TRUE);
-    cf_create_bool_item("pal","Use PAL timing (buggy)",'P',SDL_FALSE);
-    cf_create_bool_item("screen320","Use 320x224 output screen (instead 304x224)",0,SDL_TRUE);
-    cf_create_bool_item("bench","Draw x frames, then quit and show average fps",0,SDL_FALSE);
+    //cf_create_bool_item("convtile","Convert tile in internal format at loading",'c',true);
+    cf_create_bool_item("pal","Use PAL timing (buggy)",'P',false);
+    cf_create_bool_item("screen320","Use 320x224 output screen (instead 304x224)",0,true);
+    cf_create_bool_item("bench","Draw x frames, then quit and show average fps",0,false);
 /*
 #ifdef GP2X
-    cf_create_bool_item("selector","Go back to selector when exit",0,SDL_TRUE);
+    cf_create_bool_item("selector","Go back to selector when exit",0,true);
 #endif
 */
 
@@ -475,9 +421,9 @@ void cf_init(void)
     cf_create_string_item("blitter","Use the specified blitter (help for a list)","Blitter",'b',"soft");
     cf_create_string_item("transpack","Use the specified transparency pack","Transpack",'t',"none");
 #ifdef GP2X
-    cf_create_string_item("frontend","Execute CMD when exit. Usefull to return to Selector or Rage2x","CMD",0,"./gngeo2x.gpe");
+    cf_create_string_item("frontend","Execute CMD when exit. Usefull to return to Selector or Rage2x","CMD",0,"/usr/gp2x/gp2xmenu");
 #endif
-#if defined(GP2X) || defined (WIZ)
+#if defined(GP2X) || defined(WIZ)
     cf_create_string_item("p1control","Player1 control configutation","...",0,
 			  "UP=J0B0,DOWN=J0B4,LEFT=J0B2,RIGHT=J0B6,A=J0B14,B=J0B13,C=J0B12,D=J0B15,COIN=J0B9,START=J0B8,HOTKEY1=J0B10,HOTKEY2=J0B11");
     cf_create_string_item("p2control","Player2 control configutation","...",0,"");
@@ -523,20 +469,37 @@ void cf_init(void)
 }
 
 /* TODO: lame, do it better */
-SDL_bool discard_line(char *buf)
+bool discard_line(char *buf)
 {
     if (buf[0] == '#')
-	return SDL_TRUE;
+	return true;
     if (buf[0] == '\n')
-	return SDL_TRUE;
+	return true;
     if (buf[0] == 0)
-	return SDL_TRUE;
+	return true;
     
-    return SDL_FALSE;
+    return false;
+}
+
+/* like standard fgets, but work with unix/dos line ending */
+char *my_fgets(char *s, int size, FILE *stream) {
+    int i = 0;
+    int ch;
+    while (i < size && !feof(stream)) {
+        ch = fgetc(stream); //printf("ch=%d\n",ch);
+        if (ch == 0x0D) continue;
+        if (ch == 0x0A) {
+            s[i] = 0;
+            return s;
+        }
+        s[i] = ch;
+        i++;
+    }
+    return s;
 }
 
 
-SDL_bool cf_save_file(char *filename,int flags) {
+bool cf_save_file(char *filename,int flags) {
 	char *conf_file=filename;
 	char *conf_file_dst;
 	FILE *f;
@@ -567,11 +530,11 @@ SDL_bool cf_save_file(char *filename,int flags) {
 
     if ((f = fopen(conf_file, "rb")) == 0) {
 	    //printf("Unable to open %s\n",conf_file);
-	    return SDL_FALSE;
+	    return false;
     }
     if ((f_dst = fopen(conf_file_dst, "w")) == 0) {
 	    //printf("Unable to open %s\n",conf_file);
-	    return SDL_FALSE;
+	    return false;
     }
     while (!feof(f)) {
 	i = 0;
@@ -588,7 +551,7 @@ SDL_bool cf_save_file(char *filename,int flags) {
 	cf=cf_get_item_by_name(name);
 	if (cf) {
 		if (cf->modified) {
-			cf->modified=SDL_FALSE;
+			cf->modified=false;
 			switch(cf->type) {
 			case CFT_INT:
 				fprintf(f_dst,"%s %d\n",cf->name,CF_VAL(cf));
@@ -659,10 +622,10 @@ SDL_bool cf_save_file(char *filename,int flags) {
     remove(conf_file);
     rename(conf_file_dst,conf_file);
 
-    return SDL_TRUE;
+    return true;
 }
 
-SDL_bool cf_open_file(char *filename)
+bool cf_open_file(char *filename)
 {
     /* if filename==NULL, we use the default one: $HOME/.gngeo/gngeorc */
     char *conf_file=filename;
@@ -690,7 +653,7 @@ SDL_bool cf_open_file(char *filename)
     }
     if ((f = fopen(conf_file, "rb")) == 0) {
 	//printf("Unable to open %s\n",conf_file);
-	return SDL_FALSE;
+	return false;
     }
 
     while (!feof(f)) {
@@ -713,7 +676,7 @@ SDL_bool cf_open_file(char *filename)
 		CF_VAL(cf)=atoi(val);
 		break;
 	    case CFT_BOOLEAN:
-		CF_BOOL(cf)=(strcasecmp(val,"true")==0?SDL_TRUE:SDL_FALSE);
+		CF_BOOL(cf)=(strcasecmp(val,"true")==0?true:false);
 		break;
 	    case CFT_STRING:
 		    strncpy(CF_STR(cf),val,254);
@@ -736,7 +699,7 @@ SDL_bool cf_open_file(char *filename)
     }
 
     cf_cache_conf();
-    return SDL_TRUE;
+    return true;
 }
 
 

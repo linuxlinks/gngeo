@@ -162,6 +162,7 @@ void neogeo_reset(void) {
 	else
 		cpu_68k_bankswitch(0);
 	cpu_68k_reset();
+
 }
 
 void init_neo(void) {
@@ -170,6 +171,10 @@ void init_neo(void) {
 #endif
 
 	neogeo_init_save_state();
+
+#ifdef GP2X
+	gp2x_ram_ptr_reset();
+#endif
 
 	cpu_68k_init();
 //	neogeo_reset();
@@ -404,6 +409,7 @@ void main_loop(void) {
 			}
 			if (run_menu() == 2) {
 				neo_emu_done = 1;/*printf("Unlock audio\n");SDL_UnlockAudio()*/
+				return;
 				;
 			} // A bit ugly...
 			if (conf.sound) {

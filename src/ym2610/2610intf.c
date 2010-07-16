@@ -133,6 +133,7 @@ void YM2610_sh_stop(void)
 /* reset */
 void YM2610_sh_reset(void)
 {
+
     YM2610Reset();
 }
 

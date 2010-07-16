@@ -26,16 +26,6 @@
 #include "SDL.h"
 #include "list.h"
 
-/*
-#ifdef GP2X
-#define EVENT_LOOP {SDL_Event e;switch(e->joyevent->button)
-#define HANDLE_ACTION case GP2X_A: case GP2X_Y
-#define HANDLE_BACK ......
-
-#else
-#endif
-*/
-
 #define ACTION 1
 #define CHECK  2
 
