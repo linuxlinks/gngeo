@@ -359,8 +359,8 @@ blitter_opengl_update()
 void
 blitter_opengl_close()
 {
-	if (screen != NULL)
-		SDL_FreeSurface(screen);
+	//if (screen != NULL)
+	//	SDL_FreeSurface(screen);
 }
 
 void

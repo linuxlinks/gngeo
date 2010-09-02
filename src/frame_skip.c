@@ -79,14 +79,6 @@ Uint32 get_ticks(void)
 
 void reset_frame_skip(void)
 {
-    static Uint8 init=0;
-
-    if (!init) {
-	    autoframeskip=CF_BOOL(cf_get_item_by_name("autoframeskip"));
-	    show_fps=CF_BOOL(cf_get_item_by_name("showfps"));
-	    sleep_idle=CF_BOOL(cf_get_item_by_name("sleepidle"));
-	    init=1;
-    }
 #ifdef HAVE_GETTIMEOFDAY
     init_tv.tv_usec = 0;
     init_tv.tv_sec = 0;
@@ -117,15 +109,15 @@ int frame_skip(int init)
     static int moy=60;
 
     if (init_frame_skip) {
-	init_frame_skip = 0;
-	target = get_ticks();
-	bench=(CF_BOOL(cf_get_item_by_name("bench"))?1/*get_ticks()*/:0);
-	    
-	nbFrame = 0;
-	//f2skip=0;
-	//skpFrm=0;
-	sec = 0;
-	return 0;
+		init_frame_skip = 0;
+		target = get_ticks();
+		bench = (CF_BOOL(cf_get_item_by_name("bench")) ? 1/*get_ticks()*/ : 0);
+
+		nbFrame = 0;
+		//f2skip=0;
+		//skpFrm=0;
+		sec = 0;
+		return 0;
     }
 
     target += F;
@@ -135,16 +127,16 @@ int frame_skip(int init)
 	return 1;
     } else
 	skpFrm = 0;
-
+//	printf("%d %d\n",conf.autoframeskip,conf.show_fps);
 
     rfd = get_ticks();
 
-    if (autoframeskip) {
+    if (conf.autoframeskip) {
 	if (rfd < target && f2skip == 0)
 	    while (get_ticks() < target) {
 #ifndef WIN32
-		if (sleep_idle) {
-		    usleep(10);
+		if (conf.sleep_idle) {
+		    usleep(5);
 		}
 #endif
 	} else {
@@ -165,7 +157,7 @@ int frame_skip(int init)
   exit(0);
   }
 */
-    if (show_fps) {
+    if (conf.show_fps) {
 	    if (get_ticks() - sec >= TICKS_PER_SEC) {
 		    //printf("%d\n",nbFrame);
 		    if (bench) {

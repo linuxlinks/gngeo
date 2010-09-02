@@ -29,7 +29,7 @@ void YM2610Init(int baseclock, int rate,
 		void *pcmromb, int pcmsizeb,
 		FM_TIMERHANDLER TimerHandler,
 		FM_IRQHANDLER IRQHandler);
-
+void YM2610ChangeSamplerate(int rate);
 void YM2610Reset(void);
 int  YM2610Write(int addr, u8 value);
 u8   YM2610Read(int addr);

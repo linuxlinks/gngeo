@@ -232,8 +232,45 @@ bool close_game(void) {
     return true;
 }
 
-bool init_game(char *rom_name) {
+bool load_game_config(char *rom_name) {
+	char *gpath;
+	char *drconf;
+#ifdef EMBEDDED_FS
+    gpath="conf/";
+#else
+    gpath=get_gngeo_dir();
+#endif
+	cf_reset_to_default();
+	cf_open_file(NULL); /* Reset possible previous setting */
+	if (rom_name) {
+		if (strstr(rom_name,".gno")!=NULL) {
+			char *name=dr_gno_romname(rom_name);
+			if (name) {
+				printf("Tring to load a gno file %s %s\n",rom_name,name);
+				drconf=alloca(strlen(gpath)+strlen(name)+strlen(".cf")+1);
+				sprintf(drconf,"%s%s.cf",gpath,name);
+			} else {
+				printf("Error while loading %s\n",rom_name);
+				return false;
+			}
+		} else {
+			drconf=alloca(strlen(gpath)+strlen(rom_name)+strlen(".cf")+1);
+			sprintf(drconf,"%s%s.cf",gpath,rom_name);
+		}
+		cf_open_file(drconf);
+	}
+	return true;
+}
 
+bool init_game(char *rom_name) {
+printf("AAA Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
+
+	load_game_config(rom_name);
+	/* reinit screen if necessary */
+	//screen_change_blitter_and_effect(NULL,NULL);
+
+	screen_reinit();
+	printf("BBB Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
     /* open transpack if need */
     trans_pack_open(CF_STR(cf_get_item_by_name("transpack")));
 
@@ -267,6 +304,10 @@ bool init_game(char *rom_name) {
     current_pal = memory.vid.pal_neo[0];
     current_fix = memory.rom.bios_sfix.p;
     current_pc_pal = (Uint32 *) memory.vid.pal_host[0];
+
+	memory.vid.currentpal=0;
+	memory.vid.currentfix=0;
+
 
     return true;
 }

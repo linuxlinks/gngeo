@@ -26,12 +26,19 @@
 #include "SDL.h"
 #include "list.h"
 
-#define ACTION 1
-#define CHECK  2
+#define MENU_ACTION 1
+#define MENU_CHECK  2
+#define MENU_VALUE  3
+#define MENU_LIST   4
 
 typedef struct GN_MENU_ITEM {
-	char *name;
-	Uint32 type; /* ACTION, CHECK */
+    char *name;
+    Uint32 type; /* ACTION, CHECK */
+    int enabled;
+        int val;
+        char **lval;
+        char *str;
+        void *arg;
 	int (*action)(struct GN_MENU_ITEM *self,void *param);
 	void (*draw)(struct GN_MENU_ITEM *self);
 }GN_MENU_ITEM;
@@ -40,6 +47,7 @@ typedef struct GN_MENU {
 	char *title;
 	int nb_elem;
 	int current;
+        int lastpos;
 	int draw_type;
 	LIST *item;
 	int (*event_handling)(struct GN_MENU *self);
@@ -53,15 +61,15 @@ typedef struct GN_MENU {
 
 
 GN_MENU_ITEM* gn_menu_create_item(char *name,Uint32 type,
-				  int (*action)(GN_MENU_ITEM *self,void *param));
+				  int (*action)(GN_MENU_ITEM *self,void *param),void *param);
 int gn_menu_delete_item(GN_MENU_ITEM *menu);
 
 int gn_init_skin(void);
 int gn_loop_menu(GN_MENU *m);
 Uint32 run_menu(void);
 void gn_reset_pbar(void);
-void gn_init_pbar(char *name);
-void gn_update_pbar(Uint32 pos,Uint32 size);
+void gn_init_pbar(char *name,int size);
+void gn_update_pbar(int pos);
 void gn_terminate_pbar(void);
 
 void gn_popup_error(char *name,char *fmt,...);

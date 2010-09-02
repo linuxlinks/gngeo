@@ -43,7 +43,7 @@ struct DrZ80 mydrz80;
 unsigned int drz80_rebasePC(unsigned short address)
 {
 	//if (address==0x66) 
-	//printf("Rebase PC %x\n",address);
+	printf("Rebase PC %x\n",address);
         mydrz80.Z80PC_BASE = (unsigned int)drz80mem;
 	mydrz80.Z80PC = mydrz80.Z80PC_BASE + address;
         return mydrz80.Z80PC_BASE + address;
@@ -51,7 +51,7 @@ unsigned int drz80_rebasePC(unsigned short address)
 
 unsigned int drz80_rebaseSP(unsigned short address)
 {
-	//printf("Rebase SP %x\n",address);
+	printf("Rebase SP %x\n",address);
         mydrz80.Z80SP_BASE = (unsigned int)drz80mem;
 	mydrz80.Z80SP = mydrz80.Z80SP_BASE + address;
 	return mydrz80.Z80SP_BASE + address;
@@ -76,20 +76,20 @@ void drz80_write16(unsigned short data,unsigned short address) {
 
 void drz80_writeport16(Uint16 port, Uint8 value)
 {
-	//printf("Write port %d=%d\n",port,value);
+	printf("Write port %d=%d\n",port,value);
     z80_port_write(port, value);
 }
 
 Uint8 drz80_readport16(Uint16 port)
 {
-	//printf("Read port %d\n",port);
+	printf("Read port %d\n",port);
     return z80_port_read(port);
 }
 
 /* cpu interface implementation */
 void cpu_z80_switchbank(Uint8 bank, Uint16 PortNo)
 {
-	//printf("Switch bank %x %x\n",bank,PortNo);
+	printf("Switch bank %x %x\n",bank,PortNo);
     if (bank<=3)
 	z80_bank[bank]=PortNo;
 
@@ -159,7 +159,9 @@ static void z80_init_save_state(void) {
     set_post_load_function(ST_Z80,post_load_state);
     set_pre_save_function(ST_Z80,pre_save_state);
 }
-
+void cpu_z80_mkstate(gzFile *gzf,int mode) {
+	/* TODO */
+}
 void cpu_z80_init(void)
 {
         memset (&mydrz80, 0, sizeof(mydrz80));
@@ -172,16 +174,16 @@ void cpu_z80_init(void)
         mydrz80.z80_in      =drz80_readport16; /*z80_in*/
         mydrz80.z80_out     =drz80_writeport16; /*z80_out*/
         //mydrz80.z80_irq_callback=drz80_irq_callback;
-        mydrz80.Z80A = 0x00 <<24;
+        //mydrz80.Z80A = 0x00 <<24;
         mydrz80.Z80F = (1<<2); /* set ZFlag */
-        mydrz80.Z80BC = 0x0000 <<16;
-        mydrz80.Z80DE = 0x0000 <<16;
-        mydrz80.Z80HL = 0x0000 <<16;
-        mydrz80.Z80A2 = 0x00 <<24;
+        //mydrz80.Z80BC = 0x0000 <<16;
+        //mydrz80.Z80DE = 0x0000 <<16;
+        //mydrz80.Z80HL = 0x0000 <<16;
+        //mydrz80.Z80A2 = 0x00 <<24;
         mydrz80.Z80F2 = 1<<2;  /* set ZFlag */
-        mydrz80.Z80BC2 = 0x0000 <<16;
-        mydrz80.Z80DE2 = 0x0000 <<16;
-        mydrz80.Z80HL2 = 0x0000 <<16;
+        //mydrz80.Z80BC2 = 0x0000 <<16;
+        //mydrz80.Z80DE2 = 0x0000 <<16;
+        //mydrz80.Z80HL2 = 0x0000 <<16;
         mydrz80.Z80IX = 0xFFFF;// <<16;
         mydrz80.Z80IY = 0xFFFF;// <<16;
         mydrz80.Z80I = 0x00;
@@ -189,7 +191,7 @@ void cpu_z80_init(void)
         mydrz80.Z80_IRQ = 0x00;
         mydrz80.Z80IF = 0x00;
         mydrz80.Z80PC=mydrz80.z80_rebasePC(0);
-        mydrz80.Z80SP=mydrz80.z80_rebaseSP(0xffff);/*0xf000;*/
+       // mydrz80.Z80SP=mydrz80.z80_rebaseSP(0xffff);/*0xf000;*/
 
 /* bank initalisation */
 	z80map1 = memory.rom.cpu_z80.p + 0x8000;
@@ -203,10 +205,10 @@ void cpu_z80_init(void)
 	z80_bank[3]=0xf000;
 	
 	memcpy(drz80mem, memory.rom.cpu_z80.p, 0xf800);
-	z80_init_save_state();
+	//z80_init_save_state();
 }
-void cpu_z80_run(int nbcycle)
-{
+void cpu_z80_run(int nbcycle) {
+	//printf("Drz80run %d\n",nbcycle);
 	DrZ80Run(&mydrz80, nbcycle);
 }
 /*

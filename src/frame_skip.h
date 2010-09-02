@@ -21,7 +21,7 @@
 #define _FRAME_SKIP_H
 
 extern char skip_next_frame;
-Uint8 autoframeskip,show_fps,sleep_idle;
+
 char fps_str[32];
 
 void reset_frame_skip(void);

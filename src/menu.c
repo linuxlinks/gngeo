@@ -20,6 +20,8 @@
 #include "config.h"
 #endif
 
+#include "SDL.h"
+#include "SDL_thread.h"
 
 #include <stdarg.h>
 #include <stdlib.h>
@@ -29,10 +31,12 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <stdbool.h>
+#include <math.h>
 
 #include "menu.h"
-#include "SDL.h"
+
 #include "messages.h"
+#include "memory.h"
 #include "screen.h"
 #include "video.h"
 #include "event.h"
@@ -44,7 +48,7 @@
 #include "resfile.h"
 #include "fileio.h"
 #include "sound.h"
-
+#include "effect.h"
 
 typedef struct GNFONT {
 	SDL_Surface *bmp;
@@ -55,12 +59,13 @@ typedef struct GNFONT {
 } GNFONT;
 
 static SDL_Surface *menu_buf;
+static SDL_Surface *menu_back;
 static SDL_Surface *back;
 static GNFONT *sfont;
 static GNFONT *mfont;
-static SDL_Surface *gngeo_logo;
+static SDL_Surface *gngeo_logo, *gngeo_mask, *pbar_logo;
 
-static SDL_Surface *arrow_l, *arrow_r;
+static SDL_Surface *arrow_l, *arrow_r, *arrow_u, *arrow_d;
 static int interp;
 
 #define MENU_BIG   0
@@ -83,6 +88,10 @@ static int interp;
 
 static GN_MENU *main_menu;
 static GN_MENU *rbrowser_menu;
+static GN_MENU *option_menu;
+static GN_MENU *effect_menu;
+static GN_MENU *srate_menu;
+static GN_MENU *yesno_menu;
 
 static char *romlist[] = {
 	"2020bb",
@@ -439,13 +448,20 @@ void draw_string(SDL_Surface *dst, GNFONT *f, int x, int y, char *str) {
 	}
 }
 
+static void init_back(void) {
+	SDL_Rect dst_r = {24, 16, 304, 224};
+	static SDL_Rect screen_rect = {0, 0, 304, 224};
+	SDL_BlitSurface(state_img, &screen_rect, menu_back, &dst_r);
+	SDL_BlitSurface(back, NULL, menu_back, &dst_r);
+}
+
 static void draw_back(void) {
 	SDL_Rect dst_r = {24, 16, 304, 224};
 	static SDL_Rect screen_rect = {0, 0, 304, 224};
 	if (back) {
-		//SDL_BlitSurface(buffer,NULL,menu_buf,NULL);
-		SDL_BlitSurface(state_img, &screen_rect, menu_buf, &dst_r);
-		SDL_BlitSurface(back, NULL, menu_buf, &dst_r);
+		//		SDL_BlitSurface(state_img, &screen_rect, menu_buf, &dst_r);
+		//		SDL_BlitSurface(back, NULL, menu_buf, &dst_r);
+		SDL_BlitSurface(menu_back, NULL, menu_buf, NULL);
 	} else {
 		SDL_Rect r1 = {24 + 16, 16 + 16, 271, 191};
 		SDL_Rect r2 = {24 + 22, 16 + 35, 259, 166};
@@ -460,26 +476,50 @@ static void draw_back(void) {
 
 #define ALEFT  0
 #define ARIGHT 1
+#define ADOWN  2
+#define AUP    3
 
 static void draw_arrow(int type, int x, int y) {
 	SDL_Rect dst_r = {x, y - 13, 32, 32};
-	if (type)
-		SDL_BlitSurface(arrow_r, NULL, menu_buf, &dst_r);
-	else
-		SDL_BlitSurface(arrow_l, NULL, menu_buf, &dst_r);
+	switch (type) {
+		case ARIGHT:
+			SDL_BlitSurface(arrow_r, NULL, menu_buf, &dst_r);
+			break;
+		case ALEFT:
+			SDL_BlitSurface(arrow_l, NULL, menu_buf, &dst_r);
+			break;
+		case AUP:
+			SDL_BlitSurface(arrow_u, NULL, menu_buf, &dst_r);
+			break;
+		case ADOWN:
+			SDL_BlitSurface(arrow_d, NULL, menu_buf, &dst_r);
+			break;
+	}
 }
 
 int gn_init_skin(void) {
-	menu_buf = SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 32, 0xFF0000, 0xFF00, 0xFF, 0x0);
+	//menu_buf = SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 32, 0xFF0000, 0xFF00, 0xFF, 0x0);
+	menu_buf = SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 16, 0xF800, 0x7E0, 0x1F, 0);
+	//	menu_back= SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 32, 0xFF0000, 0xFF00, 0xFF, 0x0);
+	menu_back = SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 16, 0xF800, 0x7E0, 0x1F, 0);
 
 	back = res_load_stbi("skin/back.tga");
 	sfont = load_font("skin/font_small.tga");
 	mfont = load_font("skin/font_large.tga");
 	arrow_r = res_load_stbi("skin/arrow_right.tga");
 	arrow_l = res_load_stbi("skin/arrow_left.tga");
+	arrow_d = res_load_stbi("skin/arrow_down.tga");
+	arrow_u = res_load_stbi("skin/arrow_up.tga");
 	gngeo_logo = res_load_stbi("skin/gngeo.tga");
+	gngeo_mask = res_load_stbi("skin/gngeo_mask.tga");
 
-	if (!back || !sfont || !mfont || !arrow_r || !arrow_l || !gngeo_logo || !menu_buf) return false;
+	pbar_logo = SDL_CreateRGBSurface(SDL_SWSURFACE, gngeo_logo->w, gngeo_logo->h, 32, 0xFF, 0xFF00, 0xFF0000, 0xFF000000);
+	SDL_SetAlpha(gngeo_logo, 0, 0);
+	//SDL_SetAlpha(gngeo_mask,0,0);
+	init_back();
+
+	if (!back || !sfont || !mfont || !arrow_r || !arrow_l || !arrow_u || !arrow_d ||
+			!gngeo_logo || !menu_buf) return false;
 	return true;
 }
 
@@ -488,7 +528,7 @@ static int pbar_y;
 void gn_reset_pbar(void) {
 	pbar_y = 0;
 }
-
+/*
 void gn_init_pbar(char *name) {
 	interp = interpolation;
 	interpolation = 0;
@@ -523,14 +563,102 @@ void gn_terminate_pbar(void) {
 	interpolation = interp;
 
 }
+ */
+static SDL_Thread *pbar_th;
+
+typedef struct pbar_data {
+	char *name;
+	int pos;
+	int size;
+	int running;
+} pbar_data;
+
+static volatile pbar_data pbar;
+
+int pbar_anim_thread(void *data) {
+	pbar_data *p = (pbar_data*) data;
+	SDL_Rect src_r = {2, 0, gngeo_logo->w, gngeo_logo->h};
+	SDL_Rect dst_r = {219 + 26, 146 + 16, gngeo_logo->w, gngeo_logo->h};
+	SDL_Rect dst2_r = {0, 0, gngeo_logo->w, gngeo_logo->h};
+	int x = 0;
+	/*
+		int *sin_lt;
+		int i;
+
+		sin_lt=malloc(320*sizeof(int));
+		for(i=0;i<320;i++) {
+			sin_lt[i]=3.0*sin(i*M_PI/180.0);
+			printf("%d\n",sin_lt[i]);
+		}
+	 */
+
+	while (p->running) {
+		draw_back();
+		draw_string(menu_buf, mfont, MENU_TITLE_X, MENU_TITLE_Y + 150, p->name);
+		draw_string(menu_buf, sfont, MENU_TITLE_X, MENU_TITLE_Y + 165, "Please wait!");
+
+		//src_r.w=(p->pos*67.0)/p->size;
+		//SDL_BlitSurface(gngeo_logo, &src_r, menu_buf, &dst_r);
+		//SDL_BlitSurface(menu_buf, &dst_r, pbar_logo, NULL);
+		//SDL_FillRect(pbar_logo,NULL,0x1F000000);
+		SDL_BlitSurface(gngeo_logo, NULL, pbar_logo, NULL);
+		//dst2_r.y=146 + 16+(p->pos*67.0)/p->size;
+		dst2_r.y = -22 - (p->pos * 64.0) / p->size;
+		x += 3;
+		if (x > gngeo_logo->w)
+			x -= gngeo_logo->w;
+
+		dst2_r.x = x;
+		SDL_BlitSurface(gngeo_mask, NULL, pbar_logo, &dst2_r);
+
+		dst2_r.x = x - gngeo_logo->w;
+		dst2_r.y = -22 - (p->pos * 64.0) / p->size;
+		SDL_BlitSurface(gngeo_mask, NULL, pbar_logo, &dst2_r);
+
+
+
+		SDL_BlitSurface(pbar_logo, &src_r, menu_buf, &dst_r);
+
+		SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
+		screen_update();
+		frame_skip(0);
+		//printf("TOTO %d %d %d\n",p->pos,p->size,dst2_r.x);
+	}
+	SDL_BlitSurface(gngeo_logo, NULL, pbar_logo, NULL);
+	SDL_BlitSurface(pbar_logo, &src_r, menu_buf, &dst_r);
+	screen_update();
+	frame_skip(0);
+	return 0;
+}
+
+void gn_init_pbar(char *name, int size) {
+	pbar.name = name;
+	pbar.pos = 0;
+	pbar.size = size;
+	pbar.running = 1;
+	pbar_th = SDL_CreateThread(pbar_anim_thread, (void*) &pbar);
+}
+
+void gn_update_pbar(int pos) {
+	pbar.pos = pos;
+	//SDL_Delay(100);
+
+}
+
+void gn_terminate_pbar(void) {
+	pbar.running = 0;
+	SDL_WaitThread(pbar_th, NULL);
+}
 
 void gn_popup_error(char *name, char *fmt, ...) {
 	char buf[512];
 	va_list pvar;
 	va_start(pvar, fmt);
 
+	reset_event();
+
 	draw_back();
-	draw_string(menu_buf, sfont, MENU_TITLE_X, MENU_TITLE_Y, name);
+	draw_string(menu_buf, mfont, MENU_TITLE_X, MENU_TITLE_Y, name);
 
 	vsnprintf(buf, 511, fmt, pvar);
 
@@ -543,88 +671,169 @@ void gn_popup_error(char *name, char *fmt, ...) {
 	while (wait_event() == 0);
 }
 
+static int yes_action(GN_MENU_ITEM *self, void *param) {
+	return 1;
+}
+
+static int no_action(GN_MENU_ITEM *self, void *param) {
+	return 0;
+}
+
 /* TODO: use a mini yes/no menu instead of B/X */
 int gn_popup_question(char *name, char *fmt, ...) {
 	char buf[512];
 	va_list pvar;
 	va_start(pvar, fmt);
+	int a;
 
-	draw_back();
-
-	draw_string(menu_buf, sfont, MENU_TITLE_X, MENU_TITLE_Y, name);
-
-	vsnprintf(buf, 511, fmt, pvar);
-	draw_string(menu_buf, sfont, MENU_TEXT_X, MENU_TEXT_Y, buf);
-	draw_string(menu_buf, sfont, ALIGN_RIGHT, ALIGN_DOWN, "B: Yes  X: No");
-	SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
-	screen_update();
+	reset_event();
 
 	while (1) {
-		switch (wait_event()) {
-			case GN_A: return 0;
-			case GN_B: return 1;
-			default:
-				break;
+		draw_back();
+
+		draw_string(menu_buf, mfont, MENU_TITLE_X, MENU_TITLE_Y, name);
+
+		vsnprintf(buf, 511, fmt, pvar);
+		draw_string(menu_buf, sfont, MENU_TEXT_X, MENU_TEXT_Y, buf);
+		//draw_string(menu_buf, sfont, ALIGN_RIGHT, ALIGN_DOWN, "   Yes     No");
+		if (yesno_menu->current == 0)
+			draw_string(menu_buf, sfont, ALIGN_RIGHT, ALIGN_DOWN, " > Yes     No");
+		else
+			draw_string(menu_buf, sfont, ALIGN_RIGHT, ALIGN_DOWN, "   Yes  >  No");
+		SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
+		screen_update();
+
+			//effect_menu->draw(effect_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
+		if ((a = yesno_menu->event_handling(yesno_menu)) >= 0) {
+			printf("return %d\n",a);
+			return a;
 		}
 	}
-
+	return 0;
 }
 
 //#define NB_ITEM_2 4
 
 static void draw_menu(GN_MENU *m) {
 	int start, end, i;
+	static int cx = 0;
+	static int cy = 0;
+	//static int cx_val[]={0,1,1,2,2,2,1,1,0,-1,-1,-2,-2,-2,-1,-1};
+	static int cx_val[] = {0, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 0, 0, -1, -1, -1, -2, -2, -2, -2, -2, -1, -1, -1, 0};
 	int nb_item;
+	int ypos, cpos;
 	GNFONT *fnt;
 	LIST *l = m->item;
-
+	int j;
 
 	if (m->draw_type == MENU_BIG)
 		fnt = mfont;
 	else
 		fnt = sfont;
 
+	/* Arrow moving cursor */
+	cx++;
+	if (cx > 25) cx = 0;
+
+
+
 	nb_item = (MENU_TEXT_Y_END - MENU_TEXT_Y) / fnt->ysize - 1;
 
 	draw_back();
 
-	if (m->title) draw_string(menu_buf, sfont, MENU_TITLE_X, MENU_TITLE_Y, m->title);
+	if (m->title) {
+		draw_string(menu_buf, mfont, MENU_TITLE_X, MENU_TITLE_Y, m->title);
+	}
+	/*
+		start = (m->current - nb_item >= 0 ? m->current - nb_item : 0);
+		end = (start + nb_item < m->nb_elem ? start + nb_item : m->nb_elem - 1);
+	 */
+	start = m->current - nb_item / 2;
+	end = m->current + nb_item / 2;
+	if (start < 0) start = 0;
+	if (end >= m->nb_elem - 1) {
+		end = m->nb_elem - 1;
+	} else {
+		draw_arrow(ADOWN, 24, 200 + cx_val[cx]);
+	}
 
-	start = (m->current - nb_item >= 0 ? m->current - nb_item : 0);
-	end = (start + nb_item < m->nb_elem ? start + nb_item : m->nb_elem - 1);
+	if (m->current <= nb_item / 2) {
+		j = nb_item / 2 - m->current;
+	} else {
+		j = 0;
+		draw_arrow(AUP, 24, 76 - cx_val[cx]);
+	}
 
-	for (i = 0; i < start; i++, l = l->next);
+	//printf("%d %d %d %d\n",start,end,m->current,j);
+	for (i = 0; i < start; i++, l = l->next) {
+		GN_MENU_ITEM *mi = (GN_MENU_ITEM *) l->data;
+		if (mi->enabled == 0) {
+			i--;
+		}
+	}
 	for (i = start; i <= end; i++, l = l->next) {
 		GN_MENU_ITEM *mi = (GN_MENU_ITEM *) l->data;
-		int j = i - start;
-
+		if (mi->enabled == 0) {
+			i--;
+			continue;
+		}
+		//int j = (i + nb_item / 2) - start;
+		//if (start<nb_item) j+=nb_item/2;
 		if (m->draw_type == MENU_BIG) {
 			draw_string(menu_buf, fnt, ALIGN_CENTER, MENU_TEXT_Y + (j * fnt->ysize + 2), mi->name);
 			if (i == m->current) {
 				int len = string_len(fnt, mi->name) / 2;
-				draw_arrow(ARIGHT, 176 - len - 32, MENU_TEXT_Y + (j * fnt->ysize + 2) + fnt->ysize / 2);
-				draw_arrow(ALEFT, 176 + len, MENU_TEXT_Y + (j * fnt->ysize + 2) + fnt->ysize / 2);
+				draw_arrow(ARIGHT, 176 - len - 32 + cx_val[cx], MENU_TEXT_Y + (j * fnt->ysize + 2) + fnt->ysize / 2);
+				draw_arrow(ALEFT, 176 + len - cx_val[cx], MENU_TEXT_Y + (j * fnt->ysize + 2) + fnt->ysize / 2);
 			}
 
 		} else {
 			draw_string(menu_buf, fnt, MENU_TEXT_X + 10, MENU_TEXT_Y + (j * fnt->ysize + 2), mi->name);
 			if (i == m->current) draw_string(menu_buf, fnt, MENU_TEXT_X, MENU_TEXT_Y + (j * fnt->ysize + 2), ">");
+			if (mi->type == MENU_CHECK) {
+				if (mi->val)
+					draw_string(menu_buf, fnt, MENU_TEXT_X + 210, MENU_TEXT_Y + (j * fnt->ysize + 2), "true");
+				else
+					draw_string(menu_buf, fnt, MENU_TEXT_X + 210, MENU_TEXT_Y + (j * fnt->ysize + 2), "false");
+			}
+			if (mi->type == MENU_LIST) {
+				draw_string(menu_buf, fnt, MENU_TEXT_X + 210, MENU_TEXT_Y + (j * fnt->ysize + 2), mi->str);
+			}
 		}
+		j++;
 	}
 	SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
 	screen_update();
+	frame_skip(0);
 }
 
 //#undef NB_ITEM_2
 
 GN_MENU_ITEM *gn_menu_create_item(char *name, Uint32 type,
-		int (*action)(GN_MENU_ITEM *self, void *param)) {
+		int (*action)(GN_MENU_ITEM *self, void *param), void *param) {
 	GN_MENU_ITEM *t = malloc(sizeof (GN_MENU_ITEM));
 	t->name = strdup(name);
 	//t->name=name;
 	t->type = type;
 	t->action = action;
+	t->arg = param;
+	t->enabled = 1;
 	return t;
+}
+
+GN_MENU_ITEM *gn_menu_get_item_by_index(GN_MENU *gmenu, int index) {
+	GN_MENU_ITEM *gitem;
+	LIST *l = gmenu->item;
+	int i = 0;
+	for (l = gmenu->item; l; l = l->next) {
+		gitem = (GN_MENU_ITEM *) l->data;
+		if (gitem->enabled) {
+			if (i == index) return gitem;
+			i++;
+		}
+
+	}
+	return NULL;
 }
 
 int test_action(GN_MENU_ITEM *self, void *param) {
@@ -643,6 +852,7 @@ static int load_state_action(GN_MENU_ITEM *self, void *param) {
 
 	Uint32 nb_slot = how_many_slot(conf.game);
 
+
 	if (nb_slot == 0) {
 		gn_popup_info("Load State", "There is currently no save state available");
 		return 0; // nothing to do
@@ -659,7 +869,7 @@ static int load_state_action(GN_MENU_ITEM *self, void *param) {
 		SDL_FillRect(menu_buf, &dstrect_binding, COL32_TO_16(0xFEFEFE));
 		SDL_SoftStretch(slot_img, NULL, menu_buf, &dstrect);
 
-		draw_string(menu_buf, sfont, MENU_TITLE_X, MENU_TITLE_Y, "Load State");
+		draw_string(menu_buf, mfont, MENU_TITLE_X, MENU_TITLE_Y, "Load State");
 		sprintf(slot_str, "Slot Number %03d", slot);
 		//draw_string(menu_buf,sfont,24+102,16+40,slot_str);
 		draw_string(menu_buf, sfont, ALIGN_CENTER, ALIGN_UP, slot_str);
@@ -669,6 +879,7 @@ static int load_state_action(GN_MENU_ITEM *self, void *param) {
 
 		SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
 		screen_update();
+		frame_skip(0);
 		switch (wait_event()) {
 			case GN_LEFT:
 				if (slot > 0) slot--;
@@ -718,7 +929,7 @@ static int save_state_action(GN_MENU_ITEM *self, void *param) {
 			draw_string(menu_buf, sfont, ALIGN_CENTER, ALIGN_CENTER, "Create a new Slot");
 		}
 
-		draw_string(menu_buf, sfont, MENU_TITLE_X, MENU_TITLE_Y, "Save State");
+		draw_string(menu_buf, mfont, MENU_TITLE_X, MENU_TITLE_Y, "Save State");
 		sprintf(slot_str, "Slot Number %03d", slot);
 		draw_string(menu_buf, sfont, ALIGN_CENTER, ALIGN_UP, slot_str);
 
@@ -727,6 +938,7 @@ static int save_state_action(GN_MENU_ITEM *self, void *param) {
 
 		SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
 		screen_update();
+		frame_skip(0);
 
 		switch (wait_event()) {
 			case GN_LEFT:
@@ -744,6 +956,7 @@ static int save_state_action(GN_MENU_ITEM *self, void *param) {
 				break;
 			case GN_B:
 			case GN_C:
+
 				save_state(conf.game, slot);
 				printf("Save state!!\n");
 				return 1;
@@ -755,8 +968,15 @@ static int save_state_action(GN_MENU_ITEM *self, void *param) {
 	return 0;
 }
 
+static int credit_action(GN_MENU_ITEM *self, void *param) {
+
+	return 0;
+}
+
 static int exit_action(GN_MENU_ITEM *self, void *param) {
 	//exit(0);
+//	if (gn_popup_question("Quit?","Do you really want to quit gngeo?")==0)
+//		return 0;
 	return 2;
 }
 
@@ -792,11 +1012,11 @@ int menu_event_handling(struct GN_MENU *self) {
 			break;
 		case GN_B:
 		case GN_C:
-			l = list_get_item_by_index(self->item, self->current);
-			if (l) {
-				mi = (GN_MENU_ITEM *) l->data;
-				if (mi->action)
-					if ((a = mi->action(mi, NULL))) return a;
+			//l = list_get_item_by_index(self->item, self->current);
+			mi = gn_menu_get_item_by_index(self, self->current);
+			if (mi && mi->action) {
+				reset_event();
+				if ((a = mi->action(mi, NULL))>=0) return a;
 			}
 			break;
 		default:
@@ -806,21 +1026,88 @@ int menu_event_handling(struct GN_MENU *self) {
 	return -1;
 }
 
+GN_MENU *create_menu(char *name, int type,
+		int (*action)(struct GN_MENU *self),
+		void (*draw)(struct GN_MENU *self)) {
+	GN_MENU *gmenu;
+	gmenu = malloc(sizeof (GN_MENU));
+	gmenu->title = name;
+	gmenu->nb_elem = 0;
+	gmenu->current = 0;
+	gmenu->draw_type = type;
+	if (action)
+		gmenu->event_handling = action;
+	else
+		gmenu->event_handling = menu_event_handling;
+	if (draw)
+		gmenu->draw = draw;
+	else
+		gmenu->draw = draw_menu;
+	gmenu->item = NULL;
+	return gmenu;
+}
+
+GN_MENU_ITEM *gn_menu_add_item(GN_MENU *gmenu, char *name, int type,
+		int (*action)(struct GN_MENU_ITEM *self, void *param), void *param) {
+	GN_MENU_ITEM *gitem;
+	gitem = gn_menu_create_item(name, type, action, param);
+	gmenu->item = list_append(gmenu->item, (void*) gitem);
+	gmenu->nb_elem++;
+	return gitem;
+}
+
+void gn_menu_disable_item(GN_MENU *gmenu, char *name) {
+	GN_MENU_ITEM *gitem;
+	LIST *l = gmenu->item;
+
+	for (l = gmenu->item; l; l = l->next) {
+		gitem = (GN_MENU_ITEM *) l->data;
+		if (strncmp(gitem->name, name, 128) == 0 && gitem->enabled != 0) {
+			gitem->enabled = 0;
+			gmenu->nb_elem--;
+			return;
+		}
+	}
+}
+
+void gn_menu_enable_item(GN_MENU *gmenu, char *name) {
+	GN_MENU_ITEM *gitem;
+	LIST *l = gmenu->item;
+
+	for (l = gmenu->item; l; l = l->next) {
+		gitem = (GN_MENU_ITEM *) l->data;
+		if (strcmp(gitem->name, name) == 0 && gitem->enabled == 0) {
+			gitem->enabled = 1;
+			gmenu->nb_elem++;
+			return;
+		}
+	}
+}
+
 int icasesort(const struct dirent **a, const struct dirent **b) {
 	const char *ca = (*a)->d_name;
 	const char *cb = (*b)->d_name;
 	return strcasecmp(ca, cb);
 }
 
+static int romnamesort(void *a, void *b) {
+	GN_MENU_ITEM *ga = (GN_MENU_ITEM *) a;
+	GN_MENU_ITEM *gb = (GN_MENU_ITEM *) b;
+
+	return strcmp(ga->name, gb->name);
+}
+
 static int loadrom_action(GN_MENU_ITEM *self, void *param) {
-	printf("Loading %s\n", self->name);
+	char *game = (char*) self->arg;
+
+	printf("Loading %s\n", game);
 	close_game();
 	if (conf.sound) close_sdl_audio();
 
-	if (init_game(self->name) != true) {
-		printf("Can't init %s...\n", self->name);
+	if (init_game(game) != true) {
+		printf("Can't init %s...\n", game);
 		gn_popup_error("Error! :", "Gngeo Couldn't init %s... \n\n"
-				" Maybe blabla", self->name);
+				" Maybe blabla", game);
 		return 0;
 	}
 
@@ -833,43 +1120,39 @@ void init_rom_browser_menu(void) {
 	char filename[strlen(CF_STR(cf_get_item_by_name("rompath"))) + 256];
 	struct stat filestat;
 	struct dirent **namelist;
-	ROM_DEF *drv;
+	ROM_DEF *drv = NULL;
 	//char name[32];
 	int nb_roms = 0;
+	rbrowser_menu = create_menu("Load Game", MENU_SMALL, NULL, NULL);
 
-	rbrowser_menu = malloc(sizeof (GN_MENU));
-	rbrowser_menu->title = "Load Game";
-	rbrowser_menu->nb_elem = 0;
-	rbrowser_menu->current = 0;
-	rbrowser_menu->draw_type = MENU_SMALL;
-	rbrowser_menu->event_handling = menu_event_handling;
-	rbrowser_menu->draw = draw_menu;
-	rbrowser_menu->item = NULL;
 	/*
-	if ((nbf = scandir(CF_STR(cf_get_item_by_name("rompath")), &namelist, NULL, icasesort )) != -1) {
-		for (i = 0; i < nbf; i++) {
-			sprintf(filename, "%s/%s", CF_STR(cf_get_item_by_name("rompath")), namelist[i]->d_name);
-			lstat(filename, &filestat);
-			if (!S_ISDIR(filestat.st_mode)) {
-				printf("File %s\n",filename);
-				if ((drv=dr_check_zip(filename))!=NULL) {
-					rbrowser_menu->item=list_append(rbrowser_menu->item,
-									(void*)gn_menu_create_item(drv->name,ACTION,loadrom_action));
-					rbrowser_menu->nb_elem++;
-				}
-			}
-		}
-	}
+		rbrowser_menu = malloc(sizeof (GN_MENU));
+		rbrowser_menu->title = "Load Game";
+		rbrowser_menu->nb_elem = 0;
+		rbrowser_menu->current = 0;
+		rbrowser_menu->draw_type = MENU_SMALL;
+		rbrowser_menu->event_handling = menu_event_handling;
+		rbrowser_menu->draw = draw_menu;
+		rbrowser_menu->item = NULL;
 	 */
+
 
 	i = 0;
 	while (romlist[i]) {
 		sprintf(filename, "%s/%s.zip", CF_STR(cf_get_item_by_name("rompath")), romlist[i]);
 		if (stat(filename, &filestat) == 0 && S_ISREG(filestat.st_mode)) {
 			if ((drv = dr_check_zip(filename)) != NULL) {
-				rbrowser_menu->item = list_append(rbrowser_menu->item,
-						(void*) gn_menu_create_item(drv->name, ACTION, loadrom_action));
+				rbrowser_menu->item = list_insert_sort(rbrowser_menu->item,
+						(void*) gn_menu_create_item(drv->longname, MENU_ACTION, loadrom_action, strdup(drv->name)),
+						romnamesort
+						);
 				rbrowser_menu->nb_elem++;
+
+
+				//printf("Parent=%s\n",drv->parent);
+				//if (strcmp(drv->parent,"neogeo")!=0)
+				//	gn_menu_disable_item(rbrowser_menu,drv->longname);
+
 				free(drv);
 				nb_roms++;
 			}
@@ -878,8 +1161,9 @@ void init_rom_browser_menu(void) {
 		if (stat(filename, &filestat) == 0 && S_ISREG(filestat.st_mode)) {
 			char *gnoname = dr_gno_romname(filename);
 			if (gnoname != NULL) {
-				rbrowser_menu->item = list_append(rbrowser_menu->item,
-						(void*) gn_menu_create_item(filename, ACTION, loadrom_action));
+				rbrowser_menu->item = list_insert_sort(rbrowser_menu->item,
+						(void*) gn_menu_create_item(filename, MENU_ACTION, loadrom_action, strdup(filename)),
+						romnamesort);
 				rbrowser_menu->nb_elem++;
 				nb_roms++;
 			}
@@ -891,27 +1175,59 @@ void init_rom_browser_menu(void) {
 
 	if (nb_roms == 0) {
 		rbrowser_menu->item = list_append(rbrowser_menu->item,
-				(void*) gn_menu_create_item("No Games Found...", ACTION, NULL));
+				(void*) gn_menu_create_item("No Games Found...", MENU_ACTION, NULL, NULL));
 		rbrowser_menu->nb_elem++;
 	}
+}
+static volatile int scaning = 0;
+
+int rom_browser_scanning_anim(void *data) {
+	int i = 0;
+	while (scaning) {
+		draw_back();
+		if (i > 20)
+			draw_string(menu_buf, sfont, MENU_TITLE_X, MENU_TITLE_Y, "Scanning ...");
+		else
+			draw_string(menu_buf, sfont, MENU_TITLE_X, MENU_TITLE_Y, "Scanning");
+		SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
+		screen_update();
+		frame_skip(0);
+		i++;
+		if (i > 40) i = 0;
+	}
+	return 0;
 }
 
 int rom_browser_menu(void) {
 	static Uint32 init = 0;
 	int a;
+	SDL_Thread *anim_th;
 
 	if (init == 0) {
 		init = 1;
+		/*
 
-		draw_back();
+				init_back();
+		
+				reset_event();
+
+				reset_frame_skip();
+		 */
+
+		/*draw_back();
 		draw_string(menu_buf, sfont, MENU_TITLE_X, MENU_TITLE_Y, "Scanning ....");
 		SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
 		screen_update();
-
+		 */
+		scaning = 1;
+		anim_th = SDL_CreateThread(rom_browser_scanning_anim, NULL);
 		init_rom_browser_menu();
+		scaning = 0;
+		SDL_WaitThread(anim_th, NULL);
 	}
+
 	while (1) {
-		rbrowser_menu->draw(rbrowser_menu);
+		rbrowser_menu->draw(rbrowser_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
 		if ((a = rbrowser_menu->event_handling(rbrowser_menu)) >= 0)
 			return a;
 	}
@@ -922,41 +1238,273 @@ static int rbrowser_action(GN_MENU_ITEM *self, void *param) {
 	return rom_browser_menu();
 }
 
-void gn_init_menu(void) {
+static int toggle_fullscreen(GN_MENU_ITEM *self, void *param) {
+	screen_fullscreen();
+	self->val = 1 - self->val;
+	cf_item_has_been_changed(cf_get_item_by_name("fullscreen"));
+	CF_BOOL(cf_get_item_by_name("fullscreen")) = self->val;
+	return 0;
+}
 
-	main_menu = malloc(sizeof (GN_MENU));
-	main_menu->title = "Gngeo";
-	main_menu->nb_elem = 0;
-	main_menu->current = 0;
-	main_menu->draw_type = MENU_BIG;
-	main_menu->event_handling = menu_event_handling;
-	main_menu->draw = draw_menu;
-	main_menu->item = NULL;
-	/* Create item */
+static int toggle_vsync(GN_MENU_ITEM *self, void *param) {
 
+	self->val = 1 - self->val;
+	conf.vsync = self->val;
+	cf_item_has_been_changed(cf_get_item_by_name("vsync"));
+	CF_BOOL(cf_get_item_by_name("vsync")) = self->val;
+	/* TODO: Reinit the screen */
+	return 0;
+}
 
+static int toggle_autoframeskip(GN_MENU_ITEM *self, void *param) {
+	self->val = 1 - self->val;
+	conf.autoframeskip = self->val;
+	cf_item_has_been_changed(cf_get_item_by_name("autoframeskip"));
+	CF_BOOL(cf_get_item_by_name("autoframeskip")) = self->val;
+	reset_frame_skip();
+	return 0;
+}
 
-	main_menu->item = list_append(main_menu->item,
-			(void*) gn_menu_create_item("Load game", ACTION, rbrowser_action));
-	main_menu->nb_elem++;
+static int toggle_sleepidle(GN_MENU_ITEM *self, void *param) {
+	self->val = 1 - self->val;
+	conf.sleep_idle = self->val;
+	cf_item_has_been_changed(cf_get_item_by_name("sleepidle"));
+	CF_BOOL(cf_get_item_by_name("sleepidle")) = self->val;
 
+	return 0;
+}
 
-	main_menu->item = list_append(main_menu->item,
-			(void*) gn_menu_create_item("Load state", ACTION, load_state_action));
-	main_menu->nb_elem++;
-	main_menu->item = list_append(main_menu->item,
-			(void*) gn_menu_create_item("Save state", ACTION, save_state_action));
-	main_menu->nb_elem++;
-	main_menu->item = list_append(main_menu->item,
-			(void*) gn_menu_create_item("Exit", ACTION, exit_action));
-	main_menu->nb_elem++;
-	/*
-		for (i=0;i<10;i++) {
-			sprintf(buf,"Plop %d",i);
-			main_menu->item=list_append(main_menu->item,(void*)gn_menu_create_item(buf,ACTION,NULL));
-			main_menu->nb_elem++;
+static int toggle_showfps(GN_MENU_ITEM *self, void *param) {
+	self->val = 1 - self->val;
+	conf.show_fps = self->val;
+	cf_item_has_been_changed(cf_get_item_by_name("showfps"));
+	CF_BOOL(cf_get_item_by_name("showfps")) = self->val;
+
+	return 0;
+}
+
+static int change_effect_action(GN_MENU_ITEM *self, void *param) {
+	char *ename = (char *) self->arg;
+	printf("Toggle to effect %s\n", self->name);
+	if (strcmp(ename, "none") != 0) {
+		scale = 1;
+	}
+	strncpy(CF_STR(cf_get_item_by_name("effect")), ename, 254);
+	cf_item_has_been_changed(cf_get_item_by_name("effect"));
+	screen_reinit();
+	return 1;
+}
+extern effect_func effect[];
+
+static int change_effect(GN_MENU_ITEM *self, void *param) {
+	static int init = 0;
+	int a;
+	int i;
+	if (init == 0) {
+
+		init = 1;
+		effect_menu = create_menu("Choose an Effect", MENU_SMALL, NULL, NULL);
+
+		i = 0;
+		while (effect[i].name != NULL) {
+			effect_menu->item = list_append(effect_menu->item,
+					(void*) gn_menu_create_item(effect[i].desc, MENU_ACTION, change_effect_action, (void*) effect[i].name));
+			effect_menu->nb_elem++;
+			i++;
 		}
-	 */
+	}
+	while (1) {
+		effect_menu->draw(effect_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
+		if ((a = effect_menu->event_handling(effect_menu)) >= 0) {
+			self->str = CF_STR(cf_get_item_by_name("effect"));
+
+			return 0;
+		}
+	}
+	return 0;
+}
+
+static int change_samplerate_action(GN_MENU_ITEM *self, void *param) {
+	int rate = (int) self->arg;
+	if (rate != 0) {
+
+		CF_VAL(cf_get_item_by_name("samplerate")) = rate;
+		cf_item_has_been_changed(cf_get_item_by_name("samplerate"));
+		if (conf.sound)
+			close_sdl_audio();
+		else
+			cf_item_has_been_changed(cf_get_item_by_name("sound"));
+		conf.sound = 1;
+		CF_BOOL(cf_get_item_by_name("sound")) = 0;
+		conf.sample_rate = rate;
+		init_sdl_audio();
+		YM2610ChangeSamplerate(conf.sample_rate);
+
+	} else {
+		if (conf.sound)
+			cf_item_has_been_changed(cf_get_item_by_name("sound"));
+		conf.sound = 0;
+		conf.sample_rate = 0;
+		close_sdl_audio();
+		CF_BOOL(cf_get_item_by_name("sound")) = 0;
+	}
+	return 1;
+}
+
+static int change_samplerate(GN_MENU_ITEM *self, void *param) {
+	static int init = 0;
+	int a;
+	GN_MENU_ITEM *gitem;
+	if (init == 0) {
+		init = 1;
+		srate_menu = create_menu("Choose a sample rate", MENU_SMALL, NULL, NULL);
+		gitem = gn_menu_create_item("No sound", MENU_ACTION,
+				change_samplerate_action, (void*) 0);
+		srate_menu->item = list_append(srate_menu->item, (void*) gitem);
+		srate_menu->nb_elem++;
+
+		gitem = gn_menu_create_item("11025 (Fast but poor quality)", MENU_ACTION,
+				change_samplerate_action, (void*) 11025);
+		srate_menu->item = list_append(srate_menu->item, (void*) gitem);
+		srate_menu->nb_elem++;
+
+		gitem = gn_menu_create_item("22050 (Good compromise)", MENU_ACTION,
+				change_samplerate_action, (void*) 22050);
+		srate_menu->item = list_append(srate_menu->item, (void*) gitem);
+		srate_menu->nb_elem++;
+
+		gitem = gn_menu_create_item("44100 (Best quality)", MENU_ACTION,
+				change_samplerate_action, (void*) 44100);
+		srate_menu->item = list_append(srate_menu->item, (void*) gitem);
+		srate_menu->nb_elem++;
+	}
+
+	//	gn_menu_disable_item(srate_menu,"No sound");
+
+	while (1) {
+		srate_menu->draw(srate_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
+		if ((a = srate_menu->event_handling(srate_menu)) >= 0) {
+			sprintf(self->str, "%d", conf.sample_rate);
+			;
+			return 0;
+		}
+	}
+	return 0;
+}
+
+static int save_conf_action(GN_MENU_ITEM *self, void *param) {
+	int type = (int) self->arg;
+	if (type == 0)
+		cf_save_file(NULL, 0);
+	else {
+		char *gpath;
+		char *drconf;
+		char *name = memory.rom.info.name;
+#ifdef EMBEDDED_FS
+		gpath = "conf/";
+#else
+		gpath = get_gngeo_dir();
+#endif
+		drconf = alloca(strlen(gpath) + strlen(name) + strlen(".cf") + 1);
+		sprintf(drconf, "%s%s.cf", gpath, name);
+		cf_save_file(drconf, 0);
+	}
+	return 1;
+}
+
+static int option_action(GN_MENU_ITEM *self, void *param) {
+	//exit(0);
+	int a;
+
+	while (1) {
+		option_menu->draw(option_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
+		if ((a = option_menu->event_handling(option_menu)) >= 0)
+			return 0;
+	}
+}
+
+void gn_init_menu(void) {
+	GN_MENU_ITEM *gitem;
+	main_menu = create_menu(NULL, MENU_BIG, NULL, NULL);
+
+	main_menu->item = list_append(main_menu->item,
+			(void*) gn_menu_create_item("Load game", MENU_ACTION, rbrowser_action, NULL));
+	main_menu->nb_elem++;
+
+
+	main_menu->item = list_append(main_menu->item,
+			(void*) gn_menu_create_item("Load state", MENU_ACTION, load_state_action, NULL));
+	main_menu->nb_elem++;
+	main_menu->item = list_append(main_menu->item,
+			(void*) gn_menu_create_item("Save state", MENU_ACTION, save_state_action, NULL));
+	main_menu->nb_elem++;
+
+	main_menu->item = list_append(main_menu->item,
+			(void*) gn_menu_create_item("Option", MENU_ACTION, option_action, NULL));
+	main_menu->nb_elem++;
+
+	main_menu->item = list_append(main_menu->item,
+			(void*) gn_menu_create_item("Credit", MENU_ACTION, credit_action, NULL));
+	main_menu->nb_elem++;
+
+	main_menu->item = list_append(main_menu->item,
+			(void*) gn_menu_create_item("Exit", MENU_ACTION, exit_action, NULL));
+	main_menu->nb_elem++;
+
+	option_menu = create_menu("Options", MENU_SMALL, NULL, NULL);
+
+
+	gitem = gn_menu_create_item("Fullscreen", MENU_CHECK, toggle_fullscreen, NULL);
+	gitem->val = CF_BOOL(cf_get_item_by_name("fullscreen"));
+	option_menu->item = list_append(option_menu->item, (void*) gitem);
+	option_menu->nb_elem++;
+
+	gitem = gn_menu_create_item("Vsync", MENU_CHECK, toggle_vsync, NULL);
+	gitem->val = CF_BOOL(cf_get_item_by_name("vsync"));
+	option_menu->item = list_append(option_menu->item, (void*) gitem);
+	option_menu->nb_elem++;
+
+	gitem = gn_menu_create_item("Auto Fame Skip", MENU_CHECK, toggle_autoframeskip, NULL);
+	gitem->val = CF_BOOL(cf_get_item_by_name("autoframeskip"));
+	option_menu->item = list_append(option_menu->item, (void*) gitem);
+	option_menu->nb_elem++;
+
+	gitem = gn_menu_create_item("Sleep while idle", MENU_CHECK, toggle_sleepidle, NULL);
+	gitem->val = CF_BOOL(cf_get_item_by_name("sleepidle"));
+	option_menu->item = list_append(option_menu->item, (void*) gitem);
+	option_menu->nb_elem++;
+
+	gitem = gn_menu_create_item("Show FPS", MENU_CHECK, toggle_showfps, NULL);
+	gitem->val = CF_BOOL(cf_get_item_by_name("showfps"));
+	option_menu->item = list_append(option_menu->item, (void*) gitem);
+	option_menu->nb_elem++;
+
+	gitem = gn_menu_create_item("Effect", MENU_LIST, change_effect, NULL);
+	gitem->str = CF_STR(cf_get_item_by_name("effect"));
+	option_menu->item = list_append(option_menu->item, (void*) gitem);
+	option_menu->nb_elem++;
+
+	gitem = gn_menu_create_item("Sample Rate", MENU_LIST, change_samplerate, NULL);
+	gitem->str = malloc(32);
+	sprintf(gitem->str, "%d", conf.sample_rate);
+	option_menu->item = list_append(option_menu->item, (void*) gitem);
+	option_menu->nb_elem++;
+
+	gitem = gn_menu_create_item("Save conf for every game", MENU_ACTION, save_conf_action, (void*) 0);
+	option_menu->item = list_append(option_menu->item, (void*) gitem);
+	option_menu->nb_elem++;
+
+	gitem = gn_menu_create_item("Save conf for this game", MENU_ACTION, save_conf_action, (void*) 1);
+	option_menu->item = list_append(option_menu->item, (void*) gitem);
+	option_menu->nb_elem++;
+
+	yesno_menu = create_menu(NULL, MENU_SMALL, NULL, NULL);
+	gitem = gn_menu_create_item("Yes", MENU_ACTION, yes_action, NULL);
+	yesno_menu->item = list_append(yesno_menu->item, (void*) gitem);
+	yesno_menu->nb_elem++;
+	gitem = gn_menu_create_item("no", MENU_ACTION, no_action, NULL);
+	yesno_menu->item = list_append(yesno_menu->item, (void*) gitem);
+	yesno_menu->nb_elem++;
 }
 
 Uint32 run_menu(void) {
@@ -968,8 +1516,26 @@ Uint32 run_menu(void) {
 		gn_init_menu();
 	}
 
+	init_back();
+
+	reset_event();
+	//	conf.autoframeskip = 1;
+	reset_frame_skip();
+
+	gn_menu_disable_item(main_menu, "Load state");
+	if (conf.game == NULL) {
+		gn_menu_disable_item(main_menu, "Save state");
+		gn_menu_disable_item(option_menu, "Save conf for this game");
+	} else {
+		Uint32 nb_slot = how_many_slot(conf.game);
+		gn_menu_enable_item(main_menu, "Save state");
+		gn_menu_enable_item(option_menu, "Save conf for this game");
+		if (nb_slot > 0)
+			gn_menu_enable_item(main_menu, "Load state");
+	}
+
 	while (1) {
-		main_menu->draw(main_menu);
+		main_menu->draw(main_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
 		if ((a = main_menu->event_handling(main_menu)) >= 0)
 			return a;
 	}

@@ -67,7 +67,7 @@ void update_sdl_stream(void *userdata, Uint8 * stream, int len)
 #ifdef ENABLE_940T
 	static Uint32 play_buffer_pos;
 #endif
-	//printf("sdl %d\n", len);
+
 	PROFILER_START(PROF_SOUND);
 	//streamupdate(len);
 	
@@ -98,11 +98,15 @@ void update_sdl_stream(void *userdata, Uint8 * stream, int len)
 
 
 #else
+
 	YM2610Update_stream(len/4);
 	memcpy(stream, (Uint8 *) play_buffer, len);
+
 #endif
 	PROFILER_STOP(PROF_SOUND);
 
+}
+void dummy_stream(void *userdata, Uint8 * stream, int len) {
 }
 
 int init_sdl_audio(void)
@@ -123,6 +127,8 @@ int init_sdl_audio(void)
 #endif	/* */
     desired->channels = 2;
     desired->callback = update_sdl_stream;
+	 
+	//desired->callback = NULL;
     desired->userdata = NULL;
     //SDL_OpenAudio(desired, NULL);
     SDL_OpenAudio(desired, obtain);
@@ -135,11 +141,14 @@ void close_sdl_audio(void) {
     SDL_PauseAudio(1);
     SDL_CloseAudio();
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
-	free(desired);
-	free(obtain);
+	if (desired) free(desired);
+	desired = NULL;
+	if (obtain) free(obtain);
+	obtain = NULL;
 }
 
 void pause_audio(int on) {
+	printf("PAUSE audio %d\n",on);
     SDL_PauseAudio(on);
 }
 

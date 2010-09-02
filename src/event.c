@@ -107,7 +107,7 @@ bool create_joymap_from_string(int player,char *jconf) {
 
 bool init_event(void) {
 	int i;
-	printf("sizeof joymap=%d nb_joy=%d\n",sizeof(JOYMAP),conf.nb_joy);
+//	printf("sizeof joymap=%d nb_joy=%d\n",sizeof(JOYMAP),conf.nb_joy);
 	jmap=calloc(sizeof(JOYMAP),1);
 	
 	conf.nb_joy = SDL_NumJoysticks();
@@ -169,6 +169,15 @@ int handle_pdep_event(SDL_Event *event) {
 	}
 	return 0;
 }
+#elif DEVKIT8000_
+int handle_pdep_event(SDL_Event *event) {
+	switch (event->type) {
+		case SDL_MOUSEBUTTONDOWN:
+		case SDL_MOUSEBUTTONUP:
+			printf("MouseDown %d %d %d\n",event->button.state,event->button.x,event->button.y);
+			break;
+	}
+}
 #else /* Default */
 int handle_pdep_event(SDL_Event *event) {
 	switch (event->type) {
@@ -190,6 +199,9 @@ int handle_pdep_event(SDL_Event *event) {
 	return 0;
 }
 #endif
+
+#define EVGAME 1
+#define EVMENU 2
 
 int handle_event(void) {
 	SDL_Event event;
@@ -221,7 +233,7 @@ int handle_event(void) {
 			}
 		break;
 	    case SDL_KEYDOWN:
-		    //printf("%d\n",jmap->key[event.key.keysym.sym].player);
+				//printf("%d\n", jmap->key[event.key.keysym.sym].player);
 		    switch (jmap->key[event.key.keysym.sym].player) {
 			case 1:
 				joy_state[0][jmap->key[event.key.keysym.sym].map]=1;
@@ -253,8 +265,8 @@ int handle_event(void) {
 
 			}
 			
-			printf("SDL_JOYHATMOTION  %d %d %d\n",event.jhat.which,
-			event.jhat.hat,event.jhat.value);
+			//printf("SDL_JOYHATMOTION  %d %d %d\n",event.jhat.which,
+			//event.jhat.hat,event.jhat.value);
 		}
 		break;
 		case SDL_JOYAXISMOTION:
@@ -263,6 +275,7 @@ int handle_event(void) {
 			int map=jmap->jaxe[event.jaxis.which][event.jaxis.axis].map;
 			int oldvalue=jmap->jaxe[event.jaxis.which][event.jaxis.axis].value;
 			int value=0;
+	//		printf("Axiw motions %d %d %d\n",event.jaxis.which,event.jaxis.axis,event.jaxis.value);
 			if (player) {
 				player-=1;
 				
@@ -305,9 +318,10 @@ int handle_event(void) {
 				
 			}
 
-			if (abs(event.jaxis.value)>jaxis_threshold)
+		/*	if (abs(event.jaxis.value)>jaxis_threshold)
 				printf("SDL_JOYAXISMOTION %d %d %d %d\n",event.jaxis.which,
 						event.jaxis.axis,value,jmap->jaxe[event.jaxis.which][event.jaxis.axis].dir);
+		 * */
 		}
 			break;
 		case SDL_JOYBUTTONDOWN: 
@@ -320,7 +334,7 @@ int handle_event(void) {
 				joy_state[player][map]=1;
 			}
 			
-			printf("SDL_JOYBUTTONDOWN %d %d\n",event.jbutton.which,event.jbutton.button);
+			//printf("SDL_JOYBUTTONDOWN %d %d\n",event.jbutton.which,event.jbutton.button);
 		}
 			break;
 		case SDL_JOYBUTTONUP:
@@ -417,45 +431,73 @@ int handle_event(void) {
 
 }
 
-int wait_event(void) {
+/*
+int handle_event(void) {
+	return handle_event_inter(EVGAME);
+}
+*/
+static int last=-1;
+static int counter=40;
+
+void reset_event(void) {
 	SDL_Event event;
 	int i;
-	int last=-1;
-	for(i=0;i<GN_MAX_KEY;i++)
-		if (joy_state[0][i]) last=i;
-	SDL_WaitEvent(&event);
+	for (i = 0; i < GN_MAX_KEY; i++)
+		joy_state[0][i] = 0;
+	while (SDL_PollEvent(&event));
+	last=-1;
+	counter=40;
+}
+
+int wait_event(void) {
+	SDL_Event event;
+	int i,a;
+	//static int counter;
+	//static int last=-1;
+	//int last=-1;
+	//for(i=0;i<GN_MAX_KEY;i++)
+	//	if (joy_state[0][i]) last=i;
+	//SDL_WaitEvent(&event);
+	while (SDL_PollEvent(&event)) {
 	switch (event.type) {
 	case SDL_KEYDOWN:
 		/* Some default keyboard standard key */
 		switch (event.key.keysym.sym) {
 		case SDLK_TAB:
-			//joy_state[0][GN_MENU_KEY]=1;
-			return GN_MENU_KEY;
+			joy_state[0][GN_MENU_KEY]=1;
+			//last=GN_MENU_KEY;
+			//return GN_MENU_KEY;
 			break;	
 		case SDLK_UP:
-			//joy_state[0][GN_UP]=1;
-			return GN_UP;
+			joy_state[0][GN_UP]=1;
+			//last=GN_UP;
+			//return GN_UP;
 			break;	
 		case SDLK_DOWN:
-			//joy_state[0][GN_DOWN]=1;
-			return GN_DOWN;
+			joy_state[0][GN_DOWN]=1;
+			//last=GN_DOWN;
+			//return GN_DOWN;
 			break;	
 		case SDLK_LEFT:
-			//joy_state[0][GN_LEFT]=1;
-			return GN_LEFT;
+			joy_state[0][GN_LEFT]=1;
+			//last=GN_LEFT;
+			//return GN_LEFT;
 			break;	
 		case SDLK_RIGHT:
-			//joy_state[0][GN_RIGHT]=1;
-			return GN_RIGHT;
+			joy_state[0][GN_RIGHT]=1;
+			//last=GN_RIGHT;
+			//return GN_RIGHT;
 			break;	
 		case SDLK_ESCAPE:
-			//joy_state[0][GN_A]=1;
-			return GN_A;
+			joy_state[0][GN_A]=1;
+			//last=GN_A;
+			//return GN_A;
 			break;
 		case SDLK_RETURN:
 		case SDLK_KP_ENTER:
-			//joy_state[0][GN_B]=1;
-			return GN_B;
+			joy_state[0][GN_B]=1;
+			//last=GN_B;
+			//return GN_B;
 			break;
 		default:
 			//SDL_PushEvent(&event);
@@ -469,19 +511,62 @@ int wait_event(void) {
 		for(i=0;i<GN_MAX_KEY;i++)
 			joy_state[0][i]=0;
 		last=-1;
-
+		counter=40;
 		break;
 	default:
 		SDL_PushEvent(&event);
-		handle_event();
+				handle_event();
+				/* Simulate keyup */
+				a=0;
+				for (i = 0; i < GN_MAX_KEY; i++)
+					if (joy_state[0][i]) a++;
+				if (a!=1) {
+					for (i = 0; i < GN_MAX_KEY; i++)
+			joy_state[0][i] = 0;
+		last = -1;
+		counter = 40;
+				}
 		break;
 	}
-/*
 	}
-	SDL_PushEvent(&event);
-	handle_event();
-*/
+/*
+		}
+		SDL_PushEvent(&event);
+		handle_event();
+	 */
+
+	if (last!=-1) {
+		if (counter>0)
+			counter--;
+		if (counter==0) {
+			counter=5;
+			return last;
+		}
+	} else {
+		for(i=0;i<GN_MAX_KEY;i++)
+			if (joy_state[0][i]) {
+				last=i;
+				return i;
+			}
+	}
+/*
 	for(i=0;i<GN_MAX_KEY;i++)
-		if (joy_state[0][i]&& i!=last) return i;
+		if (joy_state[0][i] ) {
+			if (i != last) {
+				counter=30;
+				last=i;
+				return i;
+			} else {
+				counter--;
+				if (counter==0) {
+					counter=5;
+					return i;
+				}
+
+			}
+
+
+		}
+*/
 	return 0;
 }

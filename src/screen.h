@@ -33,11 +33,12 @@ Uint8 get_effect_by_name(char *name);
 Uint8 get_blitter_by_name(char *name);
 void print_blitter_list(void);
 void print_effect_list(void);
-void screen_change_blitter_and_effect(char *bname,char *ename);
+//void screen_change_blitter_and_effect(char *bname,char *ename);
 LIST* create_effect_list(void);
 LIST* create_blitter_list(void);
 
 SDL_bool screen_init();
+SDL_bool screen_reinit(void);
 SDL_bool screen_resize(int w, int h);
 void screen_update();
 void screen_close();

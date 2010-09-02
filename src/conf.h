@@ -25,7 +25,7 @@ typedef struct CONF_ITEM {
 	int (*action)(struct CONF_ITEM *self); /* if defined, the option is 
 						  available only on the command line */
 	int flags;
-	bool modified;
+	int modified;
 	CF_TYPE type;
 	union {
 		struct {
@@ -76,5 +76,6 @@ void cf_init_cmd_line(void);
 int cf_get_non_opt_index(int argc, char *argv[]);
 char* cf_parse_cmd_line(int argc, char *argv[]);
 void cf_print_help(void);
+void cf_reset_to_default(void);
 
 #endif

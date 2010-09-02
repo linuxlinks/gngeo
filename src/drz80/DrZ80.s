@@ -1,4 +1,7 @@
-      .DATA
+;@      .DATA
+	.text
+	.align 4
+
 ;@ Reesy's Z80 Emulator Version 0.001
 
 ;@ (c) Copyright 2004 Reesy, All rights reserved

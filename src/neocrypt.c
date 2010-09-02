@@ -536,25 +536,33 @@ static void neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 	UINT8 *buf;
 	UINT8 *rom;
 	int rpos;
-
+	int cnt;
 	rom_size = memory_region_length(machine, "sprites");
 
 	buf = alloc_array_or_die(UINT8, rom_size);
 
 	rom = memory_region(machine, "sprites");
-
+	gn_init_pbar("Decrypting...", rom_size/2);
 	// Data xor
+	cnt=0;
 	for (rpos = 0;rpos < rom_size/4;rpos++)
 	{
 		decrypt(buf+4*rpos+0, buf+4*rpos+3, rom[4*rpos+0], rom[4*rpos+3], type0_t03, type0_t12, type1_t03, rpos, (rpos>>8) & 1);
 		decrypt(buf+4*rpos+1, buf+4*rpos+2, rom[4*rpos+1], rom[4*rpos+2], type0_t12, type0_t03, type1_t12, rpos, ((rpos>>16) ^ address_16_23_xor2[(rpos>>8) & 0xff]) & 1);
+		if (cnt++ > 32768) {
+			cnt=0;
+			gn_update_pbar(rpos);
+		}
 	}
-
+	cnt=0;
 	// Address xor
 	for (rpos = 0;rpos < rom_size/4;rpos++)
 	{
 		int baser;
-
+		if (cnt++>32768) {
+			gn_update_pbar(rpos + (rom_size >> 2));
+			cnt++;
+		}
 		baser = rpos;
 
 		baser ^= extra_xor;
@@ -588,7 +596,7 @@ static void neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 		rom[4*rpos+2] = buf[4*baser+2];
 		rom[4*rpos+3] = buf[4*baser+3];
 	}
-
+	gn_terminate_pbar();
 	free(buf);
 }
 

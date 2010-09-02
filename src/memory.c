@@ -281,7 +281,7 @@ LONG_FETCH(mem68k_fetch_pal)
 
 /**** VIDEO ****/
 Uint8 mem68k_fetch_video_byte(Uint32 addr) {
-	printf("mem6k_fetch_video_byte %08x\n",addr);
+	//printf("mem6k_fetch_video_byte %08x\n",addr);
 	if (!(addr&0x1))
 			return mem68k_fetch_video_word(addr)>>8;
 	else {
@@ -561,7 +561,7 @@ LONG_STORE(mem68k_store_pal)
 void mem68k_store_video_byte(Uint32 addr, Uint8 data) {
 	/* garou write at 3c001f, 3c000f, 3c0015 */
 	/* wjammers write, and fetch at 3c0000 .... */
-	printf("mem68k_store_video_byte %08x %02x @pc=%08x\n",addr,data,cpu_68k_getpc());
+	//printf("mem68k_store_video_byte %08x %02x @pc=%08x\n",addr,data,cpu_68k_getpc());
 	if (!(addr&0x1)) {
 		mem68k_store_video_word(addr,(data<<8)|data);
 	}
@@ -694,21 +694,25 @@ void mem68k_store_setting_byte(Uint32 addr, Uint8 data) {
 	if (addr == 0x0003) {
 		printf("Selecting Bios Vector\n");
 		memcpy(memory.rom.cpu_m68k.p, memory.rom.bios_m68k.p, 0x80);
+		memory.current_vector=0;
 	}
 
 	if (addr == 0x0013) {
 		printf("Selecting Game Vector\n");
 		memcpy(memory.rom.cpu_m68k.p, memory.game_vector, 0x80);
+		memory.current_vector=1;
 	}
 
 	if (addr == 0x000b) { /* select board fix */
 		current_fix = memory.rom.bios_sfix.p;
 		fix_usage = memory.fix_board_usage;
+		memory.vid.currentfix=0;
 		return;
 	}
 	if (addr == 0x001b) { /* select game fix */
 		current_fix = memory.rom.game_sfix.p;
 		fix_usage = memory.fix_game_usage;
+		memory.vid.currentfix=1;
 		return;
 	}
 	if (addr == 0x000d) { /* sram lock */
@@ -722,11 +726,13 @@ void mem68k_store_setting_byte(Uint32 addr, Uint8 data) {
 	if (addr == 0x000f) { /* set palette 2 */
 		current_pal = memory.vid.pal_neo[1];
 		current_pc_pal = (Uint32 *) memory.vid.pal_host[1];
+		memory.vid.currentpal=1;
 		return;
 	}
 	if (addr == 0x001f) { /* set palette 1 */
 		current_pal = memory.vid.pal_neo[0];
 		current_pc_pal = (Uint32 *) memory.vid.pal_host[0];
+		memory.vid.currentpal = 0;
 		return;
 	}
 	/* garou write 0 to 3a0001 -> enable display, 3a0011 -> disable display */
@@ -814,13 +820,13 @@ Uint8 mem68k_fetch_bk_normal_byte(Uint32 addr) {
     if (memory.bksw_unscramble) { /* SMA prot & random number generator */
         Uint32 a=addr&0xFFFFFE;
 		if (a == 0xfe446) {
-			printf("Prot reading B %08x\n", addr);
+			//printf("Prot reading B %08x\n", addr);
 			return (addr&0x1?0x9a:0x37);
 		}
 		if (memory.sma_rng_addr && addr>=0x2fff00 &&
             (((a & 0xFF) == (memory.sma_rng_addr & 0xFF)) || 
              ((a & 0xFF) == memory.sma_rng_addr >> 8))) {
-            printf("SMA_Random B %08x\n",addr);
+            //printf("SMA_Random B %08x\n",addr);
 			return (addr&0x1?sma_random()>>8:sma_random()&0xFF);
         }
 	}
@@ -831,13 +837,13 @@ Uint16 mem68k_fetch_bk_normal_word(Uint32 addr) {
 	addr &= 0xFFFFF;
 	if (memory.bksw_unscramble) { /* SMA prot & random number generator */
 		if (addr == 0xfe446) {
-			printf("Prot reading W %08x\n", addr);
+			//printf("Prot reading W %08x\n", addr);
 			return 0x9a37;
 		}
 		if (memory.sma_rng_addr && addr>=0x2fff00 &&
             (((addr & 0xFF) == (memory.sma_rng_addr & 0xFF)) || 
              ((addr & 0xFF) == memory.sma_rng_addr >> 8))) {
-            printf("SMA_Random W %08x\n",addr);
+            //printf("SMA_Random W %08x\n",addr);
 			return sma_random();
         }
 	}
@@ -865,7 +871,7 @@ static void bankswitch(Uint32 address, Uint8 data) {
 
 void mem68k_store_bk_normal_byte(Uint32 addr, Uint8 data) {
 	//if (addr<0x2FFFF0)
-	printf("bankswitch_b %x %x\n", addr, data);
+	//printf("bankswitch_b %x %x\n", addr, data);
 	bankswitch(addr, data);
 }
 

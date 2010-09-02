@@ -98,6 +98,7 @@ typedef struct neo_mem {
 
 	Uint8 z80_ram[0x800];
 	Uint8 game_vector[0x80];
+        int   current_vector;
 	/* internal representation of joystick */
 	Uint8 intern_p1, intern_p2, intern_coin, intern_start;
 
@@ -125,7 +126,7 @@ Uint8 *fix_usage;
 /* sram */
 Uint8 sram_lock;
 //Uint32 sram_protection_hack;
-int sram_protection_hack;
+//int sram_protection_hack;
 
 /* Sound control */
 Uint8 sound_code;
@@ -135,7 +136,7 @@ Uint8 result_code;
 
 /* 68k cpu Banking control */
 extern Uint32 bankaddress;		/* current bank */
-Uint8 current_cpu_bank;
+//Uint8 current_cpu_bank;
 Uint16 z80_bank[4];
 
 /* misc utility func */

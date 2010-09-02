@@ -113,6 +113,7 @@
 #include <math.h>
 
 #include "mvs.h"
+#include "../state.h"
 #include "2610intf.h"
 #include "ym2610.h"
 
@@ -2832,6 +2833,16 @@ void YM2610Init(int clock, int rate,
 	YM2610Reset();
 }
 
+void YM2610ChangeSamplerate(int rate) {
+	int i;
+	YM2610.OPN.ST.rate = rate;
+	SSG.step = ((double)SSG_STEP * rate * 8) / YM2610.OPN.ST.clock;
+	OPNSetPres(&YM2610.OPN, 6*24, 6*24, 4*2); /* OPN 1/6, SSG 1/4 */
+	for (i = 0; i < 6; i++) {
+		YM2610.adpcma[i].step = (u32) ((float) (1 << ADPCM_SHIFT) * ((float) YM2610.OPN.ST.freqbase) / 3.0);
+	}
+	YM2610.adpcmb.freqbase = YM2610.OPN.ST.freqbase;
+}
 /* reset one of chip */
 void YM2610Reset(void)
 {
@@ -3300,6 +3311,10 @@ next_frame:
 }
 #endif
 
+
+void ym2610_mkstate(gzFile *gzf,int mode) {
+	mkstate_data(gzf, &YM2610, sizeof (YM2610), mode);
+}
 
 #ifdef SAVE_STATE
 

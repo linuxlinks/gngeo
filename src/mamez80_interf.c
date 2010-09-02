@@ -218,6 +218,18 @@ static void z80_init_save_state(void) {
     set_pre_save_function(ST_Z80,pre_save_state);
 }
 
+void cpu_z80_mkstate(gzFile *gzf,int mode) {
+	mkstate_data(gzf, &z80_st, sizeof (z80_st), mode);
+	mkstate_data(gzf, mame_z80mem, 0x10000, mode);
+	if (mode==STREAD) {
+		int i;
+		for (i = 0; i < 4; i++) {
+			cpu_z80_switchbank(i, z80_bank[i]);
+		}
+//		memcpy(mame_z80mem + 0xf800, memory.z80_ram, 0x800);
+	}
+}
+
 void cpu_z80_init(void)
 {
     //  init_mamez80_mem();

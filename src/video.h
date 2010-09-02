@@ -44,6 +44,7 @@ typedef struct VIDEO {
 	Uint8 pal_neo[2][0x2000];
 	Uint8 pal_host[2][0x4000];
 	Uint8 currentpal;
+        Uint8 currentfix; /* 0=bios fix */
 	Uint16 rbuf;
 
 	/* Auto anim counter */

@@ -97,7 +97,7 @@ void init_sdl(void /*char *rom_name*/) {
     char *nomouse = getenv("SDL_NOMOUSE");
     SDL_Surface *icon;
 
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_NOPARACHUTE);
 
 #ifdef GP2X
     atexit(gp2x_quit);
@@ -128,14 +128,14 @@ void init_sdl(void /*char *rom_name*/) {
     calculate_hotkey_bitmasks();    
 	init_event();
 
-    if (nomouse == NULL)
-	SDL_ShowCursor(0);
+    //if (nomouse == NULL)
+	//SDL_ShowCursor(SDL_DISABLE);
 }
 
 int main(int argc, char *argv[])
 {
     char *rom_name;
-    char *drconf,*gpath;
+
 
 
 #ifdef __AMIGA__
@@ -158,42 +158,8 @@ int main(int argc, char *argv[])
 	print_blitter_list();
 	exit(0);
     }
-    /* Print help and exit if no game specified */
-	/*
-	  if (!rom_name) {
-	  cf_print_help();
-	  exit(0);
-	  }
-	*/
-    
 
-/* per game config */
-#ifdef EMBEDDED_FS
-    gpath="conf/";
-#else
-    gpath=get_gngeo_dir();
-#endif
-	if (rom_name) {
-		if (strstr(rom_name,".gno")!=NULL) {
-			char *name=dr_gno_romname(rom_name);
-			if (name) {
-				printf("Tring to load a gno file %s %s\n",rom_name,name);
-				drconf=alloca(strlen(gpath)+strlen(name)+strlen(".cf")+1);
-				sprintf(drconf,"%s%s.cf",gpath,name);
-			} else {
-				printf("Error while loading %s\n",rom_name);
-				return 0;
-			}
-		} else {
-			drconf=alloca(strlen(gpath)+strlen(rom_name)+strlen(".cf")+1);
-			sprintf(drconf,"%s%s.cf",gpath,rom_name);
-		}
-		cf_open_file(drconf);
-	}
-
-
-
-    init_sdl();
+	init_sdl();
 
 /* GP2X stuff */
 #ifdef GP2X
@@ -206,18 +172,21 @@ int main(int argc, char *argv[])
 
     if (conf.debug) conf.sound=0;
 
+/* Launch the specified game, or the rom browser if no game was specified*/
 	if (!rom_name) {
-		rom_browser_menu();
+	//	rom_browser_menu();
+		run_menu();
 		printf("GAME %s\n",conf.game);
 		if (conf.game==NULL) return 0;
 	} else {
-       
+  
 		if (init_game(rom_name)!=SDL_TRUE) {
 			printf("Can't init %s...\n",rom_name);
             exit(1);
 		}    
 	}
 
+	/* If asked, do a .gno dump and exit*/
     if (CF_BOOL(cf_get_item_by_name("dump"))) {
         char dump[8+4+1];
         sprintf(dump,"%s.gno",rom_name);
@@ -232,9 +201,6 @@ int main(int argc, char *argv[])
 	    main_loop();
 
     close_game();
-    /*
-    save_nvram(conf.game);
-    save_memcard(conf.game);
-*/
+
     return 0;
 }

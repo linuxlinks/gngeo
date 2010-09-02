@@ -55,6 +55,7 @@ struct {
     Uint16 test_switch;
 
     Uint8 sound;
+    Uint8 vsync;
     Uint8 snd_st_reg_create;
     Uint8 do_message;
     Uint8 nb_joy;
@@ -67,6 +68,11 @@ struct {
     Uint8 accurate940;
     SYSTEM system;
     COUNTRY country;
+
+    Uint8 autoframeskip;
+    Uint8 show_fps;
+    Uint8 sleep_idle;
+
     char message[128];
     char fps[4];
 

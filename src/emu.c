@@ -241,10 +241,6 @@ static int last_line;
 static int skip_this_frame = 0;
 
 static inline int neo_interrupt(void) {
-	/*
-	 static int fc;
-	 int skip_this_frame;
-	 */
     static int frames;
 
 	pd4990a_addretrace();
@@ -289,13 +285,11 @@ static inline void update_screen(void) {
 		memory.vid.irq2start = 1000;
 
 	if (!skip_this_frame) {
-		if (last_line < 21) { /* there was no IRQ2 while the beam was in the visible area
-		 -> no need for scanline rendering */
+		if (last_line < 21) { /* there was no IRQ2 while the beam was in the
+							 * visible area -> no need for scanline rendering */
 			draw_screen();
-			//draw_screen_scanline(last_line-21, 262, 1);
 		} else {
 			draw_screen_scanline(last_line - 21, 262, 1);
-			//draw_screen_scanline(last_line, 262, 1);
 		}
 	}
 
@@ -331,7 +325,6 @@ static inline int update_scanline(void) {
 			if (current_line < 20)
 				current_line = 20;
 			draw_screen_scanline(last_line - 21, current_line - 20, 0);
-			//draw_screen_scanline(last_line, current_line, 0);
 		}
 		last_line = current_line;
 	}
@@ -342,7 +335,7 @@ static inline int update_scanline(void) {
 static Uint16 pending_save_state = 0, pending_load_state = 0;
 static int slow_motion = 0;
 
-static inline void state_handling( save, load) {
+static inline void state_handling(int save,int load) {
 	if (save) {
 		//if (conf.sound) SDL_LockAudio();
 		save_state(conf.game, save - 1);
@@ -403,19 +396,12 @@ void main_loop(void) {
 			int interp = interpolation;
 			SDL_BlitSurface(buffer, &buf_rect, state_img, &screen_rect);
 			interpolation = 0;
-			if (conf.sound) {
-				pause_audio(1); /*SDL_LockAudio()*/
-				;
-			}
+			if (conf.sound) pause_audio(1);
 			if (run_menu() == 2) {
 				neo_emu_done = 1;/*printf("Unlock audio\n");SDL_UnlockAudio()*/
 				return;
-				;
 			} // A bit ugly...
-			if (conf.sound) {
-				pause_audio(0); /*SDL_UnlockAudio()*/
-				;
-			}
+			if (conf.sound) pause_audio(0);
 			//neo_emu_done = 1;
 			interpolation = interp;
 			reset_frame_skip();
@@ -721,7 +707,7 @@ void main_loop(void) {
 						cpu_68k_interrupt(2);
 				}
 				tm_cycle = cpu_68k_run(cpu_68k_timeslice_scanline - tm_cycle);
-				state_handling(pending_save_state, pending_load_state);
+				//state_handling(pending_save_state, pending_load_state);
 
 				update_screen();
 				memory.watchdog++;
@@ -737,7 +723,7 @@ void main_loop(void) {
 				a = neo_interrupt();
 
 				/* state handling (we save/load before interrupt) */
-				state_handling(pending_save_state, pending_load_state);
+				//state_handling(pending_save_state, pending_load_state);
 
 				memory.watchdog++;
 
@@ -762,12 +748,9 @@ void main_loop(void) {
 	}
 	pause_audio(1);
 #ifdef ENABLE_940T
-	//while(CHECK_BUSY(JOB940_RUN_Z80));
-	//while(CHECK_BUSY(JOB940_RUN_Z80_NMI));
 	wait_busy_940(JOB940_RUN_Z80);
 	wait_busy_940(JOB940_RUN_Z80_NMI);
 	shared_ctl->z80_run = 0;
-	//fclose(sndbuf);
 #endif
 
 }
@@ -792,7 +775,7 @@ void cpu_68k_dpg_step(void) {
 		} else {
 			neo_interrupt();
 		}
-		state_handling(pending_save_state, pending_load_state);
+		//state_handling(pending_save_state, pending_load_state);
 		cpu_68k_interrupt(1);
 	} else {
 		if (line_cycle >= cpu_68k_timeslice_scanline) {

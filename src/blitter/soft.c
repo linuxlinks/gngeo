@@ -19,8 +19,11 @@
 /*
 static SDL_Rect buf_rect	 =	{16, 16, 304, 224};
 */
+#ifdef DEVKIT8000
+static SDL_Rect screen_rect =	{ 0,  0, 304, 240};
+#else
 static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
-
+#endif
 //static SDL_Surface *offscreen;
 
 SDL_bool
@@ -38,13 +41,20 @@ blitter_soft_init()
 	int hw_surface=(CF_BOOL(cf_get_item_by_name("hwsurface"))?SDL_HWSURFACE:SDL_SWSURFACE);
 #endif
 	//int screen_size=CF_BOOL(cf_get_item_by_name("screen320"));
-	Uint32 sdl_flags = hw_surface|(fullscreen?SDL_FULLSCREEN:0);
+#ifdef DEVKIT8000
+	Uint32 sdl_flags = hw_surface|(fullscreen?SDL_FULLSCREEN:0)|SDL_DOUBLEBUF;
+
+	screen_rect.w=visible_area.w;
+	screen_rect.h=240;
+	height=240;
+#else
+		Uint32 sdl_flags = hw_surface|(fullscreen?SDL_FULLSCREEN:0)/*|SDL_DOUBLEBUF*/;
 
 
 	screen_rect.w=visible_area.w;
 	screen_rect.h=visible_area.h;
-
-		
+#endif
+	if (neffect!=0)	scale =1;
 	if (scale == 1) {
 	    width *=effect[neffect].x_ratio;
 	    height*=effect[neffect].y_ratio;
@@ -96,8 +106,9 @@ blitter_soft_init()
 	}
 
 
-#else		
+#else
 	screen = SDL_SetVideoMode(width, height, 16, sdl_flags);
+	//SDL_ShowCursor(SDL_DISABLE);
 #endif
 	if (!screen) return SDL_FALSE;
 	//offscreen = SDL_CreateRGBSurface(SDL_HWSURFACE, 304, 224, 16, 0xF800, 0x7E0, 0x1F, 0);
@@ -113,6 +124,7 @@ update_double()
 	Uint8 w, h;
 	
 	src = (Uint16 *)buffer->pixels + visible_area.x + (buffer->w << 4);// LeftBorder + RowLength * UpperBorder
+
 	dst = (Uint16 *)screen->pixels;
 	
 	for(h = visible_area.h; h > 0; h--)
@@ -128,20 +140,24 @@ update_double()
 			d = (s & 0x0000FFFF) + ((s & 0x0000FFFF)<<16);
 			*(Uint32 *)(dst+2) = d;
 			*(Uint32 *)(dst+(visible_area.w<<1)+2) = d;
-#else				
+#else
+			d = (s & 0x0000FFFF) + ((s & 0x0000FFFF) << 16);
+			*(Uint32 *)(dst) = d;
+			*(Uint32 *) (dst + (visible_area.w << 1)) = d;
+
 			d = (s & 0xFFFF0000) + ((s & 0xFFFF0000)>>16);
 			*(Uint32 *)(dst+2) = d;
 			*(Uint32 *)(dst+(visible_area.w<<1)+2) = d;
 				
-			d = (s & 0x0000FFFF) + ((s & 0x0000FFFF)<<16);
-			*(Uint32 *)(dst) = d;
-			*(Uint32 *)(dst+(visible_area.w<<1)) = d;
+
 #endif			
 			dst += 4;
 			src += 2;
 		}
+		//memcpy(dst,dst-(visible_area.w<<1),(visible_area.w<<2));
 		src += (visible_area.x<<1);		
 		dst += (visible_area.w<<1);
+//		dst += (buffer->pitch);
 	}
 }
 
@@ -223,7 +239,12 @@ blitter_soft_update()
     }
 
   }
+#ifdef DEVKIT8000
+	SDL_Flip(screen);
+#else
   SDL_UpdateRect(screen, 0, 0, 0, 0);
+#endif
+//	SDL_Flip(screen);
 #endif
  
 }

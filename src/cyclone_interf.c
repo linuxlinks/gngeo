@@ -418,7 +418,9 @@ static void cpu_68k_init_save_state(void) {
 	set_pre_save_function(ST_68k,cpu_68k_pre_save_state);
 	
 }
-
+void cpu_68k_mkstate(gzFile *gzf,int mode) {
+	/* TODO */
+}
 int cpu_68k_getcycle(void) {
 	return total_cycles-MyCyclone.cycles;
 }

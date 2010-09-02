@@ -1,6 +1,7 @@
 #ifndef _STATE_H_
 #define _STATE_H_
 
+#include "zlib.h"
 #include "SDL.h"
 #include <stdbool.h>
 
@@ -80,6 +81,9 @@ typedef struct NEOGEO_STATE {
 }NEOGEO_STATE;
 
 SDL_Surface *state_img;
+
+#define STREAD  0
+#define STWRITE 1
 
 void create_state_register(ST_MODULE_TYPE module,const char *reg_name,Uint8 num,void *data,int size,ST_DATA_TYPE type);
 void set_pre_save_function(ST_MODULE_TYPE module,void (*func)(void));
