@@ -66,58 +66,15 @@ extern int irq2repeat_limit;
 extern Uint32 irq2pos_value;
 
 void setup_misc_patch(char *name) {
-	/*
-	 sram_protection_hack = -1;
-	 if (!strcmp(name,"fatfury3") || //wd KO ????
-	 !strcmp(name,"samsho3") ||
-	 !strcmp(name,"samsho3a") ||
-	 !strcmp(name,"samsho4") ||    //wd KO ???
 
-	 !strcmp(name,"aof3") ||       //wd ok
-	 !strcmp(name,"rbff1") ||      //wd ok
-	 !strcmp(name,"rbffspec") ||   //wd ok
-	 !strcmp(name,"kof95") || //wd ok
-	 !strcmp(name,"kof96") || //wd ok
-	 !strcmp(name,"kof96h") || //wd ok
-	 !strcmp(name,"kof97") || //wd ok
-	 !strcmp(name,"kof97a") || //wd ok
-	 !strcmp(name,"kof97pls") || //wd ok
-	 !strcmp(name,"kof98") || //wd ok
-	 !strcmp(name,"kof98k") ||
-	 !strcmp(name,"kof98n") ||
-	 !strcmp(name,"kof99") ||
-	 !strcmp(name,"kof99a") ||
-	 !strcmp(name,"kof99e") ||
-	 !strcmp(name,"kof99n") ||
-	 !strcmp(name,"kof99p") ||
-	 !strcmp(name,"kof2000") ||
-	 !strcmp(name,"kof2000n") ||
-	 !strcmp(name,"kizuna") ||
-	 !strcmp(name,"lastblad") ||
-	 !strcmp(name,"lastblda") ||
-	 !strcmp(name,"lastbld2") ||
-	 !strcmp(name,"rbff2") ||
-	 !strcmp(name,"rbff2a") ||
-	 !strcmp(name,"mslug2") ||
-	 !strcmp(name,"mslug3") ||
-	 !strcmp(name,"garou") ||
-	 !strcmp(name,"garouo") ||
-	 !strcmp(name,"garouaaabl"))
-	 sram_protection_hack = 0x100;
-
-
-
-	 if (!strcmp(name, "pulstar"))
-	 sram_protection_hack = 0x35a;
-	 */
 
 	if (!strcmp(name, "ssideki")) {
 		WRITE_WORD_ROM(&memory.rom.cpu_m68k.p[0x2240], 0x4e71);
 	}
 
-	if (!strcmp(name, "fatfury3")) {
-		WRITE_WORD_ROM(memory.rom.cpu_m68k.p, 0x0010);
-	}
+	//if (!strcmp(name, "fatfury3")) {
+	//	WRITE_WORD_ROM(memory.rom.cpu_m68k.p, 0x0010);
+	//}
 
 	if (!strcmp(name, "mslugx")) {
 		/* patch out protection checks */
