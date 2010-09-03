@@ -122,23 +122,10 @@ void neogeo_reset(void) {
 
 }
 
-void init_neo(void) {
-#ifdef ENABLE_940T
-	int z80_overclk = CF_VAL(cf_get_item_by_name("z80clock"));
-#endif
-
-	neogeo_init_save_state();
-
-#ifdef GP2X
-	gp2x_ram_ptr_reset();
-#endif
-
-	cpu_68k_init();
-//	neogeo_reset();
-	pd4990a_init();
-//	setup_misc_patch(rom_name);
-
-	if (conf.sound) {
+void init_sound(void) {
+	static int init=0;
+	if (init==0) {
+		init=1;
 		init_sdl_audio();
 
 #ifdef ENABLE_940T
@@ -157,7 +144,30 @@ void init_neo(void) {
 #endif
 		pause_audio(0);
 		conf.snd_st_reg_create = 1;
+	} else {
+		init_sdl_audio();
+		YM2610ChangeSamplerate(conf.sample_rate);
 	}
+
+}
+
+void init_neo(void) {
+#ifdef ENABLE_940T
+	int z80_overclk = CF_VAL(cf_get_item_by_name("z80clock"));
+#endif
+
+	neogeo_init_save_state();
+
+#ifdef GP2X
+	gp2x_ram_ptr_reset();
+#endif
+
+	cpu_68k_init();
+//	neogeo_reset();
+	pd4990a_init();
+//	setup_misc_patch(rom_name);
+	if (conf.sound)
+		init_sound();
 
 	neogeo_reset();
 }

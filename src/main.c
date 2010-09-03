@@ -170,6 +170,8 @@ int main(int argc, char *argv[])
             exit(1);
     }    
 
+	reset_frame_skip();
+
     if (conf.debug) conf.sound=0;
 
 /* Launch the specified game, or the rom browser if no game was specified*/
@@ -179,7 +181,7 @@ int main(int argc, char *argv[])
 		printf("GAME %s\n",conf.game);
 		if (conf.game==NULL) return 0;
 	} else {
-  
+
 		if (init_game(rom_name)!=SDL_TRUE) {
 			printf("Can't init %s...\n",rom_name);
             exit(1);

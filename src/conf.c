@@ -692,6 +692,7 @@ bool cf_open_file(char *filename) {
 		my_fgets(buf, 510, f);
 		if (discard_line(buf))
 			continue;
+	
 		/* TODO: Verify this on Win32 */
 		sscanf(buf, "%s %s", name, val);
 
@@ -792,12 +793,14 @@ void cf_init_cmd_line(void) {
 					add_long_opt_item(cf->name, 1, NULL, cf->short_opt);
 					break;
 				case CFT_BOOLEAN:
-					add_long_opt_item(cf->name, 0, &CF_BOOL(cf), 1);
+					//add_long_opt_item(cf->name, 0, &CF_BOOL(cf), 1);
+					add_long_opt_item(cf->name, 0, NULL, cf->short_opt);
 					/* create the --no-option */
 					buflen = strlen("no-") + strlen(cf->name);
 					sbuf = malloc(buflen + 2);
 					snprintf(sbuf, buflen + 1, "no-%s", cf->name);
-					add_long_opt_item(sbuf, 0, &CF_BOOL(cf), 0);
+					//add_long_opt_item(sbuf, 0, &CF_BOOL(cf), 0);
+					add_long_opt_item(sbuf, 0, NULL, cf->short_opt+0x1000);
 					break;
 				case CFT_ACTION:
 					add_long_opt_item(cf->name, 0, NULL, cf->short_opt);
@@ -819,15 +822,21 @@ char* cf_parse_cmd_line(int argc, char *argv[]) {
 	option_index = optind = 0;
 
 	while ((c = getopt_long(argc, argv, shortopt, longopt, &option_index)) != EOF) {
-		if (c != 0) {
-			cf = cf_get_item_by_val(c);
+		//if (c != 0) {
+			printf("c=%d\n",c);
+			cf = cf_get_item_by_val(c&0xFFF);
 			if (cf) {
+				cf->flags |= CF_SETBYCMD;
+				printf("flags %s set on cmd line\n", cf->name);
 				switch (cf->type) {
-						cf->flags |= CF_SETBYCMD;
+
 					case CFT_INT:
 						CF_VAL(cf) = atoi(optarg);
 						break;
 					case CFT_BOOLEAN:
+					if (c & 0x1000)
+						CF_BOOL(cf) = 0;
+					else
 						CF_BOOL(cf) = 1;
 						break;
 					case CFT_STRING:
@@ -852,7 +861,7 @@ char* cf_parse_cmd_line(int argc, char *argv[]) {
 						/* TODO */
 						break;
 				}
-			}
+			//}
 		}
 	}
 	cf_cache_conf();

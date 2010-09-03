@@ -42,7 +42,7 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
 #endif
                 for(y=0;y<zy;y++) {
                     gfxdata+=l_y_skip[l]<<1;
-		    if (gfxdata[1]+gfxdata[0]!=0) {
+		    if (gfxdata[1] || gfxdata[0]) {
 			    myword = gfxdata[1];
 			    col=(myword>>0)&0xf; if (col) PUTPIXEL(br[0],paldata[col]);
 			    col=(myword>>4)&0xf; if (col) PUTPIXEL(br[1],paldata[col]);
@@ -78,7 +78,7 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
                 for(y=0;y<zy;y++) {
                     
                     gfxdata+=l_y_skip[l]<<1;
-		    if (gfxdata[1]+gfxdata[0]!=0) {
+		    if (gfxdata[1] || gfxdata[0]) {
                     myword = gfxdata[1];
                     col=(myword>>0)&0xf; if (col) PUTPIXEL(br[0],paldata[col]);
                     col=(myword>>4)&0xf; if (col) PUTPIXEL(br[1],paldata[col]);
@@ -117,7 +117,7 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
 #endif
                 for(y=0;y<zy;y++) {
                     gfxdata+=l_y_skip[l]<<1;
-		    if (gfxdata[1]+gfxdata[0]!=0) {
+		    if (gfxdata[1] || gfxdata[0]) {
                     myword = gfxdata[0];
                     col=(myword>>28)&0xf; if (col) PUTPIXEL(br[0],paldata[col]);
                     col=(myword>>24)&0xf; if (col) PUTPIXEL(br[1],paldata[col]);
@@ -153,7 +153,7 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
 #endif
                 for(y=0;y<zy;y++) {
                     gfxdata+=l_y_skip[l]<<1;
-		    if (gfxdata[1]+gfxdata[0]!=0) {
+		    if (gfxdata[1] || gfxdata[0]) {
                     myword = gfxdata[0];
                     col=(myword>>28)&0xf; if (col) PUTPIXEL(br[0],paldata[col]);
                     col=(myword>>24)&0xf; if (col) PUTPIXEL(br[1],paldata[col]);

@@ -25,6 +25,8 @@ static SDL_Rect screen_rect =	{ 0,  0, 304, 240};
 static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
 #endif
 //static SDL_Surface *offscreen;
+static int vsync;
+
 
 SDL_bool
 blitter_soft_init()
@@ -48,11 +50,21 @@ blitter_soft_init()
 	screen_rect.h=240;
 	height=240;
 #else
-		Uint32 sdl_flags = hw_surface|(fullscreen?SDL_FULLSCREEN:0)/*|SDL_DOUBLEBUF*/;
+	Uint32 sdl_flags = hw_surface | (fullscreen ? SDL_FULLSCREEN : 0);
 
+	vsync = CF_BOOL(cf_get_item_by_name("vsync"));
+	sdl_flags |= (vsync?SDL_DOUBLEBUF:0);
+
+	if (vsync) {
+		height=240;
+		screen_rect.y = 8;
+
+	}
 
 	screen_rect.w=visible_area.w;
 	screen_rect.h=visible_area.h;
+
+
 #endif
 	if (neffect!=0)	scale =1;
 	if (scale == 1) {
@@ -125,7 +137,7 @@ update_double()
 	
 	src = (Uint16 *)buffer->pixels + visible_area.x + (buffer->w << 4);// LeftBorder + RowLength * UpperBorder
 
-	dst = (Uint16 *)screen->pixels;
+	dst = (Uint16 *)screen->pixels + screen_rect.y * screen->pitch;
 	
 	for(h = visible_area.h; h > 0; h--)
 	{
@@ -169,7 +181,7 @@ update_triple()
 	Uint8 w, h;
 	
 	src = (Uint16 *)buffer->pixels + visible_area.x + (buffer->w << 4);// LeftBorder + RowLength * UpperBorder
-	dst = (Uint16 *)screen->pixels;
+	dst = (Uint16 *)screen->pixels + screen_rect.y * screen->pitch;
 	
 	for(h = visible_area.h; h > 0; h--)
 	{
@@ -242,7 +254,10 @@ blitter_soft_update()
 #ifdef DEVKIT8000
 	SDL_Flip(screen);
 #else
-  SDL_UpdateRect(screen, 0, 0, 0, 0);
+  if (vsync)
+	  SDL_Flip(screen);
+  else
+	  SDL_UpdateRect(screen, 0, 0, 0, 0);
 #endif
 //	SDL_Flip(screen);
 #endif
