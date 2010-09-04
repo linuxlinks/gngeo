@@ -360,7 +360,7 @@ static __inline__ void draw_fix_char(unsigned char *buf, int start, int end) {
 	}
 
 	for (y = ystart; y < yend; y++)
-		for (x = 0; x < 40; x++) {
+		for (x = 1; x < 39; x++) {
 			byte1 = (READ_WORD(&memory.vid.ram[0xE000 + ((y + (x << 5)) << 1)]));
 			byte2 = byte1 >> 12;
 			byte1 = byte1 & 0xfff;
@@ -659,7 +659,7 @@ void draw_screen(void) {
 		conf.do_message--;
 	}
 	if (conf.show_fps)
-		SDL_textout(buffer, visible_area.x, visible_area.y, fps_str);
+		SDL_textout(buffer, visible_area.x+8, visible_area.y, fps_str);
 
 
 	screen_update();

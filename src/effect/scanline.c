@@ -27,10 +27,11 @@ effect_scanline_update()
 	Uint16 *src, *dst;
 	Uint32 s, d;
 	Uint8 h, w;	
-	
-	src = (Uint16 *)buffer->pixels + visible_area.x + (352 << 4);// LeftBorder + RowLength * UpperBorder
-	dst = (Uint16 *)screen->pixels;
+	static int i=0;
 
+	src = (Uint16 *)buffer->pixels + visible_area.x + (352 << 4);// LeftBorder + RowLength * UpperBorder
+	dst = (Uint16 *)screen->pixels + yscreenpadding;
+	//if (i) dst+=screen->pitch;	i=1-i;
 	for(h = visible_area.h; h > 0; h--)
 	{
 		for(w = visible_area.w>>1; w > 0; w--)
@@ -66,7 +67,7 @@ effect_scanline50_update()
 	Uint8 h, w;
 	
 	src = (Uint16 *)buffer->pixels + visible_area.x + (352 << 4);// LeftBorder + RowLength * UpperBorder
-	dst = (Uint16 *)screen->pixels;
+	dst = (Uint16 *)screen->pixels + yscreenpadding;
 
 	
 	for(h = visible_area.h; h > 0; h--)
@@ -106,7 +107,7 @@ void effect_doublex_update()
 	Uint8 h, w;	
 	
 	src = (Uint16 *)buffer->pixels + visible_area.x + (352 << 4);// LeftBorder + RowLength * UpperBorder
-	dst = (Uint16 *)screen->pixels;
+	dst = (Uint16 *)screen->pixels + (yscreenpadding>>1);
 
 #ifdef I386_ASM
 	do_inner_doublex_i386(dst,src,visible_area.w>>1,visible_area.h,visible_area.x);

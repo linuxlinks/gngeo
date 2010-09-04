@@ -41,6 +41,7 @@ static int total_cycles;
 static int time_slice;
 Uint32 cyclone_pc;
 extern int current_line;
+Uint8 save_buffer[128];
 
 extern Uint32 irq2pos_value;
 static __inline__ void cyclone68k_store_video_word(Uint32 addr, Uint16 data)
@@ -419,7 +420,11 @@ static void cpu_68k_init_save_state(void) {
 	
 }
 void cpu_68k_mkstate(gzFile *gzf,int mode) {
-	/* TODO */
+	printf("Save state mode %s PC=%08x\n",(mode==STREAD?"READ":"WRITE"),MyCyclone.pc-MyCyclone.membase);
+	if (mode==STWRITE) CyclonePack(&MyCyclone, save_buffer);
+	mkstate_data(gzf, save_buffer, 128, mode);
+	if (mode == STREAD) CycloneUnpack(&MyCyclone, save_buffer);
+	printf("Save state Phase 2 PC=%08x\n", (mode == STREAD ? "READ" : "WRITE"), MyCyclone.pc - MyCyclone.membase);
 }
 int cpu_68k_getcycle(void) {
 	return total_cycles-MyCyclone.cycles;
@@ -465,7 +470,7 @@ void cpu_68k_init(void) {
 	if (memory.rom.cpu_m68k.size > 0x100000) {
 		bankaddress = 0x100000;
 	}
-	cpu_68k_init_save_state();
+	//cpu_68k_init_save_state();
 
 
 	time_slice=(overclk==0?

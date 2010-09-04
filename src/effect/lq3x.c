@@ -178,7 +178,7 @@ void effect_lq3x_update()
 {
     height = visible_area.h;
 	
-    dst0 = (Uint16 *)screen->pixels;
+    dst0 = (Uint16 *)screen->pixels + yscreenpadding;
     dst1 = (Uint16 *)dst0 + visible_area.w*3;
     dst2 = (Uint16 *)dst1 + visible_area.w*3;
 

@@ -43,7 +43,7 @@ void
 effect_sai_update()
 {	
 	Uint8 *src = buffer->pixels + (352*visible_area.y+visible_area.x)*2;
-	Uint8 *dst = screen->pixels;
+	Uint8 *dst = screen->pixels + yscreenpadding;
 	Uint8 *dptr = deltaptr;
 		
 	Uint8 height = visible_area.h;
@@ -57,7 +57,7 @@ effect_sai_update()
 		4: Src length(not in bytes)
 		5: Destination source
 		6: Destination row bytes
-		7: ?¿ only use with djgpp.
+		7: ?ï¿½ only use with djgpp.
 	*/
 		_2xSaILine(src, dptr, 352*2, visible_area.w, (Uint32)dst, visible_area.w<<2, 0);
 		
@@ -85,7 +85,7 @@ effect_supersai_update()
 		4: Src length(not in bytes)
 		5: Destination source
 		6: Destination row bytes
-		7: ?¿ only use with djgpp.
+		7: ?ï¿½ only use with djgpp.
 	*/
 		_2xSaISuper2xSaILine(src, dptr, 352*2, visible_area.w, (Uint32)dst, visible_area.w<<2, 0);
 		
@@ -113,7 +113,7 @@ effect_eagle_update()
 		4: Src length(not in bytes)
 		5: Destination source
 		6: Destination row bytes
-		7: ?¿ only use with djgpp.
+		7: ?ï¿½ only use with djgpp.
 	*/
 		
 		_2xSaISuperEagleLine(src, dptr, 352*2, visible_area.w, (Uint32)dst, visible_area.w<<2, 0);

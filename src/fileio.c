@@ -268,7 +268,7 @@ printf("AAA Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_ST
 	load_game_config(rom_name);
 	/* reinit screen if necessary */
 	//screen_change_blitter_and_effect(NULL,NULL);
-
+	reset_frame_skip();
 	screen_reinit();
 	printf("BBB Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
     /* open transpack if need */

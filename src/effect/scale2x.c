@@ -256,7 +256,7 @@ void effect_scale2x_update()
 {
     height = visible_area.h;
 	
-    dst0 = (Uint16 *)screen->pixels;
+    dst0 = (Uint16 *)screen->pixels + yscreenpadding;
     dst1 = (Uint16 *)dst0 + (visible_area.w<<1);
     
     src1 = (Uint16 *)buffer->pixels + 352 * visible_area.y + visible_area.x;
@@ -307,7 +307,7 @@ void effect_scale4x_update()
     }
 
     height = (visible_area.h<<1);
-    dst0 = (Uint16 *)screen->pixels;
+    dst0 = (Uint16 *)screen->pixels + yscreenpadding;
     dst1 = (Uint16 *)dst0 + (visible_area.w<<2);
     
     src1 = (Uint16 *)scale4xtmp->pixels + (visible_area.w<<1);
@@ -336,7 +336,7 @@ void effect_scale3x_update()
 {
     height = visible_area.h;
 	
-    dst0 = (Uint16 *)screen->pixels;
+    dst0 = (Uint16 *)screen->pixels + yscreenpadding;
     dst1 = (Uint16 *)dst0 + visible_area.w*3;
     dst2 = (Uint16 *)dst1 + visible_area.w*3;
 
@@ -363,7 +363,7 @@ old_effect_scale2x_update()
 {
 	height = 224;
 	
-	dst0 = (Uint16 *)screen->pixels;
+	dst0 = (Uint16 *)screen->pixels + yscreenpadding;
 	dst1 = (Uint16 *)dst0 + 608;
 	
 	src1 = (Uint16 *)buffer->pixels + 336 * 16 + 16;
@@ -388,7 +388,7 @@ effect_scale2x50_update()
 {
 	height = visible_area.h;
 	
-	dst0 = (Uint16 *)screen->pixels;
+	dst0 = (Uint16 *)screen->pixels + yscreenpadding;
 	dst1 = (Uint16 *)dst0 + (visible_area.w<<1);
 	
 	src1 = (Uint16 *)buffer->pixels + 352 * visible_area.y + visible_area.x;
@@ -413,7 +413,7 @@ effect_scale2x75_update()
 {
 	height = visible_area.h;
 	
-	dst0 = (Uint16 *)screen->pixels;
+	dst0 = (Uint16 *)screen->pixels + yscreenpadding;
 	dst1 = (Uint16 *)dst0 + (visible_area.w<<1);
 	
 	src1 = (Uint16 *)buffer->pixels + 352 * visible_area.y + visible_area.x;

@@ -107,7 +107,7 @@ void cf_cache_conf(void) {
 	conf.autoframeskip = CF_BOOL(cf_get_item_by_name("autoframeskip"));
 	conf.show_fps = CF_BOOL(cf_get_item_by_name("showfps"));
 	conf.sleep_idle = CF_BOOL(cf_get_item_by_name("sleepidle"));
-
+	conf.screen320 = CF_BOOL(cf_get_item_by_name("screen320"));
 #ifdef GP2X
 	conf.accurate940 = CF_BOOL(cf_get_item_by_name("940sync"));
 #endif
@@ -395,7 +395,7 @@ void cf_init(void) {
 #endif
 	//cf_create_bool_item("convtile","Convert tile in internal format at loading",'c',true);
 	cf_create_bool_item("pal", "Use PAL timing (buggy)", 'P', false);
-	cf_create_bool_item("screen320", "Use 320x224 output screen (instead 304x224)", 0, true);
+	cf_create_bool_item("screen320", "Use 320x224 output screen (instead 304x224)", 0, false);
 	cf_create_bool_item("bench", "Draw x frames, then quit and show average fps", 0, false);
 	/*
 	#ifdef GP2X

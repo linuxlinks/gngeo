@@ -72,6 +72,7 @@ struct {
     Uint8 autoframeskip;
     Uint8 show_fps;
     Uint8 sleep_idle;
+    Uint8 screen320;
 
     char message[128];
     char fps[4];

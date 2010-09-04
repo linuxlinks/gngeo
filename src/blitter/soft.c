@@ -59,6 +59,10 @@ blitter_soft_init()
 		height=240;
 		screen_rect.y = 8;
 
+	} else {
+		height=visible_area.h;
+		screen_rect.y = 0;
+		yscreenpadding=0;
 	}
 
 	screen_rect.w=visible_area.w;
@@ -123,6 +127,7 @@ blitter_soft_init()
 	//SDL_ShowCursor(SDL_DISABLE);
 #endif
 	if (!screen) return SDL_FALSE;
+	if (vsync) yscreenpadding = screen_rect.y * screen->pitch;
 	//offscreen = SDL_CreateRGBSurface(SDL_HWSURFACE, 304, 224, 16, 0xF800, 0x7E0, 0x1F, 0);
 
 	return SDL_TRUE;
@@ -137,7 +142,7 @@ update_double()
 	
 	src = (Uint16 *)buffer->pixels + visible_area.x + (buffer->w << 4);// LeftBorder + RowLength * UpperBorder
 
-	dst = (Uint16 *)screen->pixels + screen_rect.y * screen->pitch;
+	dst = (Uint16 *)screen->pixels + yscreenpadding;
 	
 	for(h = visible_area.h; h > 0; h--)
 	{
@@ -181,7 +186,7 @@ update_triple()
 	Uint8 w, h;
 	
 	src = (Uint16 *)buffer->pixels + visible_area.x + (buffer->w << 4);// LeftBorder + RowLength * UpperBorder
-	dst = (Uint16 *)screen->pixels + screen_rect.y * screen->pitch;
+	dst = (Uint16 *)screen->pixels + yscreenpadding;
 	
 	for(h = visible_area.h; h > 0; h--)
 	{

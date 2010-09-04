@@ -123,10 +123,8 @@ void neogeo_reset(void) {
 }
 
 void init_sound(void) {
-	static int init=0;
-	if (init==0) {
-		init=1;
-		init_sdl_audio();
+
+	if (conf.sound) init_sdl_audio();
 
 #ifdef ENABLE_940T
 		printf("Init all neo");
@@ -142,12 +140,9 @@ void init_sound(void) {
 		//streams_sh_start();
 		YM2610_sh_start();
 #endif
-		pause_audio(0);
+	if (conf.sound)	pause_audio(0);
 		conf.snd_st_reg_create = 1;
-	} else {
-		init_sdl_audio();
-		YM2610ChangeSamplerate(conf.sample_rate);
-	}
+
 
 }
 
@@ -166,8 +161,8 @@ void init_neo(void) {
 //	neogeo_reset();
 	pd4990a_init();
 //	setup_misc_patch(rom_name);
-	if (conf.sound)
-		init_sound();
+
+	init_sound();
 
 	neogeo_reset();
 }
@@ -372,6 +367,7 @@ void main_loop(void) {
 			//neo_emu_done = 1;
 			interpolation = interp;
 			reset_frame_skip();
+			reset_event();
 		}
 
 #if 0

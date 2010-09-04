@@ -809,6 +809,8 @@ static int load_state_action(GN_MENU_ITEM *self, void *param) {
 
 	Uint32 nb_slot = how_many_slot(conf.game);
 
+	if (slot>nb_slot-1)
+		slot = nb_slot-1;
 
 	if (nb_slot == 0) {
 		gn_popup_info("Load State", "There is currently no save state available");
@@ -870,7 +872,10 @@ static int save_state_action(GN_MENU_ITEM *self, void *param) {
 	char slot_str[32];
 	Uint32 nb_slot = how_many_slot(conf.game);
 
-	if (nb_slot != 0) {
+	if (slot > nb_slot)
+		slot = nb_slot;
+
+	if (nb_slot != 0 && slot < nb_slot) {
 		tmps = load_state_img(conf.game, slot);
 		slot_img = SDL_ConvertSurface(tmps, menu_buf->format, SDL_SWSURFACE);
 	}
@@ -1016,6 +1021,19 @@ GN_MENU_ITEM *gn_menu_add_item(GN_MENU *gmenu, char *name, int type,
 	gmenu->item = list_append(gmenu->item, (void*) gitem);
 	gmenu->nb_elem++;
 	return gitem;
+}
+
+GN_MENU_ITEM *gn_menu_get_item_by_name(GN_MENU *gmenu, char *name) {
+	GN_MENU_ITEM *gitem;
+	LIST *l = gmenu->item;
+
+	for (l = gmenu->item; l; l = l->next) {
+		gitem = (GN_MENU_ITEM *) l->data;
+		if (strncmp(gitem->name, name, 128) == 0 && gitem->enabled != 0) {
+			return gitem;
+		}
+	}
+	return NULL;
 }
 
 void gn_menu_disable_item(GN_MENU *gmenu, char *name) {
@@ -1192,7 +1210,7 @@ static int toggle_vsync(GN_MENU_ITEM *self, void *param) {
 	conf.vsync = self->val;
 	cf_item_has_been_changed(cf_get_item_by_name("vsync"));
 	CF_BOOL(cf_get_item_by_name("vsync")) = self->val;
-	/* TODO: Reinit the screen */
+	screen_reinit();
 	return MENU_STAY;
 }
 
@@ -1279,7 +1297,12 @@ static int change_samplerate_action(GN_MENU_ITEM *self, void *param) {
 		conf.sample_rate = rate;
 		//init_sdl_audio();
 		//YM2610ChangeSamplerate(conf.sample_rate);
-		if (conf.game) init_sound();
+		if (conf.game) {
+			init_sdl_audio();
+			YM2610ChangeSamplerate(conf.sample_rate);
+		}
+
+
 	} else {
 		if (conf.sound)
 			cf_item_has_been_changed(cf_get_item_by_name("sound"));
@@ -1356,14 +1379,39 @@ static int save_conf_action(GN_MENU_ITEM *self, void *param) {
 	return 1;
 }
 
+#define RESET_BOOL(name,id) gitem=gn_menu_get_item_by_name(option_menu,name);\
+if (gitem) gitem->val = CF_BOOL(cf_get_item_by_name(id));
+
+static void reset_menu_option(void) {
+	GN_MENU_ITEM *gitem;
+	//gitem=gn_menu_get_item_by_name(option_menu,"Fullscreen");
+	//if (gitem) gitem->val = CF_BOOL(cf_get_item_by_name("fullscreen"));
+	RESET_BOOL("Fullscreen","fullscreen");
+	RESET_BOOL("Vsync","vsync");
+	RESET_BOOL("Auto Frame Skip","autoframeskip");
+	RESET_BOOL("Sleep while idle","sleepidle");
+	RESET_BOOL("Show FPS","showfps");
+
+	gitem=gn_menu_get_item_by_name(option_menu,"Effect");
+	gitem->str = CF_STR(cf_get_item_by_name("effect"));
+
+	gitem=gn_menu_get_item_by_name(option_menu,"Sample Rate");
+	if (conf.sound)
+		sprintf(gitem->str, "%d", conf.sample_rate);
+	else
+		sprintf(gitem->str, "No sound");
+}
+
 static int option_action(GN_MENU_ITEM *self, void *param) {
 	//exit(0);
 	int a;
-
+	reset_menu_option();
 	while (1) {
 		option_menu->draw(option_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
-		if ((a = option_menu->event_handling(option_menu)) > 0)
+		if ((a = option_menu->event_handling(option_menu)) > 0) {
+			reset_menu_option();
 			return MENU_STAY;
+		}
 	}
 }
 
@@ -1387,9 +1435,11 @@ void gn_init_menu(void) {
 			(void*) gn_menu_create_item("Option", MENU_ACTION, option_action, NULL));
 	main_menu->nb_elem++;
 
+/*
 	main_menu->item = list_append(main_menu->item,
 			(void*) gn_menu_create_item("Credit", MENU_ACTION, credit_action, NULL));
 	main_menu->nb_elem++;
+*/
 
 	main_menu->item = list_append(main_menu->item,
 			(void*) gn_menu_create_item("Exit", MENU_ACTION, exit_action, NULL));
@@ -1408,7 +1458,7 @@ void gn_init_menu(void) {
 	option_menu->item = list_append(option_menu->item, (void*) gitem);
 	option_menu->nb_elem++;
 
-	gitem = gn_menu_create_item("Auto Fame Skip", MENU_CHECK, toggle_autoframeskip, NULL);
+	gitem = gn_menu_create_item("Auto Frame Skip", MENU_CHECK, toggle_autoframeskip, NULL);
 	gitem->val = CF_BOOL(cf_get_item_by_name("autoframeskip"));
 	option_menu->item = list_append(option_menu->item, (void*) gitem);
 	option_menu->nb_elem++;
@@ -1454,6 +1504,7 @@ void gn_init_menu(void) {
 	yesno_menu->nb_elem++;
 }
 
+
 Uint32 run_menu(void) {
 	static Uint32 init = 0;
 	int a;
@@ -1484,9 +1535,10 @@ Uint32 run_menu(void) {
 	while (1) {
 		main_menu->draw(main_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
 		if ((a = main_menu->event_handling(main_menu)) > 0)
+			//reset_event();
 			return a;
 	}
-
+	//reset_event();
 	if (conf.game == NULL) return 2; /* Exit */
 	return 0;
 }

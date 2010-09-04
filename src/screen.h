@@ -23,6 +23,8 @@ SDL_Surface *buffer, *sprbuf, *fps_buf, *scan, *fontbuf;
 
 SDL_Rect visible_area;
 
+int yscreenpadding;
+
 Uint8 interpolation;
 Uint8 nblitter;
 Uint8 neffect;

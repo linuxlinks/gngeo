@@ -169,6 +169,7 @@ SDL_bool screen_init() {
 	cf_scale = cf_get_item_by_name("scale");
 	cf_fs = cf_get_item_by_name("fullscreen");
 
+/*
 	if (CF_BOOL(cf_get_item_by_name("screen320"))) {
 		visible_area.x = 16;
 		visible_area.y = 16;
@@ -180,7 +181,11 @@ SDL_bool screen_init() {
 		visible_area.w = 304;
 		visible_area.h = 224;
 	}
-
+*/
+		visible_area.x = 16;
+		visible_area.y = 16;
+		visible_area.w = 320;
+		visible_area.h = 224;
 
 
 	/* Initialization of some variables */
@@ -271,6 +276,7 @@ SDL_bool screen_reinit(void) {
 
 
 
+/*
 	if (CF_BOOL(cf_get_item_by_name("screen320"))) {
 		visible_area.x = 16;
 		visible_area.y = 16;
@@ -282,8 +288,12 @@ SDL_bool screen_reinit(void) {
 		visible_area.w = 304;
 		visible_area.h = 224;
 	}
+*/
 
-
+		visible_area.x = 16;
+		visible_area.y = 16;
+		visible_area.w = 320;
+		visible_area.h = 224;
 
 	/* Initialization of some variables */
 	/*
@@ -344,9 +354,19 @@ static inline void do_interpolation() {
 	buffer = tmp;
 }
 
+static SDL_Rect left_border={16,16,8,224};
+static SDL_Rect right_border={16+312,16,8,224};
+
+
 void screen_update() {
 	if (interpolation == 1)
 		do_interpolation();
+	if (!conf.screen320) {
+		SDL_FillRect(buffer, &left_border, 0);
+		SDL_FillRect(buffer, &right_border, 0);
+	}
+
+
 
 	if (neffect != 0)
 		(*effect[neffect].update) ();

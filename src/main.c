@@ -20,6 +20,8 @@
 #include <config.h>
 #endif
 
+#include <signal.h>
+
 #include "SDL.h"
 #include <unistd.h>
 #include <stdlib.h>
@@ -131,7 +133,11 @@ void init_sdl(void /*char *rom_name*/) {
     //if (nomouse == NULL)
 	//SDL_ShowCursor(SDL_DISABLE);
 }
-
+static void catch_me(int signo) {
+	printf("Catch a sigsegv\n");
+	//SDL_Quit();
+	exit(-1);
+}
 int main(int argc, char *argv[])
 {
     char *rom_name;
@@ -142,6 +148,7 @@ int main(int argc, char *argv[])
     BPTR file_lock = GetProgramDir();
     SetProgramDir(file_lock);
 #endif
+	signal(SIGSEGV, catch_me);
 
     cf_init(); /* must be the first thing to do */
     cf_init_cmd_line();
