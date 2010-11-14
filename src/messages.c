@@ -28,6 +28,7 @@
 #include "timer.h"
 #include "frame_skip.h"
 #include "screen.h"
+#include "sound.h"
 #include <stdarg.h>
 
 

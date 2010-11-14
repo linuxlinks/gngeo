@@ -10,7 +10,7 @@
 #include "config.h"
 #endif
 
-#ifndef HAVE_LIBZ
+#if !defined(HAVE_LIBZ) || !defined(HAVE_MMAP)
 
 #include "stb_zlib.h"
 #ifndef STBI_NO_STDIO

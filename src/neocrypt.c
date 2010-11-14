@@ -50,6 +50,7 @@
 //#include "neogeo.h"
 #include "resfile.h"
 #include "mame_layer.h"
+#include "menu.h"
 
 /***************************************************************************
 

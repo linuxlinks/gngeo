@@ -13,7 +13,7 @@
 #include "config.h"
 #endif
 
-#ifdef HAVE_LIBZ
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 #include "zlib.h"
 #else
 #include "stb_zlib.h"
@@ -25,7 +25,7 @@
 typedef struct ZFILE {
 	//char *name;
 	int pos;
-#ifdef HAVE_LIBZ
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 	z_streamp zb;
 	uint8_t *inbuf;
 #else

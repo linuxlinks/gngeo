@@ -37,6 +37,7 @@ GN_ARG_ENABLE(wiz,     [--enable-wiz            Enable WIZ build])
 GN_ARG_ENABLE(wii,     [--enable-wii            Enable WII build])
 GN_ARG_ENABLE(pandora, [--enable-pandora        Enable PANDORA build])
 GN_ARG_ENABLE(win32,   [--enable-win32          Enable WIN32 build])
+GN_ARG_ENABLE(dingux,  [--enable-dingux         Enable DINGUX build])
 GN_ARG_ENABLE(embedded,[--enable-embedded       Enable Embedded directory structure])
 
 
@@ -59,6 +60,12 @@ if test "x$enable_wiz" = xtrue ; then
 	AC_DEFINE([WIZ],[1],[Define if you build for wiz])
 	enable_embedded=true
 #	CFLAGS="$CFLAGS -mtune=arm920t"
+#	LIBS="$LIBS -lpthread -static";
+fi
+if test "x$enable_dingux" = xtrue ; then
+	AC_DEFINE([DINGUX],[1],[Define if you build for dingux])
+	enable_embedded=true
+	CFLAGS="$CFLAGS -mips32 -mtune=r4600 -mno-mips16 -msoft-float -fexpensive-optimizations -fomit-frame-pointer -frename-registers"
 #	LIBS="$LIBS -lpthread -static";
 fi
 if test "x$enable_pandora" = xtrue ; then
@@ -90,7 +97,8 @@ AC_CHECK_LIB([z], [inflate])
 
 AC_CHECK_FUNCS(getopt_long , , [ AC_LIBOBJ(getopt) AC_LIBOBJ(getopt1) ])
 AC_CHECK_FUNCS(scandir)
-
+AC_CHECK_FUNCS(basename)
+AC_CHECK_FUNCS(mmap)
 #have_nasm=false
 use_starscream=false
 use_raze=false
@@ -260,7 +268,7 @@ AC_CHECK_FUNCS([atexit floor gettimeofday memset mkdir pow strchr strstr strtoul
 	   	    "
 
 	   	    ;;
-    *)     AC_MSG_WARN(Processor type unknown - Use generic optimisations)
+    *)     AC_MSG_RESULT(Processor type unknown - Use generic optimisations)
            ALIGNLONGS=1
            optimum=no
 	   CFLAGS="$CFLAGS -O3 -Wall -Wno-unused -funroll-loops \
@@ -277,7 +285,7 @@ AC_DEFINE(ALIGNLONGS, ALIGNLONGS,
 AC_CONFIG_FILES([Makefile
 	 src/Makefile
 	 src/raze/Makefile
-     src/star/Makefile
+         src/star/Makefile
 	 src/mamez80/Makefile
 	 src/generator68k/Makefile
 	 src/cyclone/Makefile

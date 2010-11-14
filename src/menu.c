@@ -50,6 +50,14 @@
 #include "sound.h"
 #include "effect.h"
 
+#if defined (WII)
+#define ROOTPATH "sd:/apps/gngeo/"
+#elif defined (__AMIGA__)
+#define ROOTPATH "/PROGDIR/data/"
+#else
+#define ROOTPATH ""
+#endif
+
 typedef struct GNFONT {
 	SDL_Surface *bmp;
 	Uint8 ysize;
@@ -1184,10 +1192,12 @@ int rom_browser_menu(void) {
 
 	while (1) {
 		rbrowser_menu->draw(rbrowser_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
-		if ((a = rbrowser_menu->event_handling(rbrowser_menu)) > 0)
-			if (a==MENU_CLOSE) return MENU_STAY;
+		if ((a = rbrowser_menu->event_handling(rbrowser_menu)) > 0) {
+			if (a == MENU_CLOSE)
+				return MENU_STAY;
 			else
 				return a;
+		}
 	}
 }
 
@@ -1368,7 +1378,7 @@ static int save_conf_action(GN_MENU_ITEM *self, void *param) {
 		char *drconf;
 		char *name = memory.rom.info.name;
 #ifdef EMBEDDED_FS
-		gpath = "conf/";
+		gpath = ROOTPATH"conf/";
 #else
 		gpath = get_gngeo_dir();
 #endif

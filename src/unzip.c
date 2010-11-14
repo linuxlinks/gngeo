@@ -10,7 +10,7 @@
 #include "config.h"
 #endif
 
-#ifdef HAVE_LIBZ
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 #include <zlib.h>
 //#define ZLIB_IN_CHUNK 128*1024
 #include <unistd.h>
@@ -258,7 +258,7 @@ ZFILE *gn_unzip_fopen(PKZIP *zf, char *filename, uint32_t file_crc) {
 		z->csize = csize;
 		z->uncsize = uncsize;
 		if (cmeth == 8) {
-#ifdef HAVE_LIBZ
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 			z->zb = malloc(sizeof(z_stream));
 			z->inbuf = zf->map+z->pos;
 			//printf("inbuf=%p %d\n",z->inbuf,fileno(zf->file));
@@ -292,7 +292,7 @@ int gn_unzip_fread(ZFILE *z, uint8_t *data, unsigned int size) {
 	//if (z->pos!=ftell(z->f))
 	//fseek(z->f,z->pos,SEEK_SET);
 	if (z->cmeth == 8) {
-#ifdef HAVE_LIBZ
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 				z->zb->next_out = data;
 				z->zb->avail_out = size;
 				ret = inflate(z->zb, Z_NO_FLUSH);
@@ -333,7 +333,7 @@ uint8_t *gn_unzip_file_malloc(PKZIP *zf, char *filename, uint32_t file_crc,
 	if (!data)
 		return NULL;
 	if (z->cmeth == 8) {
-#ifndef HAVE_LIBZ
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 		readed = stbi_zlib_decode_noheader_stream(z->zb, data, z->uncsize);
 #else
 		readed=gn_unzip_fread(z,data,z->uncsize);
@@ -353,7 +353,7 @@ uint8_t *gn_unzip_file_malloc(PKZIP *zf, char *filename, uint32_t file_crc,
 void gn_unzip_fclose(ZFILE *z) {
 	if (!z)
 		return;
-#ifdef HAVE_LIBZ
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 	if (z->cmeth==8) {
 		inflateEnd(z->zb);
 		free(z->zb);
@@ -374,10 +374,11 @@ PKZIP *gn_open_zip(char *file) {
 		free(zf);
 		return NULL;
 	}
-#ifdef HAVE_LIBZ
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 	fseek(zf->file,0,SEEK_END);
 	size=ftell(zf->file);
 	zf->map=mmap(0,size,PROT_READ,MAP_SHARED,fileno(zf->file),0);
+
 #endif
 	e = search_central_dir(zf);
 	if (e) {

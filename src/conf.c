@@ -52,6 +52,13 @@
 #define DATA_DIRECTORY "/PROGDIR/data/"
 #endif
 #endif
+#if defined (WII)
+#define ROOTPATH "sd:/apps/gngeo/"
+#elif defined (__AMIGA__)
+#define ROOTPATH "/PROGDIR/data/"
+#else
+#define ROOTPATH ""
+#endif
 
 /* 
 
@@ -70,17 +77,32 @@ static struct {
 	int size, nb_item;
 } cf_hash[128];
 
-/*
-static int default_key1[] = { 119, 120, 113, 115, 38, 34, 273, 274, 276, 275 };
-static int default_key2[] = { 108, 109, 111, 112, 233, 39, 264, 261, 260, 262 };
 
-static int default_key1[] = { 122, 120, 97 , 115, 49, 51, 273, 274, 276, 275, -1, -1, -1, -1 };
-static int default_key2[] = { 108, 59 , 111, 112, 50, 52, 264, 261, 260, 262, -1, -1, -1, -1 };
-static int default_joy1[] = { 2, 3, 0, 1, 5, 4, 0, 1, 1, 1, -1, -1, -1, -1 };
-static int default_joy2[] = { 1, 0, 3, 2, 7, 6, 0, 1, 1, 1, -1, -1, -1, -1 };
- */
 #ifdef GP2X
 static int default_tvoffset[] = {0, 0};
+#endif
+
+#if defined(GP2X) || defined(WIZ)
+static char * default_p1control = "UP=J0B0,DOWN=J0B4,LEFT=J0B2,RIGHT=J0B6,A=J0B14,"
+		"B=J0B13,C=J0B12,D=J0B15,COIN=J0B9,START=J0B8,HOTKEY1=J0B10,HOTKEY2=J0B11";
+static char * default_p2control = "";
+#elif defined(PANDORA)
+static char * default_p1control = "A=K281,B=K279,C=K278,D=K280,START=K308,COIN=K306,"
+		"UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K113";
+static char * default_p2control = "";
+#elif defined (DINGUX)
+static char * default_p1control = "A=K308,B=K306,C=K304,D=K32,START=K13,COIN=K9,"
+		"UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K113";
+static char * default_p2control = "";
+#elif defined (WII)
+static char *default_p1control = "A=J0B9,B=J0B10,C=J0B11,D=J0B12,START=J0B18,COIN=J0B17"
+	"UPDOWN=J0A1,LEFTRIGHT=J0A0,JOY=J0H0";
+static char *default_p2control = "....";
+#else
+	/* TODO: Make Querty default instead of azerty */
+static char * default_p1control = "A=K119,B=K120,C=K113,D=K115,START=K38,COIN=K34,"
+		"UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K27";
+static char * default_p2control = "";
 #endif
 
 static int default_p1hotkey0[] = {0, 0, 0, 0};
@@ -370,8 +392,7 @@ void cf_init(void) {
 	cf_create_action_item("help", "Print this help and exit", 'h', print_help);
 	cf_create_action_item("listgame", "Show all the game available in the romrc", 'l', show_all_game);
 	cf_create_action_item("version", "Show version and exit", 'v', show_version);
-	//cf_create_action_arg_item("dump","Create a gno dump in the current directory","GAME",0,dump_gno);
-	//cf_create_action_arg_item("scandir","Scan the given directory, and show available rom",0,scan_dir);
+
 	cf_create_bool_item("forcepc", "Force the PC to a correct value at startup", 0, false);
 	cf_create_bool_item("dump", "Create a gno dump in the current dir and exit", 0, false);
 	cf_create_bool_item("fullscreen", "Start gngeo in fullscreen", 'f', false);
@@ -382,34 +403,20 @@ void cf_init(void) {
 	cf_create_bool_item("autoframeskip", "Enable auto frameskip", 0, true);
 	cf_create_bool_item("sleepidle", "Sleep when idle", 0, false);
 	cf_create_bool_item("joystick", "Enable joystick support", 0, true);
-	//cf_create_bool_item("invertjoy","Invert joystick order",0,false);
 	cf_create_bool_item("debug", "Start with inline debuger", 'D', false);
 	cf_create_bool_item("hwsurface", "Use hardware surface for the screen", 'H', true);
 	cf_create_bool_item("vsync", "Synchronise the display with VBLANK", 0, false);
-#ifdef GP2X
-	cf_create_bool_item("ramhack", "Enable CraigX's RAM timing hack", 0, false);
-	cf_create_bool_item("tvout", "Enable Tvout (NTSC)", 0, false);
-	cf_create_array_item("tv_offset", "Shift TV screen by x,y pixel", "x,y", 0, 2, default_tvoffset);
-
-	cf_create_bool_item("940sync", "Accurate synchronise between the both core", 0, true);
-#endif
-	//cf_create_bool_item("convtile","Convert tile in internal format at loading",'c',true);
 	cf_create_bool_item("pal", "Use PAL timing (buggy)", 'P', false);
 	cf_create_bool_item("screen320", "Use 320x224 output screen (instead 304x224)", 0, false);
 	cf_create_bool_item("bench", "Draw x frames, then quit and show average fps", 0, false);
-	/*
-	#ifdef GP2X
-		cf_create_bool_item("selector","Go back to selector when exit",0,true);
-	#endif
-	 */
+
 
 	cf_create_string_item("country", "Set the contry to japan, asia, usa or europe", "...", 0, "europe");
 	cf_create_string_item("system", "Set the system to home, arcade or unibios", "...", 0, "arcade");
 #ifdef EMBEDDED_FS
-	cf_create_string_item("rompath", "Tell gngeo where your roms are", "PATH", 'i', "./roms");
-	cf_create_string_item("biospath", "Tell gngeo where your neogeo bios is", "PATH", 'B', "./roms");
-	cf_create_string_item("gngeo.dat", "Tell gngeo where his ressource file is", "PATH", 'd', "./gngeo.dat");
-
+	cf_create_string_item("rompath", "Tell gngeo where your roms are", "PATH", 'i', ROOTPATH"./roms");
+	cf_create_string_item("biospath", "Tell gngeo where your neogeo bios is", "PATH", 'B', ROOTPATH"./roms");
+	cf_create_string_item("gngeo.dat", "Tell gngeo where his ressource file is", "PATH", 'd', ROOTPATH"./gngeo.dat");
 #else
 	cf_create_string_item("rompath", "Tell gngeo where your roms are", "PATH", 'i', DATA_DIRECTORY);
 	cf_create_string_item("biospath", "Tell gngeo where your neogeo bios is", "PATH", 'B', DATA_DIRECTORY);
@@ -420,29 +427,29 @@ void cf_init(void) {
 	cf_create_string_item("effect", "Use the specified effect (help for a list)", "Effect", 'e', "none");
 	cf_create_string_item("blitter", "Use the specified blitter (help for a list)", "Blitter", 'b', "soft");
 	cf_create_string_item("transpack", "Use the specified transparency pack", "Transpack", 't', "none");
-#ifdef GP2X
-	cf_create_string_item("frontend", "Execute CMD when exit. Usefull to return to Selector or Rage2x", "CMD", 0, "/usr/gp2x/gp2xmenu");
-#endif
+	cf_create_string_item("p1control", "Player1 control configutation", "...", 0, default_p1control);
+	cf_create_string_item("p2control", "Player2 control configutation", "...", 0, default_p2control);
+/*
 #if defined(GP2X) || defined(WIZ)
 	cf_create_string_item("p1control", "Player1 control configutation", "...", 0,
 			"UP=J0B0,DOWN=J0B4,LEFT=J0B2,RIGHT=J0B6,A=J0B14,B=J0B13,C=J0B12,D=J0B15,COIN=J0B9,START=J0B8,HOTKEY1=J0B10,HOTKEY2=J0B11");
 	cf_create_string_item("p2control", "Player2 control configutation", "...", 0, "");
-#else
-#ifdef PANDORA
-	cf_create_string_item("p1control", "Player1 control configutation", "...", 0, "A=K281,B=K279,C=K278,D=K280,START=K308,COIN=K306,UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K113");
+#elif defined(PANDORA)
+	cf_create_string_item("p1control", "Player1 control configutation", "...", 0,
+			"A=K281,B=K279,C=K278,D=K280,START=K308,COIN=K306,UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K113");
+	cf_create_string_item("p2control", "Player2 control configutation", "...", 0, "");
+#elif defined (DINGUX)
+	cf_create_string_item("p1control", "Player1 control configutation", "...", 0,
+			"A=K308,B=K306,C=K304,D=K32,START=K13,COIN=K9,UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K113");
 	cf_create_string_item("p2control", "Player2 control configutation", "...", 0, "");
 #else
-	/* TODO: Make Querty default instead of azerty */
-	cf_create_string_item("p1control", "Player1 control configutation", "...", 0, "A=K119,B=K120,C=K113,D=K115,START=K38,COIN=K34,UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K27");
+	
+	cf_create_string_item("p1control", "Player1 control configutation", "...", 0,
+			"A=K119,B=K120,C=K113,D=K115,START=K38,COIN=K34,UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K27");
 	cf_create_string_item("p2control", "Player2 control configutation", "...", 0, "");
 #endif
-#endif
-#if 0   
-	cf_create_array_item("p1key", "Player1 Keyboard configuration", "...", 0, 14, default_key1);
-	cf_create_array_item("p2key", "Player2 Keyboard configuration", "...", 0, 14, default_key2);
-	cf_create_array_item("p1joy", "Player1 Joystick configuration", "...", 0, 14, default_joy1);
-	cf_create_array_item("p2joy", "Player2 Joystick configuration", "...", 0, 14, default_joy2);
-#endif
+*/
+
 	cf_create_array_item("p1hotkey0", "Player1 Hotkey 0 configuration", "...", 0, 4, default_p1hotkey0);
 	cf_create_array_item("p1hotkey1", "Player1 Hotkey 1 configuration", "...", 0, 4, default_p1hotkey1);
 	cf_create_array_item("p1hotkey2", "Player1 Hotkey 2 configuration", "...", 0, 4, default_p1hotkey2);
@@ -458,12 +465,15 @@ void cf_init(void) {
 	cf_create_int_item("samplerate", "Set the sample rate to RATE", "RATE", 0, 22050);
 	cf_create_int_item("68kclock", "Overclock the 68k by x% (-x% for underclk)", "x", 0, 0);
 	cf_create_int_item("z80clock", "Overclock the Z80 by x% (-x% for underclk)", "x", 0, 0);
-	/*
-		cf_create_int_item("p1joydev","Device index for p1joy (0 -> /dev/js0, etc.)","Device",0,0);
-		cf_create_int_item("p2joydev","Device index for p2joy","Device",0,1);
-	 */
+
+
 #ifdef GP2X
+	cf_create_bool_item("ramhack", "Enable CraigX's RAM timing hack", 0, false);
+	cf_create_bool_item("tvout", "Enable Tvout (NTSC)", 0, false);
+	cf_create_array_item("tv_offset", "Shift TV screen by x,y pixel", "x,y", 0, 2, default_tvoffset);
+	cf_create_bool_item("940sync", "Accurate synchronisation between the both core", 0, true);
 	cf_create_int_item("cpu_speed", "Overclock the GP2X cpu to x Mhz", "x", 0, 0);
+	cf_create_string_item("frontend", "Execute CMD when exit. Usefull to return to Selector or Rage2x", "CMD", 0, "/usr/gp2x/gp2xmenu");
 #endif
 
 }
@@ -510,9 +520,9 @@ bool cf_save_file(char *filename, int flags) {
 
 	if (!conf_file) {
 #ifdef EMBEDDED_FS
-		int len = strlen("gngeorc") + strlen("conf/") + 1;
+		int len = strlen("gngeorc") + strlen(ROOTPATH"conf/") + 1;
 		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, "conf/gngeorc");
+		sprintf(conf_file, ROOTPATH"conf/gngeorc");
 #elif __AMIGA__
 		int len = strlen("gngeorc") + strlen("/PROGDIR/data/") + 1;
 		conf_file = (char *) alloca(len * sizeof (char));
@@ -651,6 +661,8 @@ void cf_reset_to_default(void) {
 								CF_ARRAY_SIZE(cf) * sizeof (int));
 						//read_array(CF_ARRAY(cf), val, CF_ARRAY_SIZE(cf));
 						break;
+					default:
+						break;
 				}
 			}
 		}
@@ -669,9 +681,9 @@ bool cf_open_file(char *filename) {
 
 	if (!conf_file) {
 #ifdef EMBEDDED_FS
-		int len = strlen("gngeorc") + strlen("conf/") + 1;
+		int len = strlen("gngeorc") + strlen(ROOTPATH"conf/") + 1;
 		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, "conf/gngeorc");
+		sprintf(conf_file, ROOTPATH"conf/gngeorc");
 #elif __AMIGA__
 		int len = strlen("gngeorc") + strlen("/PROGDIR/data/") + 1;
 		conf_file = (char *) alloca(len * sizeof (char));
@@ -820,7 +832,9 @@ char* cf_parse_cmd_line(int argc, char *argv[]) {
 
 
 	option_index = optind = 0;
-
+#ifdef WII
+	return NULL;
+#endif
 	while ((c = getopt_long(argc, argv, shortopt, longopt, &option_index)) != EOF) {
 		//if (c != 0) {
 			printf("c=%d\n",c);

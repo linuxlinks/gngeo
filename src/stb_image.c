@@ -71,7 +71,7 @@
 
 #include "stb_image.h"
 
-#ifndef HAVE_LIBZ
+#if !defined(HAVE_LIBZ) || !defined(HAVE_MMAP)
 #define USE_STBZLIB 1
 #endif
 

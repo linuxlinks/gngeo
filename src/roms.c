@@ -11,7 +11,7 @@
 #include "emu.h"
 #include "memory.h"
 //#include "unzip.h"
-#ifdef HAVE_LIBZ
+#if defined(HAVE_LIBZ)// && defined (HAVE_MMAP)
 #include "zlib.h"
 #endif
 #include "unzip.h"
@@ -137,7 +137,7 @@ static Uint8* iloadbuf = NULL;
 
 /* Actuall Code */
 
-/* 
+/*
  TODO
  static DRIVER_INIT( fatfury2 )
  {
@@ -309,7 +309,7 @@ int init_kof2001(GAME_ROMS *r) {
 
 }
 
-/* 
+/*
 
  TODO:
  static DRIVER_INIT( cthd2003 )
@@ -470,7 +470,7 @@ int init_kof2km2(GAME_ROMS *r) {
 	return 0;
 }
 
-/* 
+/*
 
  TODO
  static DRIVER_INIT( kof10th )
@@ -689,7 +689,7 @@ static DRIVER_INIT(kf2k3pcb) {
 	neogeo_fixed_layer_bank_type = 2;
 	DRIVER_INIT_CALL(neogeo);
 	install_pvc_protection(machine);
-	memory_install_read16_handler(cputag_get_address_space(machine, "maincpu", 
+	memory_install_read16_handler(cputag_get_address_space(machine, "maincpu",
 			ADDRESS_SPACE_PROGRAM), 0xc00000, 0xc7ffff, 0, 0,
 			(read16_space_func) SMH_BANK(6)); // 512k bios
 }
@@ -760,7 +760,7 @@ static DRIVER_INIT(jockeygp) {
 	extra_ram = auto_alloc_array(machine, UINT16, 0x2000 / 2);
 	state_save_register_global_pointer(machine, extra_ram, 0x2000 / 2);
 
-	memory_install_readwrite16_handler(cputag_get_address_space(machine, "maincpu", 
+	memory_install_readwrite16_handler(cputag_get_address_space(machine, "maincpu",
 			ADDRESS_SPACE_PROGRAM), 0x200000, 0x201fff, 0, 0,
 			(read16_space_func) SMH_BANK(8), (write16_space_func) SMH_BANK(8));
 	memory_set_bankptr(machine, NEOGEO_BANK_EXTRA_RAM, extra_ram);
@@ -996,12 +996,6 @@ static int read_data_p(ZFILE *gz, ROM_REGION *r, Uint32 dest, Uint32 size) {
 		gn_update_pbar(read_counter);
 	}
 
-/*
-	gn_unzip_fread(gz, r->p + dest, size);
-	read_counter+= size;
-	gn_update_pbar(read_counter);
-*/
-	//printf("%08x %08x\n",((Uint32*)(r->p))[0],dest);
 	return 0;
 }
 
@@ -1091,7 +1085,7 @@ static int convert_roms_tile(Uint8 *g, int tileno) {
 	int x, y;
 	unsigned int pen, usage = 0;
 	gfxdata = (Uint32*) & g[tileno << 7];
-	
+
 	memcpy(swap, gfxdata, 128);
 
 	//filed=1;
@@ -1258,20 +1252,27 @@ bool dr_load_bios(GAME_ROMS *r) {
 
 	if (!(r->info.flags & HAS_CUSTOM_CPU_BIOS)) {
 		if (conf.system == SYS_UNIBIOS) {
-			char *unipath = malloc(strlen(rpath) + strlen("uni-bios.rom") + 2);
-			sprintf(unipath, "%s/uni-bios.rom", rpath);
-			f = fopen(unipath, "rb");
-			if (!f) {
-				fprintf(stderr, "Can't open Universal BIOS (%s)\n", unipath);
-				free(fpath);
+			char *unipath;
+
+			/* First check in neogeo.zip */
+			r->bios_m68k.p = gn_unzip_file_malloc(pz, "uni-bios.rom", 0x0, &r->bios_m68k.size);
+			if (r->bios_m68k.p == NULL) {
+				unipath = malloc(strlen(rpath) + strlen("uni-bios.rom") + 2);
+
+				sprintf(unipath, "%s/uni-bios.rom", rpath);
+				f = fopen(unipath, "rb");
+				if (!f) { /* TODO: Fallback to arcade mode */
+					fprintf(stderr, "Can't open Universal BIOS (%s)\n", unipath);
+					free(fpath);
+					free(unipath);
+					return false;
+				}
+				r->bios_m68k.p = malloc(0x20000);
+				totread = fread(r->bios_m68k.p, 0x20000, 1, f);
+				r->bios_m68k.size = 0x20000;
+				fclose(f);
 				free(unipath);
-				return false;
 			}
-			r->bios_m68k.p = malloc(0x20000);
-			totread = fread(r->bios_m68k.p, 0x20000, 1, f);
-			r->bios_m68k.size = 0x20000;
-			fclose(f);
-			free(unipath);
 		} else {
 			if (conf.system == SYS_HOME) {
 				romfile = "aes-bios.bin";
@@ -1312,9 +1313,14 @@ error:
 }
 
 ROM_DEF *dr_check_zip(char *filename) {
-	char *game = strdup(basename(filename));
+
 	char *z;
 	ROM_DEF *drv;
+#ifdef HAVE_BASENAME
+	char *game = strdup(basename(filename));
+#else
+	char *game = strdup(strrchr(filename,'/'));
+#endif
 	//	printf("Game=%s\n", game);
 	if (game == NULL)
 		return NULL;
@@ -1517,7 +1523,7 @@ bool dr_load_game(char *name) {
 
 }
 
-#ifdef HAVE_LIBZ
+#if defined(HAVE_LIBZ)//&& defined (HAVE_MMAP)
 
 static int dump_region(FILE *gno, ROM_REGION *rom, Uint8 id, Uint8 type,
 		Uint32 block_size) {
@@ -1549,7 +1555,7 @@ static int dump_region(FILE *gno, ROM_REGION *rom, Uint8 id, Uint8 type,
 					rom->size, block_size);
 		}
 		block_offset = malloc(nb_block * sizeof (Uint32));
-		/* Zlib compress output buffer need to be at least the size 
+		/* Zlib compress output buffer need to be at least the size
 		 of inbuf + 0.1% + 12 byte */
 		outbuf_len = compressBound(block_size);
 		outbuf = malloc(outbuf_len);

@@ -44,7 +44,7 @@ static uclock_t F;
 
 static char init_frame_skip = 1;
 char skip_next_frame = 0;
-#ifdef HAVE_GETTIMEOFDAY
+#if defined(HAVE_GETTIMEOFDAY) && !defined(WII)
 static int CPU_FPS=60;
 static struct timeval init_tv = { 0, 0 };
 #else
@@ -54,7 +54,7 @@ static Uint32 init_tv=0;
 #endif
 uclock_t bench;
 
-#ifdef HAVE_GETTIMEOFDAY
+#if defined(HAVE_GETTIMEOFDAY) && !defined(WII)
 uclock_t get_ticks(void)
 {
     struct timeval tv;
@@ -79,7 +79,7 @@ Uint32 get_ticks(void)
 
 void reset_frame_skip(void)
 {
-#ifdef HAVE_GETTIMEOFDAY
+#if defined(HAVE_GETTIMEOFDAY) && !defined(WII)
     init_tv.tv_usec = 0;
     init_tv.tv_sec = 0;
 #else

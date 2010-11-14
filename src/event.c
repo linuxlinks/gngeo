@@ -66,8 +66,8 @@ bool create_joymap_from_string(int player,char *jconf) {
 			//printf("%d\n",get_mapid(butid));
 		}
 		if (rc==5 && type=='J') {
-			//printf("%d, %s | joy no %d | evt %c | %d\n",
-			//rc,butid,jid,jevt,code);
+			printf("%d, %s | joy no %d | evt %c | %d\n",
+			rc,butid,jid,jevt,code);
 			if (jid<conf.nb_joy) {
 				switch(jevt) {
 				case 'A':
@@ -102,6 +102,7 @@ bool create_joymap_from_string(int player,char *jconf) {
 
 		v=strtok(NULL,",");
 	}
+  
 	return true;
 }
 
@@ -109,9 +110,12 @@ bool init_event(void) {
 	int i;
 //	printf("sizeof joymap=%d nb_joy=%d\n",sizeof(JOYMAP),conf.nb_joy);
 	jmap=calloc(sizeof(JOYMAP),1);
-	
-	conf.nb_joy = SDL_NumJoysticks();
 
+#ifdef WII
+	conf.nb_joy = 4;
+#else	
+	conf.nb_joy = SDL_NumJoysticks();
+#endif
 	if( conf.nb_joy>0) {
 		if (conf.joy!=NULL) free(conf.joy);
 		conf.joy=calloc(sizeof(SDL_Joystick*),conf.nb_joy);
@@ -136,7 +140,7 @@ bool init_event(void) {
 		}
 	}
 	create_joymap_from_string(1,CF_STR(cf_get_item_by_name("p1control")));
-	create_joymap_from_string(2,CF_STR(cf_get_item_by_name("p2control")));
+	//create_joymap_from_string(2,CF_STR(cf_get_item_by_name("p2control")));
 	return true;
 }
 #ifdef GP2X
@@ -233,7 +237,7 @@ int handle_event(void) {
 			}
 		break;
 	    case SDL_KEYDOWN:
-				//printf("%d\n", jmap->key[event.key.keysym.sym].player);
+				printf("%d\n", event.key.keysym.sym);
 		    switch (jmap->key[event.key.keysym.sym].player) {
 			case 1:
 				joy_state[0][jmap->key[event.key.keysym.sym].map]=1;
@@ -265,8 +269,8 @@ int handle_event(void) {
 
 			}
 			
-			//printf("SDL_JOYHATMOTION  %d %d %d\n",event.jhat.which,
-			//event.jhat.hat,event.jhat.value);
+			printf("SDL_JOYHATMOTION  %d %d %d\n",event.jhat.which,
+			event.jhat.hat,event.jhat.value);
 		}
 		break;
 		case SDL_JOYAXISMOTION:
@@ -275,7 +279,8 @@ int handle_event(void) {
 			int map=jmap->jaxe[event.jaxis.which][event.jaxis.axis].map;
 			int oldvalue=jmap->jaxe[event.jaxis.which][event.jaxis.axis].value;
 			int value=0;
-	//		printf("Axiw motions %d %d %d\n",event.jaxis.which,event.jaxis.axis,event.jaxis.value);
+			if (event.jaxis.axis!=6 &&event.jaxis.axis!=7 )
+				printf("Axiw motions %d %d %d\n",event.jaxis.which,event.jaxis.axis,event.jaxis.value);
 			if (player) {
 				player-=1;
 				
@@ -334,7 +339,7 @@ int handle_event(void) {
 				joy_state[player][map]=1;
 			}
 			
-			//printf("SDL_JOYBUTTONDOWN %d %d\n",event.jbutton.which,event.jbutton.button);
+			printf("SDL_JOYBUTTONDOWN %d %d\n",event.jbutton.which,event.jbutton.button);
 		}
 			break;
 		case SDL_JOYBUTTONUP:

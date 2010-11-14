@@ -732,6 +732,7 @@ enable_wiz
 enable_wii
 enable_pandora
 enable_win32
+enable_dingux
 enable_embedded
 with_sdl_prefix
 with_sdl_exec_prefix
@@ -1380,6 +1381,7 @@ Optional Features:
   --enable-wii            Enable WII build
   --enable-pandora        Enable PANDORA build
   --enable-win32          Enable WIN32 build
+  --enable-dingux         Enable DINGUX build
   --enable-embedded       Enable Embedded directory structure
   --disable-sdltest       Do not try to compile and run a test SDL program
   --disable-i386asm       disable the use of i386 optimisation
@@ -4109,6 +4111,20 @@ fi
 
 
 
+	# Check whether --enable-dingux was given.
+if test "${enable_dingux+set}" = set; then :
+  enableval=$enable_dingux; case "${enableval}" in
+       	 yes) enable_dingux=true ;;
+       	 no)  enable_dingux=false ;;
+       	 *) as_fn_error "bad value ${enableval} for --enable-dingux" "$LINENO" 5 ;;
+     	 esac;
+else
+  enable_dingux=false;
+fi
+
+
+
+
 	# Check whether --enable-embedded was given.
 if test "${enable_embedded+set}" = set; then :
   enableval=$enable_embedded; case "${enableval}" in
@@ -4406,6 +4422,14 @@ $as_echo "#define WIZ 1" >>confdefs.h
 #	CFLAGS="$CFLAGS -mtune=arm920t"
 #	LIBS="$LIBS -lpthread -static";
 fi
+if test "x$enable_dingux" = xtrue ; then
+
+$as_echo "#define DINGUX 1" >>confdefs.h
+
+	enable_embedded=true
+	CFLAGS="$CFLAGS -mips32 -mtune=r4600 -mno-mips16 -msoft-float -fexpensive-optimizations -fomit-frame-pointer -frename-registers"
+#	LIBS="$LIBS -lpthread -static";
+fi
 if test "x$enable_pandora" = xtrue ; then
 
 $as_echo "#define PANDORA 1" >>confdefs.h
@@ -4565,6 +4589,27 @@ _ACEOF
 fi
 done
 
+for ac_func in basename
+do :
+  ac_fn_c_check_func "$LINENO" "basename" "ac_cv_func_basename"
+if test "x$ac_cv_func_basename" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_BASENAME 1
+_ACEOF
+
+fi
+done
+
+for ac_func in mmap
+do :
+  ac_fn_c_check_func "$LINENO" "mmap" "ac_cv_func_mmap"
+if test "x$ac_cv_func_mmap" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_MMAP 1
+_ACEOF
+
+fi
+done
 
 #have_nasm=false
 use_starscream=false
@@ -6016,8 +6061,8 @@ $as_echo "#define PROCESSOR_ARM 1" >>confdefs.h
 	   	    "
 
 	   	    ;;
-    *)     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Processor type unknown - Use generic optimisations" >&5
-$as_echo "$as_me: WARNING: Processor type unknown - Use generic optimisations" >&2;}
+    *)     { $as_echo "$as_me:${as_lineno-$LINENO}: result: Processor type unknown - Use generic optimisations" >&5
+$as_echo "Processor type unknown - Use generic optimisations" >&6; }
            ALIGNLONGS=1
            optimum=no
 	   CFLAGS="$CFLAGS -O3 -Wall -Wno-unused -funroll-loops \

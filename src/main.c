@@ -44,6 +44,7 @@
 #include "gngeo_icon.h"
 #include "event.h"
 #include "menu.h"
+#include "frame_skip.h"
 
 #ifdef USE_GUI
 #include "gui_interf.h"
@@ -51,6 +52,9 @@
 #ifdef GP2X
 #include "gp2x.h"
 #include "ym2610-940/940shared.h"
+#endif
+#ifdef WII
+extern bool fatInitDefault(void);
 #endif
 
 #ifdef __AMIGA__
@@ -149,6 +153,12 @@ int main(int argc, char *argv[])
     SetProgramDir(file_lock);
 #endif
 	signal(SIGSEGV, catch_me);
+
+#ifdef WII
+	//   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_NOPARACHUTE);
+
+	fatInitDefault();
+#endif
 
     cf_init(); /* must be the first thing to do */
     cf_init_cmd_line();

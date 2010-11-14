@@ -44,9 +44,18 @@
 #include "sound.h"
 #include "transpack.h"
 #include "menu.h"
+#include "frame_skip.h"
 
 #ifdef GP2X
 #include "ym2610-940/940shared.h"
+#endif
+
+#if defined (WII)
+#define ROOTPATH "sd:/apps/gngeo/"
+#elif defined (__AMIGA__)
+#define ROOTPATH "/PROGDIR/data/"
+#else
+#define ROOTPATH ""
 #endif
 
 //Uint8 *current_buf;
@@ -97,7 +106,7 @@ bool check_dir(char *dir_name) {
 #ifdef EMBEDDED_FS
 
 char *get_gngeo_dir(void) {
-    static char *filename = "";
+    static char *filename = ROOTPATH"";
     return filename;
 }
 #else
@@ -128,7 +137,7 @@ void open_nvram(char *name) {
     char *filename;
     size_t totread = 0;
 #ifdef EMBEDDED_FS
-    const char *gngeo_dir = "save/";
+    const char *gngeo_dir = ROOTPATH"save/";
 #elif defined(__AMIGA__)
     const char *gngeo_dir = "/PROGDIR/save/";
 #else
@@ -152,7 +161,7 @@ void open_memcard(char *name) {
     char *filename;
     size_t totread = 0;
 #ifdef EMBEDDED_FS
-    const char *gngeo_dir = "save/";
+    const char *gngeo_dir = ROOTPATH"save/";
 #elif defined(__AMIGA__)
     const char *gngeo_dir = "/PROGDIR/save/";
 #else
@@ -173,7 +182,7 @@ void open_memcard(char *name) {
 void save_nvram(char *name) {
     char *filename;
 #ifdef EMBEDDED_FS
-    const char *gngeo_dir = "save/";
+    const char *gngeo_dir = ROOTPATH"save/";
 #elif defined(__AMIGA__)
     const char *gngeo_dir = strdup("/PROGDIR/save/");
 #else
@@ -203,7 +212,7 @@ void save_nvram(char *name) {
 void save_memcard(char *name) {
     char *filename;
 #ifdef EMBEDDED_FS
-    const char *gngeo_dir = "save/";
+    const char *gngeo_dir = ROOTPATH"save/";
 #elif defined(__AMIGA__)
     const char *gngeo_dir = strdup("/PROGDIR/save/");
 #else
@@ -236,7 +245,7 @@ bool load_game_config(char *rom_name) {
 	char *gpath;
 	char *drconf;
 #ifdef EMBEDDED_FS
-    gpath="conf/";
+    gpath=ROOTPATH"conf/";
 #else
     gpath=get_gngeo_dir();
 #endif
@@ -311,43 +320,3 @@ printf("AAA Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_ST
 
     return true;
 }
-#if 0
-void free_bios_memory(void) {
-    //free(memory.ram);memory.ram=NULL;
-    if (!conf.special_bios)
-        free(memory.rom.bios_m68k.p);
-    memory.rom.bios_m68k.p = NULL;
-    free(memory.ng_lo);
-    memory.ng_lo = NULL;
-    free(memory.rom.bios_sfix.p);
-    memory.rom.bios_sfix.p = NULL;
-    /*
-        free(memory.pal1);memory.pal1=NULL;
-        free(memory.pal2);memory.pal2=NULL;
-        free(memory.pal_pc1);memory.pal_pc1=NULL;
-        free(memory.pal_pc2);memory.pal_pc2=NULL;
-     */
-}
-
-
-void free_game_memory(void) {
-
-    /* clean up memory */
-    free(memory.rom.cpu_m68k.p);
-    memory.rom.cpu_m68k.p = NULL;
-
-    free(memory.rom.cpu_z80.p);
-    memory.rom.cpu_z80.p = NULL;
-    free(memory.rom.game_sfix.p);
-    memory.rom.game_sfix.p = NULL;
-    if (memory.rom.adpcma.p != memory.rom.adpcmb.p)
-        free(memory.rom.adpcmb.p);
-    memory.rom.adpcmb.p = NULL;
-    free(memory.rom.adpcma.p);
-    memory.rom.adpcma.p = NULL;
-    free(memory.rom.tiles.p);
-    memory.rom.tiles.p = NULL;
-    //    free(memory.pen_usage);memory.pen_usage=NULL;
-
-}
-#endif

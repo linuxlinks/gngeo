@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#ifdef HAVE_LIBZ
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 #include <zlib.h>
 #endif
 
@@ -41,9 +41,15 @@ static int endian_flag=0x10;
 static int endian_flag=0x0;
 #endif
 
+#if defined (WII)
+#define ROOTPATH "sd:/apps/gngeo/"
+#elif defined (__AMIGA__)
+#define ROOTPATH "/PROGDIR/data/"
+#else
+#define ROOTPATH ""
+#endif
 
-
-#ifndef HAVE_LIBZ
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 #define gzopen fopen
 #define gzread(f,data,size) fread(data,size,1,f)
 #define gzwrite(f,data,size) fwrite(data,size,1,f)
@@ -59,6 +65,10 @@ static ST_MODULE st_mod[ST_MODULE_END];
 static SDL_Rect buf_rect    =	{24, 16, 304, 224};
 static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
 SDL_Surface *state_img_tmp;
+
+void cpu_68k_mkstate(gzFile *gzf,int mode);
+void cpu_z80_mkstate(gzFile *gzf,int mode);
+void ym2610_mkstate(gzFile *gzf,int mode);
 
 void create_state_register(ST_MODULE_TYPE module,const char *reg_name,
 			   Uint8 num,void *data,int size,ST_DATA_TYPE type) {
@@ -143,7 +153,7 @@ Uint32 how_many_slot(char *game) {
 	FILE *f;
 //    char *st_name_len;
 #ifdef EMBEDDED_FS
-	char *gngeo_dir="save/";
+	char *gngeo_dir=ROOTPATH"save/";
 #else
 	char *gngeo_dir=get_gngeo_dir();
 #endif
@@ -429,7 +439,7 @@ static gzFile *open_state(char *game,int slot,int mode) {
 	char *st_name;
 //    char *st_name_len;
 #ifdef EMBEDDED_FS
-	char *gngeo_dir="save/";
+	char *gngeo_dir=ROOTPATH"save/";
 #else
 	char *gngeo_dir=get_gngeo_dir();
 #endif
