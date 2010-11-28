@@ -35,7 +35,7 @@ void zread_uint32le(ZFILE *gz, Uint32 *c) {
  * return ROM_DEF*, NULL on error
  */
 ROM_DEF *res_load_drv(char *name) {
-	char *gngeo_dat = CF_STR(cf_get_item_by_name("gngeo.dat"));
+	char *gngeo_dat = CF_STR(cf_get_item_by_name("datafile"));
 	ROM_DEF *drv;
 	char drvfname[32];
 	PKZIP *pz;
@@ -94,7 +94,7 @@ SDL_Surface *res_load_stbi(char *bmp) {
 	int x, y, comp;
 	stbi_uc *data = NULL;
 
-	pz = gn_open_zip(CF_STR(cf_get_item_by_name("gngeo.dat")));
+	pz = gn_open_zip(CF_STR(cf_get_item_by_name("datafile")));
 	if (!pz)
 		return NULL;
 	buffer = gn_unzip_file_malloc(pz, bmp, 0x0, &size);
@@ -146,7 +146,7 @@ SDL_Surface *res_load_bmp(char *bmp) {
 	SDL_RWops *rw;
 	unsigned int size;
 
-	pz = gn_open_zip(CF_STR(cf_get_item_by_name("gngeo.dat")));
+	pz = gn_open_zip(CF_STR(cf_get_item_by_name("datafile")));
 	if (!pz)
 		return NULL;
 	buffer = gn_unzip_file_malloc(pz, bmp, 0x0, &size);
@@ -181,7 +181,7 @@ void *res_load_data(char *name) {
 	Uint8 * buffer;
 	unsigned int size;
 
-	pz = gn_open_zip(CF_STR(cf_get_item_by_name("gngeo.dat")));
+	pz = gn_open_zip(CF_STR(cf_get_item_by_name("datafile")));
 	if (!pz)
 		return NULL;
 	buffer = gn_unzip_file_malloc(pz, name, 0x0, &size);

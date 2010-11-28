@@ -416,11 +416,11 @@ void cf_init(void) {
 #ifdef EMBEDDED_FS
 	cf_create_string_item("rompath", "Tell gngeo where your roms are", "PATH", 'i', ROOTPATH"./roms");
 	cf_create_string_item("biospath", "Tell gngeo where your neogeo bios is", "PATH", 'B', ROOTPATH"./roms");
-	cf_create_string_item("gngeo.dat", "Tell gngeo where his ressource file is", "PATH", 'd', ROOTPATH"./gngeo.dat");
+	cf_create_string_item("datafile", "Tell gngeo where his ressource file is", "PATH", 'd', ROOTPATH"./gngeo_data.zip");
 #else
 	cf_create_string_item("rompath", "Tell gngeo where your roms are", "PATH", 'i', DATA_DIRECTORY);
 	cf_create_string_item("biospath", "Tell gngeo where your neogeo bios is", "PATH", 'B', DATA_DIRECTORY);
-	cf_create_string_item("gngeo.dat", "Tell gngeo where his ressource file is", "PATH", 'd', DATA_DIRECTORY"/gngeo.dat");
+	cf_create_string_item("datafile", "Tell gngeo where his ressource file is", "PATH", 'd', DATA_DIRECTORY"/gngeo_data.zip");
 #endif
 	//cf_create_string_item("romrcdir","Use STRING as romrc.d directory",0,DATA_DIRECTORY"/romrc.d");
 	cf_create_string_item("libglpath", "Path to your libGL.so", "PATH", 0, "/usr/lib/libGL.so");

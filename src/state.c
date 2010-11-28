@@ -49,7 +49,7 @@ static int endian_flag=0x0;
 #define ROOTPATH ""
 #endif
 
-#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
+#if !defined(HAVE_LIBZ) || !defined (HAVE_MMAP)
 #define gzopen fopen
 #define gzread(f,data,size) fread(data,size,1,f)
 #define gzwrite(f,data,size) fwrite(data,size,1,f)

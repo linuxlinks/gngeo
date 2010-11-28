@@ -333,7 +333,7 @@ uint8_t *gn_unzip_file_malloc(PKZIP *zf, char *filename, uint32_t file_crc,
 	if (!data)
 		return NULL;
 	if (z->cmeth == 8) {
-#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
+#if !defined(HAVE_LIBZ) || !defined (HAVE_MMAP)
 		readed = stbi_zlib_decode_noheader_stream(z->zb, data, z->uncsize);
 #else
 		readed=gn_unzip_fread(z,data,z->uncsize);
