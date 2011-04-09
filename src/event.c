@@ -237,7 +237,7 @@ int handle_event(void) {
 			}
 		break;
 	    case SDL_KEYDOWN:
-				printf("%d\n", event.key.keysym.sym);
+				//printf("%d\n", event.key.keysym.sym);
 		    switch (jmap->key[event.key.keysym.sym].player) {
 			case 1:
 				joy_state[0][jmap->key[event.key.keysym.sym].map]=1;
@@ -269,8 +269,8 @@ int handle_event(void) {
 
 			}
 			
-			printf("SDL_JOYHATMOTION  %d %d %d\n",event.jhat.which,
-			event.jhat.hat,event.jhat.value);
+			//printf("SDL_JOYHATMOTION  %d %d %d\n",event.jhat.which,
+			//event.jhat.hat,event.jhat.value);
 		}
 		break;
 		case SDL_JOYAXISMOTION:
@@ -279,8 +279,8 @@ int handle_event(void) {
 			int map=jmap->jaxe[event.jaxis.which][event.jaxis.axis].map;
 			int oldvalue=jmap->jaxe[event.jaxis.which][event.jaxis.axis].value;
 			int value=0;
-			if (event.jaxis.axis!=6 &&event.jaxis.axis!=7 )
-				printf("Axiw motions %d %d %d\n",event.jaxis.which,event.jaxis.axis,event.jaxis.value);
+			//if (event.jaxis.axis!=6 &&event.jaxis.axis!=7 )
+			//	printf("Axiw motions %d %d %d\n",event.jaxis.which,event.jaxis.axis,event.jaxis.value);
 			if (player) {
 				player-=1;
 				
@@ -339,7 +339,7 @@ int handle_event(void) {
 				joy_state[player][map]=1;
 			}
 			
-			printf("SDL_JOYBUTTONDOWN %d %d\n",event.jbutton.which,event.jbutton.button);
+			//printf("SDL_JOYBUTTONDOWN %d %d\n",event.jbutton.which,event.jbutton.button);
 		}
 			break;
 		case SDL_JOYBUTTONUP:
@@ -505,8 +505,8 @@ int wait_event(void) {
 			//return GN_B;
 			break;
 		default:
-			//SDL_PushEvent(&event);
-			//handle_event();
+			SDL_PushEvent(&event);
+			handle_event();
 			break;
 		}
 		break;

@@ -41,16 +41,20 @@ effect_func effect[] = {
 	{"scanline", "Scanline effect", 2, 2, effect_scanline_init, effect_scanline_update}, // 1
 	{"scanline50", "Scanline 50% effect", 2, 2, effect_scanline_init, effect_scanline50_update}, // 2
 	{"scale2x", "Scale2x effect", 2, 2, effect_scale2x_init, effect_scale2x_update}, // 3
+#ifndef PANDORA
 	{"scale3x", "Scale3x effect", 3, 3, effect_scale3x_init, effect_scale3x_update}, // 3
 	{"scale4x", "Scale4x effect", 4, 4, effect_scale4x_init, effect_scale4x_update}, // 3
+#endif
 	{"scale2x50", "Scale2x effect with 50% scanline", 2, 2, effect_scale2x_init, effect_scale2x50_update}, // 4
 	{"scale2x75", "Scale2x effect with 75% scanline", 2, 2, effect_scale2x_init, effect_scale2x75_update}, // 5
 	{"hq2x", "HQ2X effect. High quality", 2, 2, effect_hq2x_init, effect_hq2x_update},
+	{"lq2x", "LQ2X effect. Low quality", 2, 2, effect_lq2x_init, effect_lq2x_update},
+#ifndef PANDORA
 	{"hq3x", "HQ3X effect. High quality", 3, 3, effect_hq3x_init, effect_hq3x_update},
 	//    {"hq4x","HQ4X effect. High quality",4,4,effect_hq4x_init, effect_hq4x_update},
-	{"lq2x", "LQ2X effect. Low quality", 2, 2, effect_lq2x_init, effect_lq2x_update},
 	{"lq3x", "LQ3X effect. Low quality", 3, 3, effect_lq3x_init, effect_lq3x_update},
 	{"doublex", "Double the x resolution (soft blitter only)", 2, 1, effect_scanline_init, effect_doublex_update}, //6
+#endif
 #ifdef I386_ASM
 	{"sai", "SAI effect", 2, 2, effect_sai_init, effect_sai_update}, //7
 	{"supersai", "SuperSAI effect", 2, 2, effect_sai_init, effect_supersai_update}, //8

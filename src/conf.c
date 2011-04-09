@@ -88,7 +88,7 @@ static char * default_p1control = "UP=J0B0,DOWN=J0B4,LEFT=J0B2,RIGHT=J0B6,A=J0B1
 static char * default_p2control = "";
 #elif defined(PANDORA)
 static char * default_p1control = "A=K281,B=K279,C=K278,D=K280,START=K308,COIN=K306,"
-		"UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K113";
+		"UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K32";
 static char * default_p2control = "";
 #elif defined (DINGUX)
 static char * default_p1control = "A=K308,B=K306,C=K304,D=K32,START=K13,COIN=K9,"
