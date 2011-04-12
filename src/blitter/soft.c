@@ -80,6 +80,16 @@ blitter_soft_init()
 	    height *=scale;
 	}
 	
+#ifdef PANDORA
+		
+	if (CF_BOOL(cf_get_item_by_name("wide"))) {
+		setenv("SDL_OMAP_LAYER_SIZE","800x480",1);
+	} else {
+		setenv("SDL_OMAP_LAYER_SIZE","640x480",1);
+	}
+	
+#endif
+	
 #ifdef GP2X
 	//screen = SDL_SetVideoMode(width, height, 16, sdl_flags);
 
@@ -246,16 +256,20 @@ blitter_soft_update()
     SDL_BlitSurface(buffer, &visible_area, screen, &screen_rect);
     SDL_Flip(screen);
 #else
-  if (neffect == 0) {
-      switch (scale) {
-      case 2: update_double(); break;
-      case 3: update_triple(); break;
-      default:
-	  SDL_BlitSurface(buffer, &visible_area, screen, &screen_rect);
-	  break;
-    }
-
-  }
+#ifdef PANDORA
+	if (neffect == 0 || neffect == 1) {
+#else
+		if (neffect == 0) {
+#endif
+			switch (scale) {
+				case 2: update_double(); break;
+				case 3: update_triple(); break;
+				default:
+					SDL_BlitSurface(buffer, &visible_area, screen, &screen_rect);
+					break;
+			}
+			
+		}
 #ifdef DEVKIT8000
 	SDL_Flip(screen);
 #else

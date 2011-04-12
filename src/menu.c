@@ -1084,6 +1084,7 @@ static int romnamesort(void *a, void *b) {
 
 	return strcmp(ga->name, gb->name);
 }
+extern char romerror[1024];
 
 static int loadrom_action(GN_MENU_ITEM *self, void *param) {
 	char *game = (char*) self->arg;
@@ -1094,8 +1095,9 @@ static int loadrom_action(GN_MENU_ITEM *self, void *param) {
 
 	if (init_game(game) != true) {
 		printf("Can't init %s...\n", game);
-		gn_popup_error("Error! :", "Gngeo Couldn't init %s... \n\n"
-				" Maybe blabla", game);
+		gn_popup_error("Error! :", "Gngeo Couldn't init %s: \n\n%s\n"
+				"Maybe the romset you're using is too old"
+				, game,romerror);
 		return MENU_STAY;
 	}
 
@@ -1214,6 +1216,15 @@ static int toggle_fullscreen(GN_MENU_ITEM *self, void *param) {
 	return MENU_STAY;
 }
 
+static int toggle_wide(GN_MENU_ITEM *self, void *param) {
+	self->val = 1 - self->val;
+
+	cf_item_has_been_changed(cf_get_item_by_name("wide"));
+	CF_BOOL(cf_get_item_by_name("wide")) = self->val;
+	screen_reinit();
+	return MENU_STAY;
+}
+
 static int toggle_vsync(GN_MENU_ITEM *self, void *param) {
 
 	self->val = 1 - self->val;
@@ -1254,7 +1265,7 @@ static int toggle_showfps(GN_MENU_ITEM *self, void *param) {
 static int change_effect_action(GN_MENU_ITEM *self, void *param) {
 	char *ename = (char *) self->arg;
 	printf("Toggle to effect %s\n", self->name);
-	if (strcmp(ename, "none") != 0) {
+	if (strcmp(ename, "none") != 0 || strcmp(ename, "soft") != 0) {
 		scale = 1;
 	}
 	strncpy(CF_STR(cf_get_item_by_name("effect")), ename, 254);
@@ -1401,7 +1412,9 @@ static void reset_menu_option(void) {
 	RESET_BOOL("Auto Frame Skip","autoframeskip");
 	RESET_BOOL("Sleep while idle","sleepidle");
 	RESET_BOOL("Show FPS","showfps");
-
+#ifdef PANDORA
+	RESET_BOOL("16/9","wide");
+#endif
 	gitem=gn_menu_get_item_by_name(option_menu,"Effect");
 	gitem->str = CF_STR(cf_get_item_by_name("effect"));
 
@@ -1462,7 +1475,12 @@ void gn_init_menu(void) {
 	gitem->val = CF_BOOL(cf_get_item_by_name("fullscreen"));
 	option_menu->item = list_append(option_menu->item, (void*) gitem);
 	option_menu->nb_elem++;
-
+#ifdef PANDORA
+	gitem = gn_menu_create_item("16/9", MENU_CHECK, toggle_wide, NULL);
+	gitem->val = CF_BOOL(cf_get_item_by_name("wide"));
+	option_menu->item = list_append(option_menu->item, (void*) gitem);
+	option_menu->nb_elem++;
+#endif
 	gitem = gn_menu_create_item("Vsync", MENU_CHECK, toggle_vsync, NULL);
 	gitem->val = CF_BOOL(cf_get_item_by_name("vsync"));
 	option_menu->item = list_append(option_menu->item, (void*) gitem);

@@ -63,7 +63,8 @@ int bankoffset_kof99[64] = {
 	0x417800, 0x517800, 0x420800, 0x520800, 0x424800, 0x524800, 0x429000,
 	0x529000, 0x42e800, 0x52e800, 0x431800, 0x531800, 0x54d000, 0x551000,
 	0x567000, 0x592800, 0x588800, 0x581800, 0x599800, 0x594800, 0x598000,
-	/* rest not used? */};
+	/* rest not used? */
+};
 /* addr,uncramblecode,.... */
 Uint8 scramblecode_kof99[7] = {0xF0, 14, 6, 8, 10, 12, 5,};
 
@@ -81,7 +82,8 @@ int bankoffset_garou[64] = {
 	0x478000, 0x578000, 0x480000, 0x580000, // 40
 	0x488000, 0x588000, 0x490000, 0x590000, // 44
 	0x5d0000, 0x5d8000, 0x5e0000, 0x5e8000, // 48
-	0x5f0000, 0x5f8000, 0x600000, /* rest not used? */};
+	0x5f0000, 0x5f8000, 0x600000, /* rest not used? */
+};
 Uint8 scramblecode_garou[7] = {0xC0, 5, 9, 7, 6, 14, 12,};
 int bankoffset_garouo[64] = {
 	0x000000, 0x100000, 0x200000, 0x300000, // 00
@@ -116,7 +118,8 @@ int bankoffset_mslug3[64] = {
 	0x380000, 0x390000, 0x3c0000, 0x3d0000, // 36
 	0x400000, 0x410000, 0x440000, 0x450000, // 40
 	0x460000, 0x470000, 0x4a0000, 0x4b0000, // 44
-	0x4c0000, /* rest not used? */};
+	0x4c0000, /* rest not used? */
+};
 Uint8 scramblecode_mslug3[7] = {0xE4, 14, 12, 15, 6, 3, 9,};
 int bankoffset_kof2000[64] = {
 	0x000000, 0x100000, 0x200000, 0x300000, // 00
@@ -134,6 +137,7 @@ Uint8 scramblecode_kof2000[7] = {0xEC, 15, 14, 7, 3, 10, 5,};
 #define LOAD_BUF_SIZE (128*1024)
 static Uint8* iloadbuf = NULL;
 
+char romerror[1024];
 
 /* Actuall Code */
 
@@ -968,7 +972,7 @@ static int read_data_i(ZFILE *gz, ROM_REGION *r, Uint32 dest, Uint32 size) {
 			p += 2;
 		}
 		size -= c;
-		read_counter+= c;
+		read_counter += c;
 		gn_update_pbar(read_counter);
 	}
 	//free(buf);
@@ -976,21 +980,21 @@ static int read_data_i(ZFILE *gz, ROM_REGION *r, Uint32 dest, Uint32 size) {
 }
 
 static int read_data_p(ZFILE *gz, ROM_REGION *r, Uint32 dest, Uint32 size) {
-	Uint32 s = LOAD_BUF_SIZE, c, i=0;
+	Uint32 s = LOAD_BUF_SIZE, c, i = 0;
 	if (r->p == NULL || r->size < dest + size) {
 		printf("Region not allocated or not big enough\n");
 		return -1;
 	}
 	while (size) {
-		c=size;
-		if (c>s)
-			c=s;
+		c = size;
+		if (c > s)
+			c = s;
 		c = gn_unzip_fread(gz, r->p + dest + i, c);
 		if (c == 0) {
 			//free(buf);
 			return 0;
 		}
-		i+=c;
+		i += c;
 		size -= c;
 		read_counter += c;
 		gn_update_pbar(read_counter);
@@ -1319,7 +1323,7 @@ ROM_DEF *dr_check_zip(char *filename) {
 #ifdef HAVE_BASENAME
 	char *game = strdup(basename(filename));
 #else
-	char *game = strdup(strrchr(filename,'/'));
+	char *game = strdup(strrchr(filename, '/'));
 #endif
 	//	printf("Game=%s\n", game);
 	if (game == NULL)
@@ -1345,21 +1349,23 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 
 	drv = res_load_drv(name);
 	if (!drv) {
-		fprintf(stderr, "Can't find rom driver for %s\n", name);
+		sprintf(romerror, "Can't find rom driver for %s\n", name);
 		return false;
 	}
 
 	gz = open_rom_zip(rom_path, name);
 	if (gz == NULL) {
-		printf("File %s/%s.zip not found\n", rom_path, name);
+		sprintf(romerror,"Rom %s/%s.zip not found\n", rom_path, name);
 		return false;
 	}
 
 	/* Open Parent.
 	 For now, only one parent is supported, no recursion
 	 */
-	if (strcasecmp(drv->parent, "0") != 0) {
-		gzp = open_rom_zip(rom_path, drv->parent);
+	gzp = open_rom_zip(rom_path, drv->parent);
+	if (gzp == NULL) {
+		sprintf(romerror,"Parent %s/%s.zip not found\n", rom_path, name);
+		return false;
 	}
 
 	//printf("year %d\n",drv->year);
@@ -1415,13 +1421,13 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 	iloadbuf = malloc(LOAD_BUF_SIZE);
 
 	/* Now, load the roms */
-	read_counter=0;
-	romsize=0;
-	for (i=0 ;i <drv->nb_romfile; i++)
-		romsize+=drv->rom[i].size;
-	gn_init_pbar("Loading...",romsize);
+	read_counter = 0;
+	romsize = 0;
+	for (i = 0; i < drv->nb_romfile; i++)
+		romsize += drv->rom[i].size;
+	gn_init_pbar("Loading...", romsize);
 	for (i = 0; i < drv->nb_romfile; i++) {
-//		gn_update_pbar(i, drv->nb_romfile);
+		//		gn_update_pbar(i, drv->nb_romfile);
 		if (load_region(gz, r, drv->rom[i].region, drv->rom[i].src,
 				drv->rom[i].dest, drv->rom[i].size, drv->rom[i].crc,
 				drv->rom[i].filename) != 0) {
@@ -1434,14 +1440,14 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 						drv->rom[i].filename);
 				DEBUG_LOG("From parent %d\n", pi);
 				if (pi && (region != 5 && region != 0 && region != 7)) {
-					fprintf(stderr, "ERROR: File %s not found\n",
+					sprintf(romerror, "ERROR: File %s not found\n",
 							drv->rom[i].filename);
 					goto error1;
 				}
 			} else {
 				int region = drv->rom[i].region;
 				if (region != 5 && region != 0 && region != 7) {
-					fprintf(stderr, "ERROR: File %s not found\n",
+					sprintf(romerror, "ERROR: File %s not found\n",
 							drv->rom[i].filename);
 					goto error1;
 				}
@@ -1776,7 +1782,7 @@ int dr_open_gno(char *filename) {
 	totread += fread(&r->info.flags, sizeof (Uint32), 1, gno);
 	totread += fread(&nb_sec, sizeof (Uint8), 1, gno);
 
-	gn_init_pbar("Loading",nb_sec);
+	gn_init_pbar("Loading", nb_sec);
 	for (i = 0; i < nb_sec; i++) {
 		gn_update_pbar(i);
 		read_region(gno, r);

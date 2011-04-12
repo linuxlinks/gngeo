@@ -395,17 +395,27 @@ void cf_init(void) {
 
 	cf_create_bool_item("forcepc", "Force the PC to a correct value at startup", 0, false);
 	cf_create_bool_item("dump", "Create a gno dump in the current dir and exit", 0, false);
-	cf_create_bool_item("fullscreen", "Start gngeo in fullscreen", 'f', false);
+
 	cf_create_bool_item("interpolation", "Merge the last frame and the current", 'I', false);
 	cf_create_bool_item("raster", "Enable the raster interrupt", 'r', false);
 	cf_create_bool_item("sound", "Enable sound", 0, true);
 	cf_create_bool_item("showfps", "Show FPS at startup", 0, false);
-	cf_create_bool_item("autoframeskip", "Enable auto frameskip", 0, true);
+
 	cf_create_bool_item("sleepidle", "Sleep when idle", 0, false);
 	cf_create_bool_item("joystick", "Enable joystick support", 0, true);
 	cf_create_bool_item("debug", "Start with inline debuger", 'D', false);
 	cf_create_bool_item("hwsurface", "Use hardware surface for the screen", 'H', true);
+#ifdef PANDORA
+	cf_create_bool_item("vsync", "Synchronise the display with VBLANK", 0, true);
+	cf_create_bool_item("autoframeskip", "Enable auto frameskip", 0, false);
+	cf_create_bool_item("fullscreen", "Start gngeo in fullscreen", 'f', true);
+	cf_create_bool_item("wide", "Use all the Pandora Screen", 0, false);
+#else
 	cf_create_bool_item("vsync", "Synchronise the display with VBLANK", 0, false);
+	cf_create_bool_item("autoframeskip", "Enable auto frameskip", 0, true);
+	cf_create_bool_item("fullscreen", "Start gngeo in fullscreen", 'f', false);
+	
+#endif
 	cf_create_bool_item("pal", "Use PAL timing (buggy)", 'P', false);
 	cf_create_bool_item("screen320", "Use 320x224 output screen (instead 304x224)", 0, false);
 	cf_create_bool_item("bench", "Draw x frames, then quit and show average fps", 0, false);

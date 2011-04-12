@@ -18,6 +18,8 @@
 
 SDL_bool effect_none_init(void);
 
+SDL_bool effect_smooth_init(void);
+
 blitter_func blitter[] = {
 	{"soft", "Software blitter", blitter_soft_init, NULL, blitter_soft_update, blitter_soft_fullscreen,
 		blitter_soft_close},
@@ -35,7 +37,12 @@ blitter_func blitter[] = {
 };
 
 effect_func effect[] = {
+
 	{"none", "No effect", 1, 1, effect_none_init, NULL},
+#ifdef PANDORA
+	// Fake effect to setup video filter
+		{"smooth", "Default Pandora Slightly blurred filter", 1, 1, effect_smooth_init, NULL},
+#endif
 #ifndef GP2X
 #ifndef WII
 	{"scanline", "Scanline effect", 2, 2, effect_scanline_init, effect_scanline_update}, // 1
@@ -215,9 +222,9 @@ SDL_bool screen_init() {
 		return SDL_FALSE;
 
 	/* Init of effect */
-	if (neffect > 0)
-		if ((*effect[neffect].init) () == SDL_FALSE)
-			return SDL_FALSE;
+	//if (neffect > 0)
+	if ((*effect[neffect].init) () == SDL_FALSE)
+		return SDL_FALSE;
 
 	/* Interpolation surface */
 	blend = SDL_CreateRGBSurface(SDL_SWSURFACE/*(conf.hw_surface ? SDL_HWSURFACE : SDL_SWSURFACE)*/,
@@ -230,9 +237,17 @@ SDL_bool screen_init() {
 }
 
 SDL_bool effect_none_init(void) {
+#ifdef PANDORA
+	system("sudo /usr/pandora/scripts/op_videofir.sh none");
+#endif
 	return SDL_TRUE;
 }
-
+#ifdef PANDORA
+SDL_bool effect_smooth_init(void) {
+	system("sudo /usr/pandora/scripts/op_videofir.sh default");
+	return SDL_TRUE;
+}
+#endif
 void screen_change_blitter_and_effect(void) {
 	CONF_ITEM *cf_blitter, *cf_effect;
 /*
@@ -372,7 +387,7 @@ void screen_update() {
 
 
 
-	if (neffect != 0)
+	if (effect[neffect].update != NULL)
 		(*effect[neffect].update) ();
 
 	(*blitter[nblitter].update) ();

@@ -289,7 +289,7 @@ printf("AAA Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_ST
     } else {
 
         //open_rom(rom_name);
-        if (dr_load_game(rom_name) == false) {
+	if (dr_load_game(rom_name) == false) {
 #if defined(GP2X)
             gn_popup_error(" Error! :", "Couldn't load %s",
                     file_basename(rom_name));
