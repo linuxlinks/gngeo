@@ -140,7 +140,7 @@ bool init_event(void) {
 		}
 	}
 	create_joymap_from_string(1,CF_STR(cf_get_item_by_name("p1control")));
-	//create_joymap_from_string(2,CF_STR(cf_get_item_by_name("p2control")));
+	create_joymap_from_string(2,CF_STR(cf_get_item_by_name("p2control")));
 	return true;
 }
 #ifdef GP2X
