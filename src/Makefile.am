@@ -1,4 +1,5 @@
-INCLUDES = -DDATA_DIRECTORY='"${pkgdatadir}"'
+#INCLUDES = -DDATA_DIRECTORY='"${pkgdatadir}"'
+AM_CPPFLAGS = -DDATA_DIRECTORY=\"$(pkgdatadir)\"
 
 SUBDIRS = effect blitter ym2610 $(m68k_subdir) $(z80_subdir) $(gui_subdir)
 

@@ -276,7 +276,9 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-INCLUDES = -DDATA_DIRECTORY='"${pkgdatadir}"'
+
+#INCLUDES = -DDATA_DIRECTORY='"${pkgdatadir}"'
+AM_CPPFLAGS = -DDATA_DIRECTORY=\"$(pkgdatadir)\"
 SUBDIRS = effect blitter ym2610 $(m68k_subdir) $(z80_subdir) $(gui_subdir)
 gngeo_SOURCES = fileio.c pd4990a.c gngeo_icon.h sound.h video.c \
 	fileio.h profiler.c main.c pd4990a.h video.h list.c memory.c \

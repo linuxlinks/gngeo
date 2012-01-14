@@ -40,7 +40,7 @@
 #include "neocrypt.h"
 #include "screen.h"
 #include "conf.h"
-#include "pbar.h"
+//#include "pbar.h"
 #include "sound.h"
 #include "transpack.h"
 #include "menu.h"

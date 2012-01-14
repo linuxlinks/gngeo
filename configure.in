@@ -89,6 +89,7 @@ if test "x$enable_embedded" = xtrue ; then
    AC_DEFINE([EMBEDDED_FS],[1],[Define for embedded directory structure])
 fi
 
+# CFLAGS="$CFLAGS -DDATA_DIRECTORY=\"${pkgdatadir}\""
 
 # Checks for libraries.
 #AC_SUBST(LIBOBJS)
@@ -283,6 +284,7 @@ AC_DEFINE(ALIGNLONGS, ALIGNLONGS,
 
 
 AC_CONFIG_FILES([Makefile
+	 gngeo.dat/Makefile
 	 src/Makefile
 	 src/raze/Makefile
          src/star/Makefile
