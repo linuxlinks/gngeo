@@ -145,7 +145,7 @@ static void catch_me(int signo) {
 int main(int argc, char *argv[])
 {
     char *rom_name;
-
+    int rc;
 
 
 #ifdef __AMIGA__
@@ -182,11 +182,11 @@ int main(int argc, char *argv[])
 #ifdef GP2X
     gp2x_init();
 #endif
-    if (gn_init_skin()!=SDL_TRUE) {
+    if ((rc=gn_init_skin())!=TRUE) {
 	    printf("Can't load skin...\n");
             exit(1);
     }    
-
+printf("Plop! %d\n",(1==1));
 	reset_frame_skip();
 
     if (conf.debug) conf.sound=0;

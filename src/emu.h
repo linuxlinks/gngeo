@@ -150,7 +150,7 @@ void neogeo_reset(void);
 //#define GNGEO_LOG printf
 
 #define TRUE 1
-#define FALSE 1
+#define FALSE 0
 
 
 #endif

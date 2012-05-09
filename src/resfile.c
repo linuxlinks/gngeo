@@ -1,8 +1,9 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-
+#include <sys/stat.h>
 #include "SDL.h"
+#include "emu.h"
 #include "roms.h"
 #include "resfile.h"
 #include "unzip.h"
@@ -28,6 +29,33 @@ void zread_uint32le(ZFILE *gz, Uint32 *c) {
 	*c=SDL_Swap32(*c);
 #endif
 	//printf("H32  %08x %d\n",*c,rc);
+}
+
+
+int res_verify_datafile(char *file) {
+	struct stat sb;
+
+	if (!file) file=CF_STR(cf_get_item_by_name("datafile"));
+
+	if (lstat(file,&sb)==-1) {
+		return FALSE;
+	}
+
+	/* if it's a dir, try to append gngeo_data.zip, and recheck */
+	if (S_ISDIR(sb.st_mode)) {
+		char *buf=malloc(strlen(file)+strlen("/gngeo_data.zip")+1);
+		snprintf(buf,254,"%s/%s",file,"gngeo_data.zip");
+		if(res_verify_datafile(buf)==TRUE) {
+			strncpy(CF_STR(cf_get_item_by_name("datafile")), buf, 254);
+			free(buf);
+			return TRUE;
+		} else {
+			free(buf);
+			return FALSE;
+		}
+	}
+	if (S_ISREG(sb.st_mode)) return TRUE;
+	return FALSE;
 }
 
 /*
@@ -79,8 +107,6 @@ ROM_DEF *res_load_drv(char *name) {
 	gn_close_zip(pz);
 	return drv;
 }
-
-
 
 /*
  * Load a stb image from gngeo.dat

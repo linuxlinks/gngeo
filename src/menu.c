@@ -425,6 +425,17 @@ void draw_string(SDL_Surface *dst, GNFONT *f, int x, int y, char *str) {
 	SDL_Rect srect, drect;
 	int i;
 
+	if (!f) {
+		if (x == ALIGN_LEFT) x = MENU_TEXT_X;
+		if (x == ALIGN_RIGHT) x = (MENU_TEXT_X_END - strlen(str)*8);
+		if (x == ALIGN_CENTER) x = (MENU_TEXT_X + (MENU_TEXT_X_END - MENU_TEXT_X - strlen(str)*8) / 2);
+		if (y == ALIGN_UP) y = MENU_TEXT_Y;
+		if (y == ALIGN_DOWN) y = (MENU_TEXT_Y_END - 8);
+		if (y == ALIGN_CENTER) y = (MENU_TEXT_Y + (MENU_TEXT_Y_END - MENU_TEXT_Y - 8) / 2);
+		SDL_textout(dst,x,y,str);
+		return;
+	}
+
 	if (x == ALIGN_LEFT) x = MENU_TEXT_X;
 	if (x == ALIGN_RIGHT) x = (MENU_TEXT_X_END - string_len(f, str));
 	if (x == ALIGN_CENTER) x = (MENU_TEXT_X + (MENU_TEXT_X_END - MENU_TEXT_X - string_len(f, str)) / 2);
@@ -516,7 +527,10 @@ int gn_init_skin(void) {
 	menu_buf = SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 16, 0xF800, 0x7E0, 0x1F, 0);
 	//	menu_back= SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 32, 0xFF0000, 0xFF00, 0xFF, 0x0);
 	menu_back = SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 16, 0xF800, 0x7E0, 0x1F, 0);
-
+	if (res_verify_datafile(NULL)==FALSE) {
+		gn_popup_error("Datafile Not Found!","Gngeo could not find his \n datafile :( \n");
+		return FALSE;
+	}
 	back = res_load_stbi("skin/back.tga");
 	sfont = load_font("skin/font_small.tga");
 	mfont = load_font("skin/font_large.tga");
@@ -533,8 +547,8 @@ int gn_init_skin(void) {
 	init_back();
 
 	if (!back || !sfont || !mfont || !arrow_r || !arrow_l || !arrow_u || !arrow_d ||
-			!gngeo_logo || !menu_buf) return false;
-	return true;
+			!gngeo_logo || !menu_buf) return FALSE;
+	return TRUE;
 }
 
 static int pbar_y;
