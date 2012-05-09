@@ -220,7 +220,7 @@ static void debug(UWORD pc)
 }
 #endif
 
-void cpu_z80_mkstate(gzFile *gzf,int mode) {
+void cpu_z80_mkstate(gzFile gzf,int mode) {
 	/* TODO */
 }
 

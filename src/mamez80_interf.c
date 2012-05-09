@@ -218,7 +218,7 @@ static void z80_init_save_state(void) {
     set_pre_save_function(ST_Z80,pre_save_state);
 }
 
-void cpu_z80_mkstate(gzFile *gzf,int mode) {
+void cpu_z80_mkstate(gzFile gzf,int mode) {
 	mkstate_data(gzf, &z80_st, sizeof (z80_st), mode);
 	mkstate_data(gzf, mame_z80mem, 0x10000, mode);
 	if (mode==STREAD) {

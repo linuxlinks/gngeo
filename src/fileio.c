@@ -97,6 +97,8 @@ bool check_dir(char *dir_name) {
 #endif
         return false;
     }
+    if(d)
+    	closedir(d);
     return true;
 }
 

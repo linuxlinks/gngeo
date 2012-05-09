@@ -419,7 +419,7 @@ static void cpu_68k_init_save_state(void) {
 	set_pre_save_function(ST_68k,cpu_68k_pre_save_state);
 	
 }
-void cpu_68k_mkstate(gzFile *gzf,int mode) {
+void cpu_68k_mkstate(gzFile gzf,int mode) {
 	printf("Save state mode %s PC=%08x\n",(mode==STREAD?"READ":"WRITE"),MyCyclone.pc-MyCyclone.membase);
 	if (mode==STWRITE) CyclonePack(&MyCyclone, save_buffer);
 	mkstate_data(gzf, save_buffer, 128, mode);

@@ -10,6 +10,9 @@
 #include "config.h"
 #endif
 
+
+#include <sys/stat.h>
+
 #if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 #include <zlib.h>
 //#define ZLIB_IN_CHUNK 128*1024
@@ -180,7 +183,7 @@ static int search_central_dir(PKZIP *zf) {
 	return 0;
 }
 
-static int unzip_locate_file(PKZIP *zf, char *filename, uint32_t file_crc) {
+static int unzip_locate_file(PKZIP *zf, const char *filename, uint32_t file_crc) {
 	int pos;
 	uint32_t crc, offset;
 	uint16_t xf_len, fcomment_len, fname_len;
@@ -220,7 +223,7 @@ static int unzip_locate_file(PKZIP *zf, char *filename, uint32_t file_crc) {
 	return -1;
 }
 
-ZFILE *gn_unzip_fopen(PKZIP *zf, char *filename, uint32_t file_crc) {
+ZFILE *gn_unzip_fopen(PKZIP *zf, const char *filename, uint32_t file_crc) {
 	ZFILE *z;
 	uint32_t sig;
 	int cmeth, xf_len, fname_len;
@@ -323,7 +326,7 @@ int gn_unzip_fread(ZFILE *z, uint8_t *data, unsigned int size) {
 	return readed;
 }
 
-uint8_t *gn_unzip_file_malloc(PKZIP *zf, char *filename, uint32_t file_crc,
+uint8_t *gn_unzip_file_malloc(PKZIP *zf, const char *filename, uint32_t file_crc,
 		unsigned int *outlen) {
 	ZFILE *z = gn_unzip_fopen(zf, filename, file_crc);
 	int readed;
@@ -368,6 +371,20 @@ PKZIP *gn_open_zip(char *file) {
 	PKZIP *zf = malloc(sizeof(PKZIP));
 	int size;
 	int e;
+	struct stat sb;
+
+	if (lstat(file,&sb)==-1) {
+		printf("Couldn't open %s\n", file);
+		free(zf);
+		return NULL;
+	}
+
+	if (!S_ISREG(sb.st_mode) && !S_ISLNK(sb.st_mode)) {
+		printf("%s is not a regular file\n", file);
+		free(zf);
+		return NULL;
+	}
+
 	zf->file = fopen(file, "rb");
 	if (zf->file == NULL) {
 		printf("Couldn't open %s\n", file);
@@ -390,6 +407,11 @@ PKZIP *gn_open_zip(char *file) {
 	return zf;
 }
 void gn_close_zip(PKZIP *zf) {
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
+	fseek(zf->file,0,SEEK_END);
+	int size=ftell(zf->file);
+	munmap(zf->map, size);
+#endif
 	fclose(zf->file);
 	free(zf);
 }

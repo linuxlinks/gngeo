@@ -92,7 +92,7 @@ SDL_Surface *load_state_img(char *game,int slot);
 bool load_state(char *game,int slot);
 bool save_state(char *game,int slot);
 Uint32 how_many_slot(char *game);
-int mkstate_data(gzFile *gzf,void *data,int size,int mode);
+int mkstate_data(gzFile gzf,void *data,int size,int mode);
 
 void neogeo_init_save_state(void);
 

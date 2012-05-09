@@ -30,6 +30,25 @@
 #include "ym2610-940/940shared.h"
 #endif
 
+Uint8 (*mem68k_fetch_bksw_byte)(Uint32);
+Uint16 (*mem68k_fetch_bksw_word)(Uint32);
+Uint32 (*mem68k_fetch_bksw_long)(Uint32);
+void (*mem68k_store_bksw_byte)(Uint32,Uint8);
+void (*mem68k_store_bksw_word)(Uint32,Uint16);
+void (*mem68k_store_bksw_long)(Uint32,Uint32);
+
+neo_mem memory;
+
+Uint8 *current_pal;
+Uint32 *current_pc_pal;
+Uint8 *current_fix;
+Uint8 *fix_usage;
+Uint8 sram_lock;
+Uint8 sound_code;
+Uint8 pending_command;
+Uint8 result_code;
+Uint16 z80_bank[4];
+
 Uint32 bankaddress = 0;
 extern int current_line;
 

@@ -114,30 +114,30 @@ typedef struct neo_mem {
 	Uint32 watchdog;
 } neo_mem;
 
-neo_mem memory;
+extern neo_mem memory;
 
 /* video related */
 //extern int irq2start, irq2control;
-Uint8 *current_pal;
-Uint32 *current_pc_pal;
-Uint8 *current_fix;
-Uint8 *fix_usage;
+extern Uint8 *current_pal;
+extern Uint32 *current_pc_pal;
+extern Uint8 *current_fix;
+extern Uint8 *fix_usage;
 
 /* sram */
-Uint8 sram_lock;
+extern Uint8 sram_lock;
 //Uint32 sram_protection_hack;
 //int sram_protection_hack;
 
 /* Sound control */
-Uint8 sound_code;
-Uint8 pending_command;
-Uint8 result_code;
+extern Uint8 sound_code;
+extern Uint8 pending_command;
+extern Uint8 result_code;
 
 
 /* 68k cpu Banking control */
 extern Uint32 bankaddress;		/* current bank */
 //Uint8 current_cpu_bank;
-Uint16 z80_bank[4];
+extern Uint16 z80_bank[4];
 
 /* misc utility func */
 void update_all_pal(void);
@@ -263,10 +263,10 @@ void mem68k_store_bk_kof2003_byte(Uint32 addr, Uint8 data);
 void mem68k_store_bk_kof2003_word(Uint32 addr, Uint16 data);
 void mem68k_store_bk_kof2003_long(Uint32 addr, Uint32 data);
 
-Uint8 (*mem68k_fetch_bksw_byte)(Uint32);
-Uint16 (*mem68k_fetch_bksw_word)(Uint32);
-Uint32 (*mem68k_fetch_bksw_long)(Uint32);
-void (*mem68k_store_bksw_byte)(Uint32,Uint8);
-void (*mem68k_store_bksw_word)(Uint32,Uint16);
-void (*mem68k_store_bksw_long)(Uint32,Uint32);
+extern Uint8 (*mem68k_fetch_bksw_byte)(Uint32);
+extern Uint16 (*mem68k_fetch_bksw_word)(Uint32);
+extern Uint32 (*mem68k_fetch_bksw_long)(Uint32);
+extern void (*mem68k_store_bksw_byte)(Uint32,Uint8);
+extern void (*mem68k_store_bksw_word)(Uint32,Uint16);
+extern void (*mem68k_store_bksw_long)(Uint32,Uint32);
 #endif

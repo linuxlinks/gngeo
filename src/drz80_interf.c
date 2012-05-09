@@ -159,7 +159,7 @@ static void z80_init_save_state(void) {
     set_post_load_function(ST_Z80,post_load_state);
     set_pre_save_function(ST_Z80,pre_save_state);
 }
-void cpu_z80_mkstate(gzFile *gzf,int mode) {
+void cpu_z80_mkstate(gzFile gzf,int mode) {
 	/* TODO */
 }
 void cpu_z80_init(void)

@@ -47,12 +47,14 @@ ROM_DEF *res_load_drv(char *name) {
 	/* Open the rom driver def */
 	pz = gn_open_zip(gngeo_dat);
 	if (pz == NULL) {
+		free(drv);
 		fprintf(stderr, "Can't open the %s\n", gngeo_dat);
 		return NULL;
 	}
 	sprintf(drvfname, "rom/%s.drv", name);
 
 	if ((z=gn_unzip_fopen(pz,drvfname,0x0)) == NULL) {
+		free(drv);
 		fprintf(stderr, "Can't open rom driver for %s\n", name);
 		return NULL;
 	}
@@ -93,7 +95,7 @@ SDL_Surface *res_load_stbi(char *bmp) {
 	unsigned int size;
 	int x, y, comp;
 	stbi_uc *data = NULL;
-
+	printf("DATAFILE = %s\n",CF_STR(cf_get_item_by_name("datafile")));
 	pz = gn_open_zip(CF_STR(cf_get_item_by_name("datafile")));
 	if (!pz)
 		return NULL;

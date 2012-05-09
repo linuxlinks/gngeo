@@ -1220,7 +1220,7 @@ bool dr_load_bios(GAME_ROMS *r) {
 	unsigned int size;
 	char *rpath = CF_STR(cf_get_item_by_name("rompath"));
 	char *fpath;
-	char *romfile;
+	const char *romfile;
 	fpath = malloc(strlen(rpath) + strlen("neogeo.zip") + 2);
 	sprintf(fpath, "%s/neogeo.zip", rpath);
 
@@ -1316,7 +1316,7 @@ error:
 	return false;
 }
 
-ROM_DEF *dr_check_zip(char *filename) {
+ROM_DEF *dr_check_zip(const char *filename) {
 
 	char *z;
 	ROM_DEF *drv;
@@ -1331,7 +1331,10 @@ ROM_DEF *dr_check_zip(char *filename) {
 	z = strstr(game, ".zip");
 	//	printf("z=%s\n", game);
 	if (z == NULL)
+	{
+		free(game);
 		return NULL;
+	}
 	z[0] = 0;
 	drv = res_load_drv(game);
 	free(game);
@@ -1498,7 +1501,7 @@ error1:
 	return false;
 }
 
-bool dr_load_game(char *name) {
+bool dr_load_game(const char *name) {
 	//GAME_ROMS rom;
 	char *rpath = CF_STR(cf_get_item_by_name("rompath"));
 	int rc;
@@ -1531,7 +1534,7 @@ bool dr_load_game(char *name) {
 
 #if defined(HAVE_LIBZ)//&& defined (HAVE_MMAP)
 
-static int dump_region(FILE *gno, ROM_REGION *rom, Uint8 id, Uint8 type,
+static int dump_region(FILE *gno, const ROM_REGION *rom, Uint8 id, Uint8 type,
 		Uint32 block_size) {
 	if (rom->p == NULL)
 		return FALSE;
@@ -1547,7 +1550,7 @@ static int dump_region(FILE *gno, ROM_REGION *rom, Uint8 id, Uint8 type,
 		Uint32 cur_offset = 0;
 		long offset_pos;
 		Uint32 i;
-		Uint8 *inbuf = rom->p;
+		const Uint8 *inbuf = rom->p;
 		Uint8 *outbuf;
 		uLongf outbuf_len;
 		uLongf outlen;
@@ -1583,9 +1586,11 @@ static int dump_region(FILE *gno, ROM_REGION *rom, Uint8 id, Uint8 type,
 			printf("bank %d outlen=%d offset=%d\n", i, outlen32, cur_offset);
 			fwrite(outbuf, outlen, 1, gno);
 		}
+		free(outbuf);
 		/* Now, write the offset table */
 		fseek(gno, offset_pos, SEEK_SET);
 		fwrite(block_offset, sizeof (Uint32), nb_block, gno);
+		free(block_offset);
 		fwrite(&cmpsize, sizeof (Uint32), 1, gno);
 		printf("cmpsize=%d\n", cmpsize);
 		fseek(gno, 0, SEEK_END);
@@ -1771,6 +1776,7 @@ int dr_open_gno(char *filename) {
 
 	totread += fread(fid, 8, 1, gno);
 	if (strncmp(fid, "gnodmpv1", 8) != 0) {
+		fclose(gno);
 		printf("Invalid GNO file\n");
 		return FALSE;
 	}

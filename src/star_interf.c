@@ -169,7 +169,7 @@ void bankswitcher_init() {
     pretend_writeword[7].memorycall=mem68k_store_bk_normal_word;
 }
 
-void cpu_68k_mkstate(gzFile *gzf,int mode) {
+void cpu_68k_mkstate(gzFile gzf,int mode) {
 	/* TODO */
 }
 

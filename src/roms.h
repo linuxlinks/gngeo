@@ -75,8 +75,8 @@ typedef struct GAME_ROMS {
 int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name);
 void dr_free_roms(GAME_ROMS *r);
 int dr_save_gno(GAME_ROMS *r,char *filename);
-bool dr_load_game(char *zip);
-ROM_DEF *dr_check_zip(char *filename);
+bool dr_load_game(const char *zip);
+ROM_DEF *dr_check_zip(const char *filename);
 char *dr_gno_romname(char *filename);
 int dr_open_gno(char *filename);
 

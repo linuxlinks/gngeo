@@ -54,7 +54,7 @@ static int endian_flag=0x0;
 #define gzread(f,data,size) fread(data,size,1,f)
 #define gzwrite(f,data,size) fwrite(data,size,1,f)
 #define gzclose fclose
-#define gzFile FILE
+#define gzFile FILE*
 #define gzeof feof
 #define gzseek fseek
 
@@ -66,9 +66,9 @@ static SDL_Rect buf_rect    =	{24, 16, 304, 224};
 static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
 SDL_Surface *state_img_tmp;
 
-void cpu_68k_mkstate(gzFile *gzf,int mode);
-void cpu_z80_mkstate(gzFile *gzf,int mode);
-void ym2610_mkstate(gzFile *gzf,int mode);
+void cpu_68k_mkstate(gzFile gzf,int mode);
+void cpu_z80_mkstate(gzFile gzf,int mode);
+void ym2610_mkstate(gzFile gzf,int mode);
 
 void create_state_register(ST_MODULE_TYPE module,const char *reg_name,
 			   Uint8 num,void *data,int size,ST_DATA_TYPE type) {
@@ -184,7 +184,7 @@ SDL_Surface *load_state_img(char *game,int slot) {
 	Uint8  my_endian=0;
 #endif
 	char string[20];
-	gzFile *gzf;
+	gzFile gzf;
 	Uint8  endian;
 	Uint32 rate;
 
@@ -236,7 +236,7 @@ bool load_state(char *game,int slot) {
 #endif
 
     int i;
-    gzFile *gzf;
+    gzFile gzf;
     char string[20];
     Uint8 a,num;
     ST_DATA_TYPE type;
@@ -379,7 +379,7 @@ bool save_state(char *game,int slot) {
 #endif
 
     Uint8 i;
-    gzFile *gzf;
+    gzFile gzf;
     char string[20];
     Uint8 a,num;
     ST_DATA_TYPE type;
@@ -435,7 +435,7 @@ bool save_state(char *game,int slot) {
 
 #else
 
-static gzFile *open_state(char *game,int slot,int mode) {
+static gzFile open_state(char *game,int slot,int mode) {
 	char *st_name;
 //    char *st_name_len;
 #ifdef EMBEDDED_FS
@@ -445,7 +445,7 @@ static gzFile *open_state(char *game,int slot,int mode) {
 #endif
 	char string[20];
 	char *m=(mode==STWRITE?"wb":"rb");
-	gzFile *gzf;
+	gzFile gzf;
 	int  flags;
 	Uint32 rate;
 
@@ -484,14 +484,14 @@ static gzFile *open_state(char *game,int slot,int mode) {
 	return gzf;
 }
 
-int mkstate_data(gzFile *gzf,void *data,int size,int mode) {
+int mkstate_data(gzFile gzf,void *data,int size,int mode) {
 	if (mode==STREAD)
 		return gzread(gzf,data,size);
 	return gzwrite(gzf,data,size);
 }
 
 SDL_Surface *load_state_img(char *game,int slot) {
-	gzFile *gzf;
+	gzFile gzf;
 
 	if ((gzf = open_state(game, slot, STREAD)) == NULL)
 		return NULL;
@@ -503,7 +503,7 @@ SDL_Surface *load_state_img(char *game,int slot) {
     return state_img_tmp;
 }
 
-static void neogeo_mkstate(gzFile *gzf,int mode) {
+static void neogeo_mkstate(gzFile gzf,int mode) {
 	GAME_ROMS r;
 	memcpy(&r,&memory.rom,sizeof(GAME_ROMS));
 	mkstate_data(gzf, &memory, sizeof (memory), mode);
@@ -526,7 +526,7 @@ static void neogeo_mkstate(gzFile *gzf,int mode) {
 }
 
 bool save_state(char *game,int slot) {
-	gzFile *gzf;
+	gzFile gzf;
 
 	if ((gzf = open_state(game, slot, STWRITE)) == NULL)
 		return false;
@@ -539,7 +539,7 @@ bool save_state(char *game,int slot) {
 	return true;
 }
 bool load_state(char *game,int slot) {
-	gzFile *gzf;
+	gzFile gzf;
 	/* Save pointers */
 	Uint8 *ng_lo = memory.ng_lo;
 	Uint8 *fix_game_usage=memory.fix_game_usage;

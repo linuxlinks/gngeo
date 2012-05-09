@@ -67,7 +67,7 @@ typedef struct VIDEO {
 
 #define RASTER_LINES 261
 
-unsigned int neogeo_frame_counter;
+extern unsigned int neogeo_frame_counter;
 extern unsigned int neogeo_frame_counter_speed;
 
 void init_video(void);

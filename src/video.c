@@ -32,7 +32,7 @@
 #include "transpack.h"
 
 extern int neogeo_fix_bank_type;
-
+unsigned int neogeo_frame_counter;
 
 #ifdef PROCESSOR_ARM
 /* global declaration for video_arm.S */
