@@ -45,7 +45,7 @@ static SDL_bool load_glproc() {
     pglEnd		= SDL_GL_GetProcAddress("glEnd");
     pglTexCoord2f	= SDL_GL_GetProcAddress("glTexCoord2f");
     pglVertex2f		= SDL_GL_GetProcAddress("glVertex2f");
-	
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     return SDL_TRUE;
 }
 
@@ -60,7 +60,7 @@ blitter_opengl_init()
 
 	sdl_flags = (fullscreen?SDL_FULLSCREEN:0)| SDL_DOUBLEBUF | SDL_HWSURFACE
 	    | SDL_HWPALETTE | SDL_OPENGL | SDL_RESIZABLE;
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	//SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 	if ((effect[neffect].x_ratio!=2 || effect[neffect].y_ratio!=2) &&  
 	    (effect[neffect].x_ratio!=1 || effect[neffect].y_ratio!=1) ) {
