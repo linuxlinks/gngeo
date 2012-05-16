@@ -83,43 +83,23 @@ void YM2610UpdateRequest(void)
 }
 #endif
 
-int YM2610_sh_start(void)
-{
-    int rate = conf.sample_rate;
-    //char buf[YM2610_NUMBUF][40];
-    void *pcmbufa, *pcmbufb;
-    int pcmsizea, pcmsizeb;
+int YM2610_sh_start(void) {
+	int rate = conf.sample_rate;
+	void *pcmbufa, *pcmbufb;
+	int pcmsizea, pcmsizeb;
 
-    /*
-    if (AY8910_sh_start())
-	return 1;
-    */
+	/* Timer Handler set */
+	FMTimerInit();
 
-    /* Timer Handler set */
-    FMTimerInit();
-/*
-    for (j = 0; j < YM2610_NUMBUF; j++) {
-	buf[j][0] = 0;
-    }
-    stream = stream_init_multi(YM2610_NUMBUF, 0, YM2610UpdateOne);
-*/
-    pcmbufa = (void *) memory.rom.adpcma.p;
-    pcmsizea = memory.rom.adpcma.size;
-    pcmbufb = (void *) memory.rom.adpcmb.p;
-    pcmsizeb = memory.rom.adpcmb.size;
+	pcmbufa = (void *) memory.rom.adpcma.p;
+	pcmsizea = memory.rom.adpcma.size;
+	pcmbufb = (void *) memory.rom.adpcmb.p;
+	pcmsizeb = memory.rom.adpcmb.size;
 
-    //}
-
-  /**** initialize YM2610 ****/
-    /*
-       if (YM2610Init(8000000,rate,
-       pcmbufa,pcmsizea,pcmbufb,pcmsizeb,
-       TimerHandler,IRQHandler) == 0)
-     */
-    YM2610Init(8000000, rate,
-	       pcmbufa, pcmsizea, pcmbufb, pcmsizeb,
-	       TimerHandler, neogeo_sound_irq);
-    return 0;
+	/**** initialize YM2610 ****/
+	YM2610Init(8000000, rate, pcmbufa, pcmsizea, pcmbufb, pcmsizeb,
+			TimerHandler, neogeo_sound_irq);
+	return 0;
 }
 
 

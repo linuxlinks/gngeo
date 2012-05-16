@@ -142,7 +142,7 @@ void pd4990a_init(void) {
     pd4990a.year = ((today->tm_year / 10) << 4) + (today->tm_year % 10);
     pd4990a.weekday = today->tm_wday;
     //printf("%d %d %d %d %d %d %d\n",pd4990a.seconds,pd4990a.minutes,pd4990a.hours,pd4990a.days,pd4990a.month,pd4990a.year,pd4990a.weekday);
-    pd4990a_init_save_state();
+    //pd4990a_init_save_state();
 }
 
 void pd4990a_increment_day(void)

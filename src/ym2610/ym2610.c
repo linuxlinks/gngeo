@@ -2787,6 +2787,8 @@ INLINE void OPNB_ADPCMB_CALC(ADPCMB *adpcmb)
 static int stream_pos;
 static int samples_left;
 #endif
+static FM_TIMERHANDLER sav_TimerHandler;
+static FM_IRQHANDLER sav_IRQHandler;
 
 void YM2610Init(int clock, int rate,
 				void *pcmroma, int pcmsizea,
@@ -2819,6 +2821,8 @@ void YM2610Init(int clock, int rate,
 	/* Extend handler */
 	YM2610.OPN.ST.Timer_Handler = TimerHandler;
 	YM2610.OPN.ST.IRQ_Handler   = IRQHandler;
+	sav_TimerHandler = TimerHandler;
+	sav_IRQHandler = IRQHandler;
 	/* SSG */
 	SSG.step = ((double)SSG_STEP * rate * 8) / clock;
 	/* ADPCM-A */
@@ -3313,7 +3317,74 @@ next_frame:
 
 
 void ym2610_mkstate(gzFile *gzf,int mode) {
+	int r;
+	struct ym2610_t ym2610_sav;
+	memcpy(&ym2610_sav,&YM2610, sizeof (YM2610));
+
 	mkstate_data(gzf, &YM2610, sizeof (YM2610), mode);
+	if (mode==STREAD) {
+		/* restore some pointer */
+		int fm,ch,slot;
+		YM2610.OPN.ST.Timer_Handler = ym2610_sav.OPN.ST.Timer_Handler;
+		YM2610.OPN.ST.IRQ_Handler   = ym2610_sav.OPN.ST.IRQ_Handler;
+		for (ch=0;ch<6;ch++) {
+			YM2610.CH[ch].connect1=ym2610_sav.CH[ch].connect1;
+			YM2610.CH[ch].connect2=ym2610_sav.CH[ch].connect2;
+			YM2610.CH[ch].connect3=ym2610_sav.CH[ch].connect3;
+			YM2610.CH[ch].connect4=ym2610_sav.CH[ch].connect4;
+			YM2610.CH[ch].mem_connect=ym2610_sav.CH[ch].mem_connect;
+			for(slot=0;slot<4;slot++) {
+				YM2610.CH[ch].SLOT[slot].DT=ym2610_sav.CH[ch].SLOT[slot].DT;
+			}
+		}
+		YM2610.OPN.P_CH=ym2610_sav.OPN.P_CH;
+		for (ch=0;ch<6;ch++) {
+			YM2610.adpcma[ch].pan=ym2610_sav.adpcma[ch].pan;
+		}
+		YM2610.adpcmb.pan=ym2610_sav.adpcmb.pan;
+
+		for (r = 0; r < 16; r++)
+		{
+			SSG_write(0, r);
+			SSG_write(1, YM2610.regs[r]);
+		}
+
+		for (r = 0x30; r <0x9e; r++)
+		{
+			if ((r & 3) != 3)
+			{
+				OPNWriteReg(&YM2610.OPN, r, YM2610.regs[r]);
+				OPNWriteReg(&YM2610.OPN, r | 0x100, YM2610.regs[r | 0x100]);
+			}
+		}
+
+		for (r = 0xb0; r < 0xb6; r++)
+		{
+			if ((r & 3) != 3)
+			{
+				OPNWriteReg(&YM2610.OPN, r, YM2610.regs[r]);
+				OPNWriteReg(&YM2610.OPN, r | 0x100, YM2610.regs[r | 0x100]);
+			}
+		}
+
+		OPNB_ADPCMA_write(0x101, YM2610.regs[0x101]);
+		for (r = 0; r < 6; r++)
+		{
+			OPNB_ADPCMA_write(r + 0x108, YM2610.regs[r + 0x108]);
+			OPNB_ADPCMA_write(r + 0x110, YM2610.regs[r + 0x110]);
+			OPNB_ADPCMA_write(r + 0x118, YM2610.regs[r + 0x118]);
+			OPNB_ADPCMA_write(r + 0x120, YM2610.regs[r + 0x120]);
+			OPNB_ADPCMA_write(r + 0x128, YM2610.regs[r + 0x128]);
+		}
+
+		YM2610.adpcmb.volume = 0;
+
+		for (r = 1; r < 16; r++)
+			OPNB_ADPCMB_write(&YM2610.adpcmb, r + 0x10, YM2610.regs[r + 0x10]);
+
+		if (pcmbufB)
+			YM2610.adpcmb.now_data = *(pcmbufB + (YM2610.adpcmb.now_addr >> 1));
+	}
 }
 
 #ifdef SAVE_STATE

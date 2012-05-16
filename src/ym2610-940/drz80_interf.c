@@ -194,48 +194,6 @@ void drz80_irq_callback(void)
 	//printf("Irq have been accepted %x %x\n",mydrz80.Z80_IRQ,mydrz80.Z80IF);
 }
 
-#if 0
-static void pre_save_state(void) {
-
-    memcpy(shared_data->z80_ram,drz80mem+0xf800,0x800);
-    mydrz80_Z80PC=mydrz80.Z80PC-mydrz80.Z80PC_BASE;
-    mydrz80_Z80SP=mydrz80.Z80SP-mydrz80.Z80SP_BASE;
-}
-
-static void post_load_state(void) {
-    int i;
-
-    mydrz80.z80_rebasePC=drz80_rebasePC;
-    mydrz80.z80_rebaseSP=drz80_rebaseSP;
-    mydrz80.z80_read8   =drz80_read8;
-    mydrz80.z80_read16  =drz80_read16;
-    mydrz80.z80_write8  =drz80_write8;
-    mydrz80.z80_write16 =drz80_write16;
-    mydrz80.z80_in      =drz80_readport16; /*z80_in*/
-    mydrz80.z80_out     =drz80_writeport16; /*z80_out*/
-
-    drz80_rebasePC(mydrz80_Z80PC);
-    drz80_rebaseSP(mydrz80_Z80SP);
-
-    for (i=0;i<4;i++) {
-	cpu_z80_switchbank(i,z80_bank[i]);
-    }
-    memcpy(drz80mem+0xf800,shared_data->z80_ram,0x800);
-    
-}
-
-static void z80_init_save_state(void) {
-
-	create_state_register(ST_Z80,"drz80",1,(void *)&mydrz80,sizeof(mydrz80),REG_UINT8);
-	create_state_register(ST_Z80,"pc",1,(void *)&mydrz80_Z80PC,sizeof(Uint16),REG_UINT32);
-	create_state_register(ST_Z80,"sp",1,(void *)&mydrz80_Z80SP,sizeof(Uint16),REG_UINT32);
-	create_state_register(ST_Z80,"bank",1,(void *)z80_bank,sizeof(Uint16)*4,REG_UINT16);
-	create_state_register(ST_Z80,"z80_ram",1,(void *)shared_data->z80_ram,sizeof(Uint8)*0x800,REG_UINT8);
-    
-    set_post_load_function(ST_Z80,post_load_state);
-    set_pre_save_function(ST_Z80,pre_save_state);
-}
-#endif
 
 void cpu_z80_init(void)
 {

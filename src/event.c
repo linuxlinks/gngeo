@@ -2,7 +2,7 @@
 #include "config.h"
 #endif
 
-#include <stdbool.h>
+//#include <stdbool.h>
 
 #include "SDL.h"
 #include "screen.h"
@@ -41,7 +41,7 @@ static int get_mapid(char *butid) {
 	return GN_NONE;
 }
 
-bool create_joymap_from_string(int player,char *jconf) {
+int create_joymap_from_string(int player,char *jconf) {
 	char *v;
 	char butid[32]={0,};
 	char jevt;
@@ -103,10 +103,10 @@ bool create_joymap_from_string(int player,char *jconf) {
 		v=strtok(NULL,",");
 	}
   
-	return true;
+	return GN_TRUE;
 }
 
-bool init_event(void) {
+int init_event(void) {
 	int i;
 //	printf("sizeof joymap=%d nb_joy=%d\n",sizeof(JOYMAP),conf.nb_joy);
 	jmap=calloc(sizeof(JOYMAP),1);
@@ -141,7 +141,7 @@ bool init_event(void) {
 	}
 	create_joymap_from_string(1,CF_STR(cf_get_item_by_name("p1control")));
 	create_joymap_from_string(2,CF_STR(cf_get_item_by_name("p2control")));
-	return true;
+	return GN_TRUE;
 }
 #ifdef GP2X
 int handle_pdep_event(SDL_Event *event) {

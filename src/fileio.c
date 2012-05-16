@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <zlib.h>
-#include <stdbool.h>
+//#include <stdbool.h>
 
 #include "unzip.h"
 #include "memory.h"
@@ -86,7 +86,7 @@ char *file_basename(char *filename) {
 }
 
 /* check if dir_name exist. Create it if not */
-bool check_dir(char *dir_name) {
+int check_dir(char *dir_name) {
     DIR *d;
 
     if (!(d = opendir(dir_name)) && (errno == ENOENT)) {
@@ -95,11 +95,11 @@ bool check_dir(char *dir_name) {
 #else
         mkdir(dir_name, 0755);
 #endif
-        return false;
+        return GN_FALSE;
     }
     if(d)
     	closedir(d);
-    return true;
+    return GN_TRUE;
 }
 
 /* return a char* to $HOME/.gngeo/ 
@@ -232,18 +232,18 @@ void save_memcard(char *name) {
     }
 }
 
-bool close_game(void) {
-    if (conf.game == NULL) return false;
+int close_game(void) {
+    if (conf.game == NULL) return GN_FALSE;
     save_nvram(conf.game);
     save_memcard(conf.game);
 
     dr_free_roms(&memory.rom);
     trans_pack_free();
 
-    return true;
+    return GN_TRUE;
 }
 
-bool load_game_config(char *rom_name) {
+int load_game_config(char *rom_name) {
 	char *gpath;
 	char *drconf;
 #ifdef EMBEDDED_FS
@@ -262,7 +262,7 @@ bool load_game_config(char *rom_name) {
 				sprintf(drconf,"%s%s.cf",gpath,name);
 			} else {
 				printf("Error while loading %s\n",rom_name);
-				return false;
+				return GN_FALSE;
 			}
 		} else {
 			drconf=alloca(strlen(gpath)+strlen(rom_name)+strlen(".cf")+1);
@@ -270,11 +270,11 @@ bool load_game_config(char *rom_name) {
 		}
 		cf_open_file(drconf);
 	}
-	return true;
+	return GN_TRUE;
 }
 
-bool init_game(char *rom_name) {
-printf("AAA Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
+int init_game(char *rom_name) {
+//printf("AAA Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
 
 	load_game_config(rom_name);
 	/* reinit screen if necessary */
@@ -291,14 +291,14 @@ printf("AAA Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_ST
     } else {
 
         //open_rom(rom_name);
-	if (dr_load_game(rom_name) == false) {
+	if (dr_load_game(rom_name) == GN_FALSE) {
 #if defined(GP2X)
             gn_popup_error(" Error! :", "Couldn't load %s",
                     file_basename(rom_name));
 #else
             printf("Can't load %s\n", rom_name);
 #endif
-            return false;
+            return GN_FALSE;
         }
 
     }
@@ -320,5 +320,5 @@ printf("AAA Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_ST
 	memory.vid.currentfix=0;
 
 
-    return true;
+    return GN_TRUE;
 }

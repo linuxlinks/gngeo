@@ -84,16 +84,16 @@ void calculate_hotkey_bitmasks()
 }
 
 void sdl_set_title(char *name) {
-    char *title;
-    if (name) {
-	title = malloc(strlen("Gngeo : ")+strlen(name)+1);
-	if (title) {
-	  sprintf(title,"Gngeo : %s",name);
-	  SDL_WM_SetCaption(title, NULL);
+	char *title;
+	if (name) {
+		title = malloc(strlen("Gngeo : ") + strlen(name) + 1);
+		if (title) {
+			sprintf(title, "Gngeo : %s", name);
+			SDL_WM_SetCaption(title, NULL);
+		}
+	} else {
+		SDL_WM_SetCaption("Gngeo", NULL);
 	}
-    } else {
-	SDL_WM_SetCaption("Gngeo", NULL);
-    }
 }
 
 void init_sdl(void /*char *rom_name*/) {
@@ -182,11 +182,11 @@ int main(int argc, char *argv[])
 #ifdef GP2X
     gp2x_init();
 #endif
-    if ((rc=gn_init_skin())!=TRUE) {
+    if ((rc=gn_init_skin())!=GN_TRUE) {
 	    printf("Can't load skin...\n");
             exit(1);
     }    
-printf("Plop! %d\n",(1==1));
+
 	reset_frame_skip();
 
     if (conf.debug) conf.sound=0;

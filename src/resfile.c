@@ -38,24 +38,24 @@ int res_verify_datafile(char *file) {
 	if (!file) file=CF_STR(cf_get_item_by_name("datafile"));
 
 	if (lstat(file,&sb)==-1) {
-		return FALSE;
+		return GN_FALSE;
 	}
 
 	/* if it's a dir, try to append gngeo_data.zip, and recheck */
 	if (S_ISDIR(sb.st_mode)) {
 		char *buf=malloc(strlen(file)+strlen("/gngeo_data.zip")+1);
 		snprintf(buf,254,"%s/%s",file,"gngeo_data.zip");
-		if(res_verify_datafile(buf)==TRUE) {
+		if(res_verify_datafile(buf)==GN_TRUE) {
 			strncpy(CF_STR(cf_get_item_by_name("datafile")), buf, 254);
 			free(buf);
-			return TRUE;
+			return GN_TRUE;
 		} else {
 			free(buf);
-			return FALSE;
+			return GN_FALSE;
 		}
 	}
-	if (S_ISREG(sb.st_mode)) return TRUE;
-	return FALSE;
+	if (S_ISREG(sb.st_mode)) return GN_TRUE;
+	return GN_FALSE;
 }
 
 /*

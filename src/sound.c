@@ -108,10 +108,13 @@ void update_sdl_stream(void *userdata, Uint8 * stream, int len)
 }
 void dummy_stream(void *userdata, Uint8 * stream, int len) {
 }
+static int sound_initialize=GN_FALSE;
 
 int init_sdl_audio(void)
 {
-
+	if (sound_initialize==GN_TRUE)
+		close_sdl_audio();
+	sound_initialize=GN_TRUE;
     SDL_InitSubSystem(SDL_INIT_AUDIO);
 
     desired = (SDL_AudioSpec *) malloc(sizeof(SDL_AudioSpec));
@@ -138,6 +141,7 @@ int init_sdl_audio(void)
 }
 
 void close_sdl_audio(void) {
+	sound_initialize=GN_FALSE;
     SDL_PauseAudio(1);
     SDL_CloseAudio();
     SDL_QuitSubSystem(SDL_INIT_AUDIO);

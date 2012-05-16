@@ -58,12 +58,12 @@
 int frame;
 int nb_interlace = 256;
 int current_line;
-static int arcade;
-
-extern int irq2enable, irq2start, irq2repeat, irq2control, irq2taken;
-extern int lastirq2line;
-extern int irq2repeat_limit;
-extern Uint32 irq2pos_value;
+//static int arcade;
+//
+//extern int irq2enable, irq2start, irq2repeat, irq2control, irq2taken;
+//extern int lastirq2line;
+//extern int irq2repeat_limit;
+//extern Uint32 irq2pos_value;
 
 void setup_misc_patch(char *name) {
 
@@ -141,8 +141,6 @@ void init_sound(void) {
 		YM2610_sh_start();
 #endif
 	if (conf.sound)	pause_audio(0);
-		conf.snd_st_reg_create = 1;
-
 
 }
 

@@ -45,9 +45,9 @@ JOYMAP *jmap;
 Uint8 joy_state[2][GN_MAX_KEY];
 
 
-bool init_event(void);
+int init_event(void);
 
-bool create_joymap_from_string(int player,char *jconf);
+int create_joymap_from_string(int player,char *jconf);
 int handle_event(void);
 int wait_event(void);
 void reset_event(void);

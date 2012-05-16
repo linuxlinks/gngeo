@@ -315,7 +315,7 @@ void cpu_68k_init(void)
     if (memory.rom.cpu_m68k.size > 0x100000) {
 	cpu_68k_bankswitch(0);
     }
-    cpu_68k_init_save_state();
+    //cpu_68k_init_save_state();
 }
 
 

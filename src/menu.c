@@ -30,7 +30,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
-#include <stdbool.h>
+//#include <stdbool.h>
 #include <math.h>
 
 #include "menu.h"
@@ -527,9 +527,9 @@ int gn_init_skin(void) {
 	menu_buf = SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 16, 0xF800, 0x7E0, 0x1F, 0);
 	//	menu_back= SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 32, 0xFF0000, 0xFF00, 0xFF, 0x0);
 	menu_back = SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 16, 0xF800, 0x7E0, 0x1F, 0);
-	if (res_verify_datafile(NULL)==FALSE) {
+	if (res_verify_datafile(NULL)==GN_FALSE) {
 		gn_popup_error("Datafile Not Found!","Gngeo could not find his \n datafile :( \n");
-		return FALSE;
+		return GN_FALSE;
 	}
 	back = res_load_stbi("skin/back.tga");
 	sfont = load_font("skin/font_small.tga");
@@ -547,8 +547,8 @@ int gn_init_skin(void) {
 	init_back();
 
 	if (!back || !sfont || !mfont || !arrow_r || !arrow_l || !arrow_u || !arrow_d ||
-			!gngeo_logo || !menu_buf) return FALSE;
-	return TRUE;
+			!gngeo_logo || !menu_buf) return GN_FALSE;
+	return GN_TRUE;
 }
 
 static int pbar_y;
@@ -875,8 +875,9 @@ static int load_state_action(GN_MENU_ITEM *self, void *param) {
 				break;
 			case GN_B:
 			case GN_C:
+				printf("Loading state %p!!\n",buffer);
 				load_state(conf.game, slot);
-				printf("Load state!!\n");
+				printf("Loaded state %p!!\n",buffer);
 				return MENU_RETURNTOGAME;
 				break;
 			default:
@@ -1105,9 +1106,9 @@ static int loadrom_action(GN_MENU_ITEM *self, void *param) {
 
 	printf("Loading %s\n", game);
 	close_game();
-	if (conf.sound) close_sdl_audio();
+	//if (conf.sound) close_sdl_audio();
 
-	if (init_game(game) != true) {
+	if (init_game(game) != GN_TRUE) {
 		printf("Can't init %s...\n", game);
 		gn_popup_error("Error! :", "Gngeo Couldn't init %s: \n\n%s\n"
 				"Maybe the romset you're using is too old"
