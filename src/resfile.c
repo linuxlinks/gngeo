@@ -10,6 +10,7 @@
 //#include "stb_zlib.h"
 #include "conf.h"
 #include "stb_image.h"
+#include "gnutil.h"
 
 
 void zread_char(ZFILE *gz, char *c, int len) {

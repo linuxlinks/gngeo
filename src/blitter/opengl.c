@@ -363,10 +363,14 @@ blitter_opengl_close()
 	//	SDL_FreeSurface(screen);
 }
 
-void
-blitter_opengl_fullscreen()
-{
+void blitter_opengl_fullscreen() {
+/* TODO: Borken, at least on ubuntu with catalyst -> the screen goes black */
 	SDL_WM_ToggleFullScreen(video_opengl);
+	pglEnable(GL_TEXTURE_2D);
+	pglViewport(0, 0, conf.res_x, conf.res_y);
+
+
+
 }
 
 #endif

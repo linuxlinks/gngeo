@@ -15,7 +15,7 @@ gngeo_SOURCES = fileio.c         pd4990a.c        gngeo_icon.h              \
 		neocrypt.c       sound.c          unzip.c           resfile.h       \
 		debug.c          debug.h          neocrypt.h	    state.c         \
 		state.h          video_template.h conf.c            conf.h          \
-		transpack.h      transpack.c              \
+		transpack.h      transpack.c      gnutil.c			gnutil.h        \
 		menu.c           menu.h           \
 			         roms.h           roms.c            mame_layer.h    \
 		mame_layer.c     neoboot.c        event.h           event.c         \

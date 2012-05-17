@@ -45,6 +45,7 @@
 #include "transpack.h"
 #include "menu.h"
 #include "frame_skip.h"
+#include "gnutil.h"
 
 #ifdef GP2X
 #include "ym2610-940/940shared.h"
@@ -63,77 +64,6 @@
 
 void sdl_set_title(char *name);
 
-void chomp(char *str) {
-    int i = 0;
-    if (str) {
-        while (str[i] != 0) {
-            printf(" %d ", str[i]);
-            i++;
-        }
-        printf("\n");
-        if (str[i - 1] == 0x0A || str[i - 1] == 0x0D) str[i - 1] = 0;
-        if (str[i - 2] == 0x0A || str[i - 2] == 0x0D) str[i - 2] = 0;
-
-    }
-}
-
-
-char *file_basename(char *filename) {
-    char *t;
-    t = strrchr(filename, '/');
-    if (t) return t + 1;
-    return filename;
-}
-
-/* check if dir_name exist. Create it if not */
-int check_dir(char *dir_name) {
-    DIR *d;
-
-    if (!(d = opendir(dir_name)) && (errno == ENOENT)) {
-#ifdef WIN32
-        mkdir(dir_name);
-#else
-        mkdir(dir_name, 0755);
-#endif
-        return GN_FALSE;
-    }
-    if(d)
-    	closedir(d);
-    return GN_TRUE;
-}
-
-/* return a char* to $HOME/.gngeo/ 
-   DO NOT free it!
- */
-#ifdef EMBEDDED_FS
-
-char *get_gngeo_dir(void) {
-    static char *filename = ROOTPATH"";
-    return filename;
-}
-#else
-
-char *get_gngeo_dir(void) {
-    static char *filename = NULL;
-#if defined (__AMIGA__)
-    int len = strlen("/PROGDIR/data/") + 1;
-#else
-    int len = strlen(getenv("HOME")) + strlen("/.gngeo/") + 1;
-#endif
-    if (!filename) {
-        filename = malloc(len * sizeof (char));
-        CHECK_ALLOC(filename);
-#if defined (__AMIGA__)
-        sprintf(filename, "/PROGDIR/data/");
-#else
-        sprintf(filename, "%s/.gngeo/", getenv("HOME"));
-#endif
-    }
-    check_dir(filename);
-    //printf("get_gngeo_dir %s\n",filename);
-    return filename;
-}
-#endif
 
 void open_nvram(char *name) {
     char *filename;

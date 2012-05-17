@@ -43,8 +43,9 @@
 #include "fileio.h"
 //#include "driver.h"
 #include "emu.h"
-#include "fileio.h"
+//#include "fileio.h"
 #include "memory.h"
+#include "gnutil.h"
 
 #if defined (__AMIGA__)
 #ifdef DATA_DIRECTORY

@@ -17,6 +17,7 @@
 #include "screen.h"
 #include "sound.h"
 #include "emu.h"
+#include "gnutil.h"
 //#include "streams.h"
 
 #ifdef USE_STARSCREAM

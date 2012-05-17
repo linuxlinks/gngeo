@@ -29,6 +29,7 @@
 #include "emu.h"
 #include "memory.h"
 #include "profiler.h"
+#include "gnutil.h"
 #include "ym2610/ym2610.h"
 #ifdef GP2X
 #include "ym2610-940/940shared.h"

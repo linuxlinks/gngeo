@@ -45,6 +45,7 @@
 #include "event.h"
 #include "menu.h"
 #include "frame_skip.h"
+#include "gnutil.h"
 
 #ifdef USE_GUI
 #include "gui_interf.h"

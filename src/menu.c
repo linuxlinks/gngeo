@@ -49,6 +49,7 @@
 #include "fileio.h"
 #include "sound.h"
 #include "effect.h"
+#include "gnutil.h"
 
 #if defined (WII)
 #define ROOTPATH "sd:/apps/gngeo/"

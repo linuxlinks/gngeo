@@ -21,6 +21,7 @@
 #include "conf.h"
 #include "resfile.h"
 #include "menu.h"
+#include "gnutil.h"
 #ifdef GP2X
 #include "gp2x.h"
 #include "ym2610-940/940shared.h"

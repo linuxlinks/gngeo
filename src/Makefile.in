@@ -63,8 +63,8 @@ am__gngeo_SOURCES_DIST = fileio.c pd4990a.c gngeo_icon.h sound.h \
 	emu.c frame_skip.h messages.h screen.h unzip.h emu.h \
 	neocrypt.c sound.c unzip.c resfile.h debug.c debug.h \
 	neocrypt.h state.c state.h video_template.h conf.c conf.h \
-	transpack.h transpack.c menu.c menu.h roms.h roms.c \
-	mame_layer.h mame_layer.c neoboot.c event.h event.c \
+	transpack.h transpack.c gnutil.c gnutil.h menu.c menu.h roms.h \
+	roms.c mame_layer.h mame_layer.c neoboot.c event.h event.c \
 	stb_image.c stb_image.h stb_zlib.c stb_zlib.h star_interf.c \
 	generator68k_interf.c cyclone_interf.c raze_interf.c \
 	mamez80_interf.c drz80_interf.c video_arm.s memcpy.S gp2x.h \
@@ -84,12 +84,12 @@ am_gngeo_OBJECTS = fileio.$(OBJEXT) pd4990a.$(OBJEXT) video.$(OBJEXT) \
 	frame_skip.$(OBJEXT) messages.$(OBJEXT) screen.$(OBJEXT) \
 	emu.$(OBJEXT) neocrypt.$(OBJEXT) sound.$(OBJEXT) \
 	unzip.$(OBJEXT) debug.$(OBJEXT) state.$(OBJEXT) conf.$(OBJEXT) \
-	transpack.$(OBJEXT) menu.$(OBJEXT) roms.$(OBJEXT) \
-	mame_layer.$(OBJEXT) neoboot.$(OBJEXT) event.$(OBJEXT) \
-	stb_image.$(OBJEXT) stb_zlib.$(OBJEXT) $(am__objects_1) \
-	$(am__objects_2) $(am__objects_3) $(am__objects_4) \
-	$(am__objects_5) $(am__objects_6) $(am__objects_7) \
-	$(am__objects_8)
+	transpack.$(OBJEXT) gnutil.$(OBJEXT) menu.$(OBJEXT) \
+	roms.$(OBJEXT) mame_layer.$(OBJEXT) neoboot.$(OBJEXT) \
+	event.$(OBJEXT) stb_image.$(OBJEXT) stb_zlib.$(OBJEXT) \
+	$(am__objects_1) $(am__objects_2) $(am__objects_3) \
+	$(am__objects_4) $(am__objects_5) $(am__objects_6) \
+	$(am__objects_7) $(am__objects_8)
 gngeo_OBJECTS = $(am_gngeo_OBJECTS)
 @USE_GP2X_FALSE@gngeo_DEPENDENCIES = effect/libeffect.a \
 @USE_GP2X_FALSE@	blitter/libblitter.a ym2610/libym2610.a \
@@ -287,11 +287,11 @@ gngeo_SOURCES = fileio.c pd4990a.c gngeo_icon.h sound.h video.c \
 	frame_skip.h messages.h screen.h unzip.h emu.h neocrypt.c \
 	sound.c unzip.c resfile.h debug.c debug.h neocrypt.h state.c \
 	state.h video_template.h conf.c conf.h transpack.h transpack.c \
-	menu.c menu.h roms.h roms.c mame_layer.h mame_layer.c \
-	neoboot.c event.h event.c stb_image.c stb_image.h stb_zlib.c \
-	stb_zlib.h $(am__append_1) $(am__append_2) $(am__append_3) \
-	$(am__append_4) $(am__append_5) $(am__append_6) \
-	$(am__append_7) $(am__append_8)
+	gnutil.c gnutil.h menu.c menu.h roms.h roms.c mame_layer.h \
+	mame_layer.c neoboot.c event.h event.c stb_image.c stb_image.h \
+	stb_zlib.c stb_zlib.h $(am__append_1) $(am__append_2) \
+	$(am__append_3) $(am__append_4) $(am__append_5) \
+	$(am__append_6) $(am__append_7) $(am__append_8)
 @USE_CYCLONE_TRUE@m68k_subdir = cyclone
 @USE_GENERATOR68K_TRUE@m68k_subdir = generator68k
 
@@ -400,6 +400,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fileio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/frame_skip.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/generator68k_interf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gnutil.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gp2x.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/list.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@

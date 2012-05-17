@@ -144,13 +144,6 @@ void neogeo_reset(void);
 #define PROFILER_STOP(a)
 #endif
 
-/* LOG generation */
-#define GNGEO_LOG(...)
-#define DEBUG_LOG printf
-//#define GNGEO_LOG printf
-
-#define GN_TRUE 1
-#define GN_FALSE 0
 
 
 #endif
