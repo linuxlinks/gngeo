@@ -39,6 +39,7 @@ int res_verify_datafile(char *file) {
 	if (!file) file=CF_STR(cf_get_item_by_name("datafile"));
 
 	if (lstat(file,&sb)==-1) {
+		gn_set_error_msg("%s not found",file);
 		return GN_FALSE;
 	}
 
@@ -51,12 +52,16 @@ int res_verify_datafile(char *file) {
 			free(buf);
 			return GN_TRUE;
 		} else {
+			gn_set_error_msg("%s not found",buf);
 			free(buf);
 			return GN_FALSE;
 		}
 	}
 	if (S_ISREG(sb.st_mode)) return GN_TRUE;
+	gn_set_error_msg("%s not a valid file",file);
 	return GN_FALSE;
+
+
 }
 
 /*

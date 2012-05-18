@@ -527,7 +527,7 @@ int gn_init_skin(void) {
 	//	menu_back= SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 32, 0xFF0000, 0xFF00, 0xFF, 0x0);
 	menu_back = SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 16, 0xF800, 0x7E0, 0x1F, 0);
 	if (res_verify_datafile(NULL)==GN_FALSE) {
-		gn_popup_error("Datafile Not Found!","Gngeo could not find his \n datafile :( \n");
+		gn_popup_error("Datafile Not Found!","Gngeo could not find his \n datafile :( \n\n%s",gnerror);
 		return GN_FALSE;
 	}
 	back = res_load_stbi("skin/back.tga");
