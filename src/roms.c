@@ -1747,7 +1747,7 @@ int read_region(FILE *gno, GAME_ROMS *roms) {
 
 		/* TODO: Find the best cache size dynamically! */
 		for (i = 0; cache_size[i] != 0; i++) {
-			if (init_sprite_cache(cache_size[i]*1024 * 1024, block_size) == 0) {
+			if (init_sprite_cache(cache_size[i]*1024 * 1024, block_size) == GN_TRUE) {
 				printf("Cache size=%dMB\n", cache_size[i]);
 				break;
 			}

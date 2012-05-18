@@ -1411,7 +1411,7 @@ static int save_conf_action(GN_MENU_ITEM *self, void *param) {
 		sprintf(drconf, "%s%s.cf", gpath, name);
 		cf_save_file(drconf, 0);
 	}
-	return 1;
+	return GN_TRUE;
 }
 
 #define RESET_BOOL(name,id) gitem=gn_menu_get_item_by_name(option_menu,name);\

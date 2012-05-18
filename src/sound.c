@@ -138,7 +138,7 @@ int init_sdl_audio(void)
     SDL_OpenAudio(desired, obtain);
     printf("Obtained sample rate: %d\n",obtain->freq);
     conf.sample_rate=obtain->freq;
-    return 1;
+    return GN_TRUE;
 }
 
 void close_sdl_audio(void) {
@@ -195,12 +195,12 @@ int init_sdl_audio(void) {
     dev_dsp=open("/dev/dsp",O_WRONLY);
     if (dev_dsp==0) {
         printf("Couldn't open /dev/dsp\n");
-        return 0;
+        return GN_FALSE;
     }
 
     if (ioctl(dev_dsp, SNDCTL_DSP_SETFRAGMENT, &arg)) {
 		printf(" SNDCTL_DSP_SETFRAGMENT Error\n");
-        return 0;
+        return GN_FALSE;
 	}
 
 #ifdef WORDS_BIGENDIAN
@@ -211,26 +211,26 @@ int init_sdl_audio(void) {
 
     if (ioctl(dev_dsp, SNDCTL_DSP_SETFMT, &format) == -1) {
         perror("SNDCTL_DSP_SETFMT");
-        return 0;
+        return GN_FALSE;
     }
     if (ioctl(dev_dsp, SNDCTL_DSP_CHANNELS, &channels) == -1) {
         perror("SNDCTL_DSP_CHANNELS");
-        return 0;
+        return GN_FALSE;
     }
     if (ioctl(dev_dsp, SNDCTL_DSP_SPEED, &speed)==-1) {
         perror("SNDCTL_DSP_SPEED");
-        return 0;
+        return GN_FALSE;
     }
     
     
 
     if (ioctl(dev_dsp, SNDCTL_DSP_GETBLKSIZE, &buflen) == -1) {
-        return 0;
+        return GN_FALSE;
     }
     printf("Buf Len=%d\n",buflen);
     buflen*=2;
 
-    return 1;
+    return GN_TRUE;
 }
 
 void close_sdl_audio(void) {

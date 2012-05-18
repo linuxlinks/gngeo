@@ -30,6 +30,7 @@
 #include "screen.h"
 #include "frame_skip.h"
 #include "transpack.h"
+#include "gnutil.h"
 
 extern int neogeo_fix_bank_type;
 unsigned int neogeo_frame_counter;
@@ -143,7 +144,7 @@ int init_sprite_cache(Uint32 size, Uint32 bsize) {
 	gcache->total_bank = memory.rom.tiles.size / gcache->slot_size;
 	gcache->ptr = malloc(gcache->total_bank * sizeof (Uint8*));
 	if (gcache->ptr == NULL)
-		return 1;
+		return GN_FALSE;
 	//gcache->z_pos=malloc(gcache->total_bank*sizeof(unz_file_pos ));
 	memset(gcache->ptr, 0, gcache->total_bank * sizeof (Uint8*));
 
@@ -151,7 +152,7 @@ int init_sprite_cache(Uint32 size, Uint32 bsize) {
 	gcache->data = malloc(gcache->size);
 	if (gcache->data == NULL) {
 		free(gcache->ptr);
-		return 1;
+		return GN_FALSE;
 	}
 	printf("INIT CACHE %p\n", gcache->data);
 
@@ -169,7 +170,7 @@ int init_sprite_cache(Uint32 size, Uint32 bsize) {
 #else
 	gcache->in_buf = malloc(compressBound(bsize));
 #endif
-	return 0;
+	return GN_TRUE;
 }
 
 void free_sprite_cache(void) {
