@@ -9,6 +9,7 @@
 #include "../video.h"
 #include "../effect.h"
 #include "../conf.h"
+#include "../gnutil.h"
 #ifdef GP2X
 #include "../gp2x.h"
 
@@ -28,7 +29,7 @@ static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
 static int vsync;
 
 
-SDL_bool
+int
 blitter_soft_init()
 {
 	Uint32 width = visible_area.w;
@@ -136,11 +137,11 @@ blitter_soft_init()
 	screen = SDL_SetVideoMode(width, height, 16, sdl_flags);
 	//SDL_ShowCursor(SDL_DISABLE);
 #endif
-	if (!screen) return SDL_FALSE;
+	if (!screen) return GN_FALSE;
 	if (vsync) yscreenpadding = screen_rect.y * screen->pitch;
 	//offscreen = SDL_CreateRGBSurface(SDL_HWSURFACE, 304, 224, 16, 0xF800, 0x7E0, 0x1F, 0);
 
-	return SDL_TRUE;
+	return GN_TRUE;
 }
 
 void 

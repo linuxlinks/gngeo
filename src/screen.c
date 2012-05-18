@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "gnutil.h"
 #include "screen.h"
 #include "emu.h"
 #include "video.h"
@@ -16,9 +17,9 @@
 #include "blitter.h"
 #include "effect.h"
 
-SDL_bool effect_none_init(void);
+int effect_none_init(void);
 
-SDL_bool effect_smooth_init(void);
+int effect_smooth_init(void);
 
 blitter_func blitter[] = {
 	{"soft", "Software blitter", blitter_soft_init, NULL, blitter_soft_update, blitter_soft_fullscreen,
@@ -170,7 +171,7 @@ Uint8 get_blitter_by_name(char *name) {
 	return 0;
 }
 
-SDL_bool screen_init() {
+int screen_init() {
 	CONF_ITEM *cf_blitter, *cf_effect, *cf_interpol, *cf_scale, *cf_fs;
 
 	/* screen configuration init */
@@ -218,13 +219,13 @@ SDL_bool screen_init() {
 		scale = CF_VAL(cf_scale);
 
 	/* Init of video blitter */
-	if ((*blitter[nblitter].init) () == SDL_FALSE)
-		return SDL_FALSE;
+	if ((*blitter[nblitter].init) () == GN_FALSE)
+		return GN_FALSE;
 
 	/* Init of effect */
 	//if (neffect > 0)
-	if ((*effect[neffect].init) () == SDL_FALSE)
-		return SDL_FALSE;
+	if ((*effect[neffect].init) () == GN_FALSE)
+		return GN_FALSE;
 
 	/* Interpolation surface */
 	blend = SDL_CreateRGBSurface(SDL_SWSURFACE/*(conf.hw_surface ? SDL_HWSURFACE : SDL_SWSURFACE)*/,
@@ -233,19 +234,19 @@ SDL_bool screen_init() {
 	if (SDL_ShowCursor(SDL_QUERY) == 1)
 		SDL_ShowCursor(SDL_DISABLE);
 	printf("CURSOR=%d\n", SDL_ShowCursor(SDL_QUERY));
-	return SDL_TRUE;
+	return GN_TRUE;
 }
 
-SDL_bool effect_none_init(void) {
+int effect_none_init(void) {
 #ifdef PANDORA
 	system("sudo /usr/pandora/scripts/op_videofir.sh none");
 #endif
-	return SDL_TRUE;
+	return GN_TRUE;
 }
 #ifdef PANDORA
-SDL_bool effect_smooth_init(void) {
+int effect_smooth_init(void) {
 	system("sudo /usr/pandora/scripts/op_videofir.sh default");
-	return SDL_TRUE;
+	return GN_TRUE;
 }
 #endif
 void screen_change_blitter_and_effect(void) {
@@ -266,16 +267,16 @@ void screen_change_blitter_and_effect(void) {
 
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 
-	if ((*blitter[nblitter].init) () == SDL_FALSE) {
+	if ((*blitter[nblitter].init) () == GN_FALSE) {
 		nblitter = 0;
 		sprintf(CF_STR(cf_get_item_by_name("blitter")), "soft");
 		printf("revert to soft\n");
-		if ((*blitter[nblitter].init) () == SDL_FALSE)
+		if ((*blitter[nblitter].init) () == GN_FALSE)
 			exit(-1);
 	} /*else
 		snprintf(CF_STR(cf_get_item_by_name("blitter")), 255, "%s", bname);
 */
-	if ((*effect[neffect].init) () == SDL_FALSE) {
+	if ((*effect[neffect].init) () == GN_FALSE) {
 		printf("revert to none\n");
 		neffect = 0;
 		sprintf(CF_STR(cf_get_item_by_name("effect")), "none");
@@ -291,7 +292,7 @@ void screen_change_blitter_and_effect(void) {
 	printf("CURSOR=%d\n", SDL_ShowCursor(SDL_QUERY));
 }
 
-SDL_bool screen_reinit(void) {
+int screen_reinit(void) {
 
 
 
@@ -332,14 +333,14 @@ SDL_bool screen_reinit(void) {
 printf("AA Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
 	screen_change_blitter_and_effect();
 
-	return SDL_TRUE;
+	return GN_TRUE;
 }
 
-SDL_bool screen_resize(int w, int h) {
+int screen_resize(int w, int h) {
 	//nblitter = conf.nblitter;
-	if ((*blitter[nblitter].resize) (w, h) == SDL_FALSE)
-		return SDL_FALSE;
-	return SDL_TRUE;
+	if ((*blitter[nblitter].resize) (w, h) == GN_FALSE)
+		return GN_FALSE;
+	return GN_TRUE;
 }
 
 static inline void do_interpolation() {

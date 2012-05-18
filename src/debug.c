@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "memory.h"
+#include "gnutil.h"
 
 /* TODO: finish it ...... */
 
@@ -40,9 +41,9 @@ int check_bp(int pc)
     int i;
     for (i = 0; i < nb_breakpoints; i++) {
 	if (breakpoints[i] == pc)
-	    return SDL_TRUE;
+	    return GN_TRUE;
     }
-    return SDL_FALSE;
+    return GN_FALSE;
 }
 
 void add_bp(int pc)

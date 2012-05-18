@@ -111,7 +111,7 @@ void init_sdl(void /*char *rom_name*/) {
     atexit(SDL_Quit);
 #endif
 
-    if (screen_init() == SDL_FALSE) {
+    if (screen_init() == GN_FALSE) {
 	printf("Screen initialization failed.\n");
 	exit(-1);
     }
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
 		if (conf.game==NULL) return 0;
 	} else {
 
-		if (init_game(rom_name)!=SDL_TRUE) {
+		if (init_game(rom_name)!=GN_TRUE) {
 			printf("Can't init %s...\n",rom_name);
             exit(1);
 		}    

@@ -6,6 +6,7 @@
 #include "SDL.h"
 #include "../screen.h"
 #include "../video.h"
+#include "../gnutil.h"
 
 #include "scale2x.h"
 #include "scale3x.h"
@@ -15,23 +16,23 @@ static Uint16 height;
 static SDL_Surface *scale4xtmp;
 //static int screenw,screenh;
 
-SDL_bool effect_scale2x_init(void)
+int effect_scale2x_init(void)
 {
     /*
     screenw=screen->w>>1;
     screenh=screen->h>>1;
     */
-    return SDL_TRUE;
+    return GN_TRUE;
 }
-SDL_bool effect_scale3x_init(void)
+int effect_scale3x_init(void)
 {
     /*
     screenw=screen->w;
     screenh=screen->h;
     */
-    return SDL_TRUE;
+    return GN_TRUE;
 }
-SDL_bool effect_scale4x_init(void)
+int effect_scale4x_init(void)
 {
     /*
     screenw=screen->w>>2;
@@ -40,7 +41,7 @@ SDL_bool effect_scale4x_init(void)
     if (!scale4xtmp)
 	scale4xtmp=SDL_CreateRGBSurface(SDL_SWSURFACE,visible_area.w<<2, (visible_area.h<<2)+16, 16,
 					0xF800, 0x7E0, 0x1F, 0);
-    return SDL_TRUE;
+    return GN_TRUE;
 }
 static inline void internal_scale2x_16_def(Uint16* dst0, Uint16* dst1, const Uint16* src0, 
 					   const Uint16* src1, const Uint16* src2, unsigned count) 

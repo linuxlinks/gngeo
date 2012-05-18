@@ -294,7 +294,7 @@ static void dbg_get(char* s, int size) {
 	s[0]=0;
 	break;
     case 'R':
-	while(check_bp(cpu_68k_getpc())!=SDL_TRUE && dbg_step==0) {
+	while(check_bp(cpu_68k_getpc())!=GN_TRUE && dbg_step==0) {
 	     cpu_68k_dpg_step();
 	}
 	if (dbg_step) dbg_step=0;

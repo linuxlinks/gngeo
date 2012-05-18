@@ -35,6 +35,7 @@
 #include "SDL.h"
 #include "../screen.h"
 #include "../video.h"
+#include "../gnutil.h"
 
 #include "lq3x.h"
 
@@ -47,9 +48,9 @@ static Uint16 height;
 /*
  * This effect is derived from the hq3x effect made by Maxim Stepin
  */
-SDL_bool effect_lq3x_init(void)
+int effect_lq3x_init(void)
 {
-    return SDL_TRUE;
+    return GN_TRUE;
 }
 
 void lq3x_16_def(Uint16 *dst0, Uint16 *dst1, Uint16 *dst2, Uint16 *src0, Uint16 *src1, Uint16 *src2, unsigned count)

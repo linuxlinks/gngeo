@@ -21,7 +21,7 @@ extern void _2xSaISuperEagleLine(Uint8 *srcPtr, Uint8 *deltaPtr, Uint32 srcPitch
 static Uint8 *deltaptr;
 //static int screenw,screenh;
 
-SDL_bool
+int
 effect_sai_init()
 {
 
@@ -35,7 +35,7 @@ effect_sai_init()
 	*/
 	
 	
-	return SDL_TRUE;
+	return GN_TRUE;
 }
 
 

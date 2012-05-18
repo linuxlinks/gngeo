@@ -39,9 +39,9 @@ void print_effect_list(void);
 LIST* create_effect_list(void);
 LIST* create_blitter_list(void);
 
-SDL_bool screen_init();
-SDL_bool screen_reinit(void);
-SDL_bool screen_resize(int w, int h);
+int screen_init();
+int screen_reinit(void);
+int screen_resize(int w, int h);
 void screen_update();
 void screen_close();
 

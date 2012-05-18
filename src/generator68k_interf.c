@@ -36,6 +36,7 @@
 #include "state.h"
 #include "debug.h"
 #include "conf.h"
+#include "gnutil.h"
 
 extern unsigned int cpu68k_clocks;
 extern Uint8 *cpu68k_rom;
@@ -466,7 +467,7 @@ int cpu_68k_debuger(void (*execstep)(void),void (*dump)(void)) {
 	    }
 	    break;
 	case 'R':
-	    while(check_bp(cpu_68k_getpc())!=SDL_TRUE && dbg_step==0) {
+	    while(check_bp(cpu_68k_getpc())!=GN_TRUE && dbg_step==0) {
 		cpu_68k_dpg_step();
 	    }
 	    if (dbg_step) dbg_step=0;

@@ -532,7 +532,7 @@ void main_loop(void) {
 					conf.test_switch = 1;
 					break;
 					case SDLK_F5:
-					show_fps ^= SDL_TRUE;
+					show_fps ^= GN_TRUE;
 					break;
 					case SDLK_F4:
 					show_keysym = 1 - show_keysym;
@@ -579,7 +579,7 @@ void main_loop(void) {
 					}
 					break;
 					case SDLK_F10:
-					autoframeskip ^= SDL_TRUE;
+					autoframeskip ^= GN_TRUE;
 					if (autoframeskip) {
 						reset_frame_skip();
 						draw_message("AutoFrameSkip : ON");
@@ -587,7 +587,7 @@ void main_loop(void) {
 					draw_message("AutoFrameSkip : OFF");
 					break;
 					case SDLK_F11:
-					sleep_idle ^= SDL_TRUE;
+					sleep_idle ^= GN_TRUE;
 					if (sleep_idle)
 					draw_message("Sleep idle : ON");
 					else

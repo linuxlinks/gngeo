@@ -6,19 +6,20 @@
 #include "SDL.h"
 #include "../screen.h"
 #include "../video.h"
+#include "../gnutil.h"
 
 //static int screenw,screenh;
 
 void do_inner_doublex_i386(void *dst,void *src,int screenw,int screenh,int sx);
 
-SDL_bool
+int
 effect_scanline_init() 
 {
 /*
     screenw=screen->w>>2;
     screenh=screen->h;
 */
-    return SDL_TRUE;
+    return GN_TRUE;
 }
 
 void 

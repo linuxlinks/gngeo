@@ -8,12 +8,13 @@
 #include "../screen.h"
 #include "../video.h"
 #include "../conf.h"
+#include "../gnutil.h"
 
 static SDL_Rect ov_rect;
 static SDL_Overlay *overlay;
 
 
-SDL_bool
+int
 blitter_overlay_init()
 {	
     Uint32 width = visible_area.w;
@@ -26,7 +27,7 @@ blitter_overlay_init()
     /* TODO : for now, effect are not handled by the YUV blitter */
     if (neffect != 0) {
 	printf("WARNING: Overlay does not support effect.\n");
-	return SDL_FALSE;
+	return GN_FALSE;
     }
 	
 	
@@ -53,10 +54,10 @@ blitter_overlay_init()
     ov_rect.y=0;
     ov_rect.w=width;
     ov_rect.h=height;
-    return SDL_TRUE;
+    return GN_TRUE;
 }
 
-SDL_bool
+int
 blitter_overlay_resize(int w,int h)
 {
   Uint32 sdl_flags = SDL_HWSURFACE|SDL_RESIZABLE;
@@ -65,7 +66,7 @@ blitter_overlay_resize(int w,int h)
   ov_rect.y=0;
   ov_rect.w=w;
   ov_rect.h=h;
-  return SDL_TRUE;
+  return GN_TRUE;
 }
 
 void 

@@ -11,6 +11,7 @@
 #include "../video.h"
 #include "../effect.h"
 #include "../conf.h"
+#include "../gnutil.h"
 #include "glproc.h"
 
 //#define TEXMIN256
@@ -24,14 +25,14 @@ static SDL_Surface *video_opengl;
 static SDL_Surface *tex_opengl;
 static SDL_Rect glrectef;
 
-static SDL_bool load_glproc() {
+static int load_glproc() {
     static int init=0;
     CONF_ITEM *cf_libgl=cf_get_item_by_name("libglpath");
-    if (init) return SDL_TRUE;
+    if (init) return GN_TRUE;
     init=1;
     if (SDL_GL_LoadLibrary(CF_STR(cf_libgl))==-1) {
         printf("Unable to load OpenGL library: %s\n", CF_STR(cf_libgl));
-        return SDL_FALSE;
+        return GN_FALSE;
     }
 	
     pglClearColor	= SDL_GL_GetProcAddress("glClearColor");
@@ -46,17 +47,17 @@ static SDL_bool load_glproc() {
     pglTexCoord2f	= SDL_GL_GetProcAddress("glTexCoord2f");
     pglVertex2f		= SDL_GL_GetProcAddress("glVertex2f");
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    return SDL_TRUE;
+    return GN_TRUE;
 }
 
-SDL_bool
+int
 blitter_opengl_init()
 {
 	Uint32 sdl_flags;
 	Uint32 width = visible_area.w;
 	Uint32 height = visible_area.h;		
 	
-        if (load_glproc() == SDL_FALSE) return SDL_FALSE;
+        if (load_glproc() == GN_FALSE) return GN_FALSE;
 
 	sdl_flags = (fullscreen?SDL_FULLSCREEN:0)| SDL_DOUBLEBUF | SDL_HWSURFACE
 	    | SDL_HWPALETTE | SDL_OPENGL | SDL_RESIZABLE;
@@ -65,7 +66,7 @@ blitter_opengl_init()
 	if ((effect[neffect].x_ratio!=2 || effect[neffect].y_ratio!=2) &&  
 	    (effect[neffect].x_ratio!=1 || effect[neffect].y_ratio!=1) ) {
 	    printf("Opengl support only effect with a ratio of 2x2 or 1x1\n");
-	    return SDL_FALSE;
+	    return GN_FALSE;
 	}
 	    
 	/*
@@ -91,7 +92,7 @@ blitter_opengl_init()
 	video_opengl = SDL_SetVideoMode(width, height, 16, sdl_flags);
 	
 	if ( video_opengl == NULL)
-		return SDL_FALSE;
+		return GN_FALSE;
 	
 	pglClearColor(0, 0, 0, 0);
 	pglClear(GL_COLOR_BUFFER_BIT);
@@ -153,10 +154,10 @@ blitter_opengl_init()
 #endif
 	}
 	
-	return SDL_TRUE;
+	return GN_TRUE;
 }
 
-SDL_bool
+int
 blitter_opengl_resize(int w,int h)
 {
   Uint32 sdl_flags;
@@ -166,12 +167,12 @@ blitter_opengl_resize(int w,int h)
   video_opengl = SDL_SetVideoMode(w, h, 16, sdl_flags);
 
   if ( video_opengl == NULL)
-    return SDL_FALSE;
+    return GN_FALSE;
 
   pglEnable(GL_TEXTURE_2D);
   pglViewport(0, 0, w, h);
 
-  return SDL_TRUE;
+  return GN_TRUE;
 }
 
 void 

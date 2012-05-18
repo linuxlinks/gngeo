@@ -12,29 +12,29 @@
 typedef struct {
     const char *name;
     const char *desc;
-    SDL_bool(*init) ();
-    SDL_bool(*resize) (int w, int h);
+    int(*init) ();
+    int(*resize) (int w, int h);
     void (*update) ();
     void (*fullscreen) ();
     void (*close) ();
 } blitter_func;
 
 /* Software blitter */
-SDL_bool blitter_soft_init();
+int blitter_soft_init();
 void blitter_soft_update();
 void blitter_soft_fullscreen();
 void blitter_soft_close();
 
 /* OpenGL blitter */
-SDL_bool blitter_opengl_init();
-SDL_bool blitter_opengl_resize(int w, int h);
+int blitter_opengl_init();
+int blitter_opengl_resize(int w, int h);
 void blitter_opengl_update();
 void blitter_opengl_fullscreen();
 void blitter_opengl_close();
 
 /* Overlay blitter */
-SDL_bool blitter_overlay_init();
-SDL_bool blitter_overlay_resize();
+int blitter_overlay_init();
+int blitter_overlay_resize();
 void blitter_overlay_update();
 void blitter_overlay_fullscreen();
 void blitter_overlay_close();
