@@ -6,14 +6,12 @@
 #include "SDL_endian.h"
 #include <stdlib.h>
 #include <string.h>
-//#include <stdbool.h>
 #if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 #include <zlib.h>
 #endif
 
 #include "memory.h"
 #include "state.h"
-#include "fileio.h"
 #include "screen.h"
 #include "sound.h"
 #include "emu.h"

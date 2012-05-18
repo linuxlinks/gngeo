@@ -28,7 +28,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
-//#include <stdbool.h>
 
 #ifdef HAVE_GETOPT_LONG
 #include <getopt.h>
@@ -40,10 +39,7 @@
 #include "unzip.h"
 #include "SDL.h"
 #include "conf.h"
-#include "fileio.h"
-//#include "driver.h"
 #include "emu.h"
-//#include "fileio.h"
 #include "memory.h"
 #include "gnutil.h"
 

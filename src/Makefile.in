@@ -56,19 +56,18 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am__gngeo_SOURCES_DIST = fileio.c pd4990a.c gngeo_icon.h sound.h \
-	video.c fileio.h profiler.c main.c pd4990a.h video.h list.c \
-	memory.c profiler.h list.h blitter.h font.h memory.h resfile.c \
-	timer.c effect.h frame_skip.c messages.c screen.c timer.h \
-	emu.c frame_skip.h messages.h screen.h unzip.h emu.h \
-	neocrypt.c sound.c unzip.c resfile.h debug.c debug.h \
-	neocrypt.h state.c state.h video_template.h conf.c conf.h \
-	transpack.h transpack.c gnutil.c gnutil.h menu.c menu.h roms.h \
-	roms.c mame_layer.h mame_layer.c neoboot.c event.h event.c \
-	stb_image.c stb_image.h stb_zlib.c stb_zlib.h star_interf.c \
-	generator68k_interf.c cyclone_interf.c raze_interf.c \
-	mamez80_interf.c drz80_interf.c video_arm.s memcpy.S gp2x.h \
-	gp2x.c
+am__gngeo_SOURCES_DIST = pd4990a.c gngeo_icon.h sound.h video.c \
+	profiler.c main.c pd4990a.h video.h list.c memory.c profiler.h \
+	list.h blitter.h font.h memory.h resfile.c timer.c effect.h \
+	frame_skip.c messages.c screen.c timer.h emu.c frame_skip.h \
+	messages.h screen.h unzip.h emu.h neocrypt.c sound.c unzip.c \
+	resfile.h debug.c debug.h neocrypt.h state.c state.h \
+	video_template.h conf.c conf.h transpack.h transpack.c \
+	gnutil.c gnutil.h menu.c menu.h roms.h roms.c mame_layer.h \
+	mame_layer.c neoboot.c event.h event.c stb_image.c stb_image.h \
+	stb_zlib.c stb_zlib.h star_interf.c generator68k_interf.c \
+	cyclone_interf.c raze_interf.c mamez80_interf.c drz80_interf.c \
+	video_arm.s memcpy.S gp2x.h gp2x.c
 @USE_STARSCREAM_TRUE@am__objects_1 = star_interf.$(OBJEXT)
 @USE_GENERATOR68K_TRUE@am__objects_2 = generator68k_interf.$(OBJEXT)
 @USE_CYCLONE_TRUE@am__objects_3 = cyclone_interf.$(OBJEXT)
@@ -78,7 +77,7 @@ am__gngeo_SOURCES_DIST = fileio.c pd4990a.c gngeo_icon.h sound.h \
 @PROCESSOR_ARM_TRUE@am__objects_7 = video_arm.$(OBJEXT) \
 @PROCESSOR_ARM_TRUE@	memcpy.$(OBJEXT)
 @USE_GP2X_TRUE@am__objects_8 = gp2x.$(OBJEXT)
-am_gngeo_OBJECTS = fileio.$(OBJEXT) pd4990a.$(OBJEXT) video.$(OBJEXT) \
+am_gngeo_OBJECTS = pd4990a.$(OBJEXT) video.$(OBJEXT) \
 	profiler.$(OBJEXT) main.$(OBJEXT) list.$(OBJEXT) \
 	memory.$(OBJEXT) resfile.$(OBJEXT) timer.$(OBJEXT) \
 	frame_skip.$(OBJEXT) messages.$(OBJEXT) screen.$(OBJEXT) \
@@ -280,13 +279,13 @@ top_srcdir = @top_srcdir@
 #INCLUDES = -DDATA_DIRECTORY='"${pkgdatadir}"'
 AM_CPPFLAGS = -DDATA_DIRECTORY=\"$(pkgdatadir)\"
 SUBDIRS = effect blitter ym2610 $(m68k_subdir) $(z80_subdir) $(gui_subdir)
-gngeo_SOURCES = fileio.c pd4990a.c gngeo_icon.h sound.h video.c \
-	fileio.h profiler.c main.c pd4990a.h video.h list.c memory.c \
-	profiler.h list.h blitter.h font.h memory.h resfile.c timer.c \
-	effect.h frame_skip.c messages.c screen.c timer.h emu.c \
-	frame_skip.h messages.h screen.h unzip.h emu.h neocrypt.c \
-	sound.c unzip.c resfile.h debug.c debug.h neocrypt.h state.c \
-	state.h video_template.h conf.c conf.h transpack.h transpack.c \
+gngeo_SOURCES = pd4990a.c gngeo_icon.h sound.h video.c profiler.c \
+	main.c pd4990a.h video.h list.c memory.c profiler.h list.h \
+	blitter.h font.h memory.h resfile.c timer.c effect.h \
+	frame_skip.c messages.c screen.c timer.h emu.c frame_skip.h \
+	messages.h screen.h unzip.h emu.h neocrypt.c sound.c unzip.c \
+	resfile.h debug.c debug.h neocrypt.h state.c state.h \
+	video_template.h conf.c conf.h transpack.h transpack.c \
 	gnutil.c gnutil.h menu.c menu.h roms.h roms.c mame_layer.h \
 	mame_layer.c neoboot.c event.h event.c stb_image.c stb_image.h \
 	stb_zlib.c stb_zlib.h $(am__append_1) $(am__append_2) \
@@ -397,7 +396,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/drz80_interf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/emu.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/event.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fileio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/frame_skip.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/generator68k_interf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gnutil.Po@am__quote@

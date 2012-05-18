@@ -30,7 +30,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
-//#include <stdbool.h>
 #include <math.h>
 
 #include "menu.h"
@@ -46,7 +45,6 @@
 #include "video.h"
 #include "conf.h"
 #include "resfile.h"
-#include "fileio.h"
 #include "sound.h"
 #include "effect.h"
 #include "gnutil.h"
@@ -1113,7 +1111,7 @@ static int loadrom_action(GN_MENU_ITEM *self, void *param) {
 		printf("Can't init %s...\n", game);
 		gn_popup_error("Error! :", "Gngeo Couldn't init %s: \n\n%s\n"
 				"Maybe the romset you're using is too old"
-				, game,romerror);
+				, game,gnerror);
 		return MENU_STAY;
 	}
 

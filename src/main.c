@@ -29,7 +29,6 @@
 #include <string.h>
 #include "ym2610/2610intf.h"
 #include "font.h"
-#include "fileio.h"
 #include "video.h"
 #include "screen.h"
 #include "emu.h"

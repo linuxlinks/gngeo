@@ -20,6 +20,8 @@
 
 #include "gnutil.h"
 
+char gnerror[1024];
+
 void chomp(char *str) {
     int i = 0;
     if (str) {
@@ -91,3 +93,10 @@ char *get_gngeo_dir(void) {
     return filename;
 }
 #endif
+
+void gn_set_error_msg(char *fmt,...) {
+	va_list pvar;
+	va_start(pvar, fmt);
+	vsnprintf(gnerror,GNERROR_SIZE,fmt,pvar);
+}
+

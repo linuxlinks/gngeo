@@ -138,7 +138,7 @@ Uint8 scramblecode_kof2000[7] = {0xEC, 15, 14, 7, 3, 10, 5,};
 #define LOAD_BUF_SIZE (128*1024)
 static Uint8* iloadbuf = NULL;
 
-char romerror[1024];
+//char romerror[1024];
 
 /* Actuall Code */
 
@@ -1353,13 +1353,14 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 
 	drv = res_load_drv(name);
 	if (!drv) {
-		sprintf(romerror, "Can't find rom driver for %s\n", name);
+		gn_set_error_msg("Can't find rom driver for %s\n", name);
+
 		return GN_FALSE;
 	}
 
 	gz = open_rom_zip(rom_path, name);
 	if (gz == NULL) {
-		sprintf(romerror,"Rom %s/%s.zip not found\n", rom_path, name);
+		gn_set_error_msg("Rom %s/%s.zip not found\n", rom_path, name);
 		return GN_FALSE;
 	}
 
@@ -1368,7 +1369,7 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 	 */
 	gzp = open_rom_zip(rom_path, drv->parent);
 	if (gzp == NULL) {
-		sprintf(romerror,"Parent %s/%s.zip not found\n", rom_path, name);
+		gn_set_error_msg("Parent %s/%s.zip not found\n", rom_path, name);
 		return GN_FALSE;
 	}
 
@@ -1444,14 +1445,14 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 						drv->rom[i].filename);
 				DEBUG_LOG("From parent %d\n", pi);
 				if (pi && (region != 5 && region != 0 && region != 7)) {
-					sprintf(romerror, "ERROR: File %s not found\n",
+					gn_set_error_msg("ERROR: File %s not found\n",
 							drv->rom[i].filename);
 					goto error1;
 				}
 			} else {
 				int region = drv->rom[i].region;
 				if (region != 5 && region != 0 && region != 7) {
-					sprintf(romerror, "ERROR: File %s not found\n",
+					gn_set_error_msg("ERROR: File %s not found\n",
 							drv->rom[i].filename);
 					goto error1;
 				}
@@ -1893,4 +1894,193 @@ void dr_free_roms(GAME_ROMS *r) {
 	free(r->info.longname);
 
 	conf.game = NULL;
+}
+
+
+void open_nvram(char *name) {
+    char *filename;
+    size_t totread = 0;
+#ifdef EMBEDDED_FS
+    const char *gngeo_dir = ROOTPATH"save/";
+#elif defined(__AMIGA__)
+    const char *gngeo_dir = "/PROGDIR/save/";
+#else
+    const char *gngeo_dir = get_gngeo_dir();
+#endif
+    FILE *f;
+    int len = strlen(name) + strlen(gngeo_dir) + 4; /* ".nv\0" => 4 */
+
+    filename = (char *) alloca(len);
+    sprintf(filename, "%s%s.nv", gngeo_dir, name);
+
+    if ((f = fopen(filename, "rb")) == 0)
+        return;
+    totread = fread(memory.sram, 1, 0x10000, f);
+    fclose(f);
+
+}
+
+/* TODO: multiple memcard */
+void open_memcard(char *name) {
+    char *filename;
+    size_t totread = 0;
+#ifdef EMBEDDED_FS
+    const char *gngeo_dir = ROOTPATH"save/";
+#elif defined(__AMIGA__)
+    const char *gngeo_dir = "/PROGDIR/save/";
+#else
+    const char *gngeo_dir = get_gngeo_dir();
+#endif
+    FILE *f;
+    int len = strlen("memcard") + strlen(gngeo_dir) + 1; /* ".nv\0" => 4 */
+
+    filename = (char *) alloca(len);
+    sprintf(filename, "%s%s", gngeo_dir, "memcard");
+
+    if ((f = fopen(filename, "rb")) == 0)
+        return;
+    totread = fread(memory.memcard, 1, 0x800, f);
+    fclose(f);
+}
+
+void save_nvram(char *name) {
+    char *filename;
+#ifdef EMBEDDED_FS
+    const char *gngeo_dir = ROOTPATH"save/";
+#elif defined(__AMIGA__)
+    const char *gngeo_dir = strdup("/PROGDIR/save/");
+#else
+    const char *gngeo_dir = get_gngeo_dir();
+#endif
+    FILE *f;
+    int len = strlen(name) + strlen(gngeo_dir) + 4; /* ".nv\0" => 4 */
+
+    //strlen(name) + strlen(getenv("HOME")) + strlen("/.gngeo/") + 4;
+    int i;
+    //    printf("Save nvram %s\n",name);
+    for (i = 0xffff; i >= 0; i--) {
+        if (memory.sram[i] != 0)
+            break;
+    }
+
+    filename = (char *) alloca(len);
+
+    sprintf(filename, "%s%s.nv", gngeo_dir, name);
+
+    if ((f = fopen(filename, "wb")) != NULL) {
+        fwrite(memory.sram, 1, 0x10000, f);
+        fclose(f);
+    }
+}
+
+void save_memcard(char *name) {
+    char *filename;
+#ifdef EMBEDDED_FS
+    const char *gngeo_dir = ROOTPATH"save/";
+#elif defined(__AMIGA__)
+    const char *gngeo_dir = strdup("/PROGDIR/save/");
+#else
+    const char *gngeo_dir = get_gngeo_dir();
+#endif
+    FILE *f;
+    int len = strlen("memcard") + strlen(gngeo_dir) + 1; /* ".nv\0" => 4 */
+
+    filename = (char *) alloca(len);
+    sprintf(filename, "%s%s", gngeo_dir, "memcard");
+
+    if ((f = fopen(filename, "wb")) != NULL) {
+        fwrite(memory.memcard, 1, 0x800, f);
+        fclose(f);
+    }
+}
+
+int close_game(void) {
+    if (conf.game == NULL) return GN_FALSE;
+    save_nvram(conf.game);
+    save_memcard(conf.game);
+
+    dr_free_roms(&memory.rom);
+    trans_pack_free();
+
+    return GN_TRUE;
+}
+
+int load_game_config(char *rom_name) {
+	char *gpath;
+	char *drconf;
+#ifdef EMBEDDED_FS
+    gpath=ROOTPATH"conf/";
+#else
+    gpath=get_gngeo_dir();
+#endif
+	cf_reset_to_default();
+	cf_open_file(NULL); /* Reset possible previous setting */
+	if (rom_name) {
+		if (strstr(rom_name,".gno")!=NULL) {
+			char *name=dr_gno_romname(rom_name);
+			if (name) {
+				printf("Tring to load a gno file %s %s\n",rom_name,name);
+				drconf=alloca(strlen(gpath)+strlen(name)+strlen(".cf")+1);
+				sprintf(drconf,"%s%s.cf",gpath,name);
+			} else {
+				printf("Error while loading %s\n",rom_name);
+				return GN_FALSE;
+			}
+		} else {
+			drconf=alloca(strlen(gpath)+strlen(rom_name)+strlen(".cf")+1);
+			sprintf(drconf,"%s%s.cf",gpath,rom_name);
+		}
+		cf_open_file(drconf);
+	}
+	return GN_TRUE;
+}
+
+int init_game(char *rom_name) {
+//printf("AAA Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
+
+	load_game_config(rom_name);
+	/* reinit screen if necessary */
+	//screen_change_blitter_and_effect(NULL,NULL);
+	reset_frame_skip();
+	screen_reinit();
+	printf("BBB Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
+    /* open transpack if need */
+    trans_pack_open(CF_STR(cf_get_item_by_name("transpack")));
+
+    if (strstr(rom_name, ".gno") != NULL) {
+        dr_open_gno(rom_name);
+
+    } else {
+
+        //open_rom(rom_name);
+	if (dr_load_game(rom_name) == GN_FALSE) {
+#if defined(GP2X)
+            gn_popup_error(" Error! :", "Couldn't load %s",
+                    file_basename(rom_name));
+#else
+            printf("Can't load %s\n", rom_name);
+#endif
+            return GN_FALSE;
+        }
+
+    }
+
+    open_nvram(conf.game);
+    open_memcard(conf.game);
+#ifndef GP2X
+    sdl_set_title(conf.game);
+#endif
+    init_neo();
+    setup_misc_patch(conf.game);
+
+    fix_usage = memory.fix_board_usage;
+    current_pal = memory.vid.pal_neo[0];
+    current_fix = memory.rom.bios_sfix.p;
+    current_pc_pal = (Uint32 *) memory.vid.pal_host[0];
+
+	memory.vid.currentpal=0;
+	memory.vid.currentfix=0;
+
+
+    return GN_TRUE;
 }

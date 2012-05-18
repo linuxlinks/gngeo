@@ -11,6 +11,7 @@ void chomp(char *str);
 char *my_fgets(char *s, int size, FILE *stream);
 char *file_basename(char *filename);
 int check_dir(char *dir_name);
+void gn_set_error_msg(char *fmt,...);
 
 /* LOG generation */
 #define GNGEO_LOG(...)
@@ -22,5 +23,10 @@ int check_dir(char *dir_name);
 
 /* TODO: redesign */
 #define CHECK_ALLOC(a) {if (!a) {printf("Out of Memory\n");exit(1);}}
+
+#define GNERROR_SIZE 1024
+extern char gnerror[GNERROR_SIZE];
+
+
 
 #endif /* GNUTIL_H_ */
