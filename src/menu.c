@@ -1289,6 +1289,15 @@ static int toggle_sleepidle(GN_MENU_ITEM *self, void *param) {
 	return MENU_STAY;
 }
 
+static int toggle_raster(GN_MENU_ITEM *self, void *param) {
+	self->val = 1 - self->val;
+	conf.raster = self->val;
+	cf_item_has_been_changed(cf_get_item_by_name("raster"));
+	CF_BOOL(cf_get_item_by_name("raster")) = self->val;
+
+	return MENU_STAY;
+}
+
 static int toggle_showfps(GN_MENU_ITEM *self, void *param) {
 	self->val = 1 - self->val;
 	conf.show_fps = self->val;
@@ -1419,6 +1428,8 @@ static int change_samplerate(GN_MENU_ITEM *self, void *param) {
 	return 0;
 }
 
+
+
 static int save_conf_action(GN_MENU_ITEM *self, void *param) {
 	int type = (int) self->arg;
 	if (type == 0)
@@ -1548,6 +1559,11 @@ void gn_init_menu(void) {
 
 	gitem = gn_menu_create_item("Show FPS", MENU_CHECK, toggle_showfps, NULL);
 	gitem->val = CF_BOOL(cf_get_item_by_name("showfps"));
+	option_menu->item = list_append(option_menu->item, (void*) gitem);
+	option_menu->nb_elem++;
+
+	gitem = gn_menu_create_item("Enable Raster effect", MENU_CHECK, toggle_raster, NULL);
+	gitem->val = CF_BOOL(cf_get_item_by_name("raster"));
 	option_menu->item = list_append(option_menu->item, (void*) gitem);
 	option_menu->nb_elem++;
 
