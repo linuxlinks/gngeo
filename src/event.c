@@ -191,6 +191,10 @@ int handle_pdep_event(SDL_Event *event) {
 		case SDLK_ESCAPE:
 			return 1;
 			break;
+		case SDLK_F3:
+			draw_message("Test Switch ON");
+			conf.test_switch = 1;
+			break;
 		case SDLK_F12:
 		    screen_fullscreen();
 		    break;

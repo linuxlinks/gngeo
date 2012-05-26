@@ -43,19 +43,6 @@
 #include "memory.h"
 #include "gnutil.h"
 
-#if defined (__AMIGA__)
-#ifdef DATA_DIRECTORY
-#undef DATA_DIRECTORY
-#define DATA_DIRECTORY "/PROGDIR/data/"
-#endif
-#endif
-#if defined (WII)
-#define ROOTPATH "sd:/apps/gngeo/"
-#elif defined (__AMIGA__)
-#define ROOTPATH "/PROGDIR/data/"
-#else
-#define ROOTPATH ""
-#endif
 
 /* 
 

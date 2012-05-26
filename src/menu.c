@@ -57,8 +57,33 @@
 #define ROOTPATH ""
 #endif
 
+#define ICOL_BLACK  0
+#define ICOL_RED    1
+#define ICOL_GREEN  2
+#define ICOL_GREY_L 3
+#define ICOL_GREY_M 4
+#define ICOL_GREY_D 5
+#define ICOL_MAX	 6
+
+#define COL_BLACK  0x000000
+#define COL_RED    0x1010FF
+#define COL_GREEN  0x10FF10
+#define COL_GREY_L 0xA0A0A0
+#define COL_GREY_M 0x808080
+#define COL_GREY_D 0x404040
+
+Uint32 font_color[]={
+		COL_BLACK,
+		COL_RED,
+		COL_GREEN,
+		COL_GREY_L,
+		COL_GREY_M,
+		COL_GREY_D
+};
+
 typedef struct GNFONT {
 	SDL_Surface *bmp;
+	SDL_Surface *cbmp[ICOL_MAX];
 	Uint8 ysize;
 	Uint16 xpos[128 - 32];
 	Uint8 xsize[128 - 32];
@@ -87,17 +112,16 @@ static int interp;
 #define MENU_TEXT_X_END (24 + 277)
 #define MENU_TEXT_Y_END (16 + 198)
 
-#define ALIGN_LEFT   -1
-#define ALIGN_RIGHT  -2
-#define ALIGN_CENTER -3
-#define ALIGN_UP   -1
-#define ALIGN_DOWN  -2
+#define ALIGN_LEFT   (1<<16)
+#define ALIGN_RIGHT  (2<<16)
+#define ALIGN_CENTER (3<<16)
+#define ALIGN_UP     (1<<16)
+#define ALIGN_DOWN   (2<<16)
 
 #define MENU_CLOSE        1
 #define MENU_STAY         0
 #define MENU_EXIT         2
 #define MENU_RETURNTOGAME 3
-
 
 static GN_MENU *main_menu;
 static GN_MENU *rbrowser_menu;
@@ -106,256 +130,184 @@ static GN_MENU *effect_menu;
 static GN_MENU *srate_menu;
 static GN_MENU *yesno_menu;
 
-static char *romlist[] = {
-	"2020bb",
-	"2020bba",
-	"2020bbh",
-	"3countb",
-	"alpham2",
-	"androdun",
-	"aodk",
-	"aof",
-	"aof2",
-	"aof2a",
-	"aof3",
-	"aof3k",
-	"bakatono",
-	"bangbead",
-	"bjourney",
-	"blazstar",
-	"breakers",
-	"breakrev",
-	"bstars",
-	"bstars2",
-	"burningf",
-	"burningfh",
-	"crsword",
-	"ct2k3sa",
-	"ct2k3sp",
-	"cthd2003",
-	"ctomaday",
-	"cyberlip",
-	"diggerma",
-	"doubledr",
-	"eightman",
-	"fatfursa",
-	"fatfursp",
-	"fatfury1",
-	"fatfury2",
-	"fatfury3",
-	"fbfrenzy",
-	"fightfev",
-	"fightfeva",
-	"flipshot",
-	"fswords",
-	"galaxyfg",
-	"ganryu",
-	"garou",
-	"garoubl",
-	"garouo",
-	"garoup",
-	"ghostlop",
-	"goalx3",
-	"gowcaizr",
-	"gpilots",
-	"gpilotsh",
-	"gururin",
-	"irrmaze",
-	"janshin",
-	"jockeygp",
-	"joyjoy",
-	"kabukikl",
-	"karnovr",
-	"kf10thep",
-	"kf2k2mp",
-	"kf2k2mp2",
-	"kf2k2pla",
-	"kf2k2pls",
-	"kf2k3bl",
-	"kf2k3bla",
-	"kf2k3pcb",
-	"kf2k3pl",
-	"kf2k3upl",
-	"kf2k5uni",
-	"kizuna",
-	"kof10th",
-	"kof2000",
-	"kof2000n",
-	"kof2001",
-	"kof2001h",
-	"kof2002",
-	"kof2002b",
-	"kof2003",
-	"kof2003h",
-	"kof2k4se",
-	"kof94",
-	"kof95",
-	"kof95h",
-	"kof96",
-	"kof96h",
-	"kof97",
-	"kof97a",
-	"kof97pls",
-	"kof98",
-	"kof98k",
-	"kof98n",
-	"kof99",
-	"kof99a",
-	"kof99e",
-	"kof99n",
-	"kof99p",
-	"kog",
-	"kotm",
-	"kotm2",
-	"kotmh",
-	"lans2004",
-	"lastblad",
-	"lastbladh",
-	"lastbld2",
-	"lastsold",
-	"lbowling",
-	"legendos",
-	"lresort",
-	"magdrop2",
-	"magdrop3",
-	"maglord",
-	"maglordh",
-	"mahretsu",
-	"marukodq",
-	"matrim",
-	"matrimbl",
-	"miexchng",
-	"minasan",
-	"mosyougi",
-	"ms4plus",
-	"ms5pcb",
-	"ms5plus",
-	"mslug",
-	"mslug2",
-	"mslug3",
-	"mslug3b6",
-	"mslug3h",
-	"mslug3n", /* Driver don't have the good name */
-	"mslug4",
-	"mslug5",
-	"mslug5h",
-	"mslugx",
-	"mutnat",
-	"nam1975",
-	"ncombat",
-	"ncombath",
-	"ncommand",
-	"neobombe",
-	"neocup98",
-	"neodrift",
-	"neomrdo",
-	"ninjamas",
-	"nitd",
-	"nitdbl",
-	"overtop",
-	"panicbom",
-	"pbobbl2n",
-	"pbobblen",
-	"pbobblena",
-	"pgoal",
-	"pnyaa",
-	"popbounc",
-	"preisle2",
-	"pspikes2",
-	"pulstar",
-	"puzzldpr",
-	"puzzledp",
-	"quizdai2",
-	"quizdais",
-	"quizkof",
-	"ragnagrd",
-	"rbff1",
-	"rbff1a",
-	"rbff2",
-	"rbff2h",
-	"rbff2k",
-	"rbffspec",
-	"ridhero",
-	"ridheroh",
-	"roboarmy",
-	"rotd",
-	"s1945p",
-	"samsh5sp",
-	"samsh5sph",
-	"samsh5spn", /* Driver don't have the good name */
-	"samsho",
-	"samsho2",
-	"samsho3",
-	"samsho3h",
-	"samsho4",
-	"samsho5",
-	"samsho5b",
-	"samsho5h",
-	"samshoh",
-	"savagere",
-	"sdodgeb",
-	"sengokh",
-	"sengoku",
-	"sengoku2",
-	"sengoku3",
-	"shocktr2",
-	"shocktra",
-	"shocktro",
-	"socbrawl",
-	"socbrawla",
-	"sonicwi2",
-	"sonicwi3",
-	"spinmast",
-	"ssideki",
-	"ssideki2",
-	"ssideki3",
-	"ssideki4",
-	"stakwin",
-	"stakwin2",
-	"strhoop",
-	"superspy",
-	"svc",
-	"svcboot",
-	"svcpcb",
-	"svcpcba",
-	"svcplus",
-	"svcplusa",
-	"svcsplus",
-	"tophuntr",
-	"tophuntra",
-	"tpgolf",
-	"trally",
-	"turfmast",
-	"twinspri",
-	"tws96",
-	"viewpoin",
-	"vliner",
-	"vlinero",
-	"wakuwak7",
-	"wh1",
-	"wh1h",
-	"wh1ha",
-	"wh2",
-	"wh2j",
-	"wh2jh",
-	"whp",
-	"wjammers",
-	"zedblade",
-	"zintrckb",
-	"zupapa",
-	NULL
-};
+static char *romlist[] = { "2020bb", "2020bba", "2020bbh", "3countb", "alpham2",
+		"androdun", "aodk", "aof", "aof2", "aof2a", "aof3", "aof3k", "bakatono",
+		"bangbead", "bjourney", "blazstar", "breakers", "breakrev", "bstars",
+		"bstars2", "burningf", "burningfh", "crsword", "ct2k3sa", "ct2k3sp",
+		"cthd2003", "ctomaday", "cyberlip", "diggerma", "doubledr", "eightman",
+		"fatfursa", "fatfursp", "fatfury1", "fatfury2", "fatfury3", "fbfrenzy",
+		"fightfev", "fightfeva", "flipshot", "fswords", "galaxyfg", "ganryu",
+		"garou", "garoubl", "garouo", "garoup", "ghostlop", "goalx3",
+		"gowcaizr", "gpilots", "gpilotsh", "gururin", "irrmaze", "janshin",
+		"jockeygp", "joyjoy", "kabukikl", "karnovr", "kf10thep", "kf2k2mp",
+		"kf2k2mp2", "kf2k2pla", "kf2k2pls", "kf2k3bl", "kf2k3bla", "kf2k3pcb",
+		"kf2k3pl", "kf2k3upl", "kf2k5uni", "kizuna", "kof10th", "kof2000",
+		"kof2000n", "kof2001", "kof2001h", "kof2002", "kof2002b", "kof2003",
+		"kof2003h", "kof2k4se", "kof94", "kof95", "kof95h", "kof96", "kof96h",
+		"kof97", "kof97a", "kof97pls", "kof98", "kof98k", "kof98n", "kof99",
+		"kof99a", "kof99e", "kof99n", "kof99p", "kog", "kotm", "kotm2", "kotmh",
+		"lans2004", "lastblad", "lastbladh", "lastbld2", "lastsold", "lbowling",
+		"legendos", "lresort", "magdrop2", "magdrop3", "maglord", "maglordh",
+		"mahretsu", "marukodq", "matrim", "matrimbl", "miexchng", "minasan",
+		"mosyougi", "ms4plus", "ms5pcb", "ms5plus", "mslug", "mslug2", "mslug3",
+		"mslug3b6", "mslug3h", "mslug3n", /* Driver don't have the good name */
+		"mslug4", "mslug5", "mslug5h", "mslugx", "mutnat", "nam1975", "ncombat",
+		"ncombath", "ncommand", "neobombe", "neocup98", "neodrift", "neomrdo",
+		"ninjamas", "nitd", "nitdbl", "overtop", "panicbom", "pbobbl2n",
+		"pbobblen", "pbobblena", "pgoal", "pnyaa", "popbounc", "preisle2",
+		"pspikes2", "pulstar", "puzzldpr", "puzzledp", "quizdai2", "quizdais",
+		"quizkof", "ragnagrd", "rbff1", "rbff1a", "rbff2", "rbff2h", "rbff2k",
+		"rbffspec", "ridhero", "ridheroh", "roboarmy", "rotd", "s1945p",
+		"samsh5sp", "samsh5sph", "samsh5spn", /* Driver don't have the good name */
+		"samsho", "samsho2", "samsho3", "samsho3h", "samsho4", "samsho5",
+		"samsho5b", "samsho5h", "samshoh", "savagere", "sdodgeb", "sengokh",
+		"sengoku", "sengoku2", "sengoku3", "shocktr2", "shocktra", "shocktro",
+		"socbrawl", "socbrawla", "sonicwi2", "sonicwi3", "spinmast", "ssideki",
+		"ssideki2", "ssideki3", "ssideki4", "stakwin", "stakwin2", "strhoop",
+		"superspy", "svc", "svcboot", "svcpcb", "svcpcba", "svcplus",
+		"svcplusa", "svcsplus", "tophuntr", "tophuntra", "tpgolf", "trally",
+		"turfmast", "twinspri", "tws96", "viewpoin", "vliner", "vlinero",
+		"wakuwak7", "wh1", "wh1h", "wh1ha", "wh2", "wh2j", "wh2jh", "whp",
+		"wjammers", "zedblade", "zintrckb", "zupapa", NULL };
 
 #define COL32_TO_16(col) ((((col&0xff0000)>>19)<<11)|(((col&0xFF00)>>10)<<5)|((col&0xFF)>>3))
+struct RGB_set {
+	unsigned char r;
+	unsigned char g;
+	unsigned char b;
+} RGB_set;
+
+struct HSV_set {
+	signed int h;
+	unsigned char s;
+	unsigned char v;
+} HSV_set;
+
+Uint32 RGB2HSV(Uint32 RGB) {
+	unsigned char min, max, delta;
+	Uint16 h;
+	Uint8 s, v;
+	Uint8 r, g, b;
+	r = (RGB >> 16) & 0xFF;
+	g = (RGB >> 8) & 0xFF;
+	b = RGB & 0xFF;
+
+	if (r < g)
+		min = r;
+	else
+		min = g;
+	if (b < min)
+		min = b;
+
+	if (r > g)
+		max = r;
+	else
+		max = g;
+	if (b > max)
+		max = b;
+
+	v = max; // v, 0..255
+
+	delta = max - min; // 0..255, < v
+
+	if (max != 0)
+		s = (int) (delta) * 255 / max; // s, 0..255
+	else {
+		// r = g = b = 0        // s = 0, v is undefined
+		s = 0;
+		h = 0;
+		return (h << 16) | (s << 8) | v;
+	}
+
+	if (r == max)
+		h = (g - b) * 60 / delta; // between yellow & magenta
+	else if (g == max)
+		h = 120 + (b - r) * 60 / delta; // between cyan & yellow
+	else
+		h = 240 + (r - g) * 60 / delta; // between magenta & cyan
+
+	if (h < 0)
+		h += 360;
+
+	return (h << 16) | (s << 8) | v;
+}
+Uint32 HSV2RGB(Uint32 HSV) {
+	int i;
+	float f, p, q, t, h, s, v;
+	Uint8 r, g, b;
+
+	h = (float) (HSV >> 16);
+	s = (float) ((HSV >> 8) & 0xFF);
+	v = (float) (HSV & 0xFF);
+
+	s /= 255.0;
+
+	if (s == 0) { // achromatic (grey)
+		r = g = b = v;
+		return (r << 16) | (g << 8) | b;
+	}
+
+	h /= 60; // sector 0 to 5
+	i = floor(h);
+	f = h - i; // factorial part of h
+	p = (unsigned char) (v * (1 - s));
+	q = (unsigned char) (v * (1 - s * f));
+	t = (unsigned char) (v * (1 - s * (1 - f)));
+
+	switch (i) {
+	case 0:
+		r = v;
+		g = t;
+		b = p;
+		break;
+	case 1:
+		r = q;
+		g = v;
+		b = p;
+		break;
+	case 2:
+		r = p;
+		g = v;
+		b = t;
+		break;
+	case 3:
+		r = p;
+		g = q;
+		b = v;
+		break;
+	case 4:
+		r = t;
+		g = p;
+		b = v;
+		break;
+	default: // case 5:
+		r = v;
+		g = p;
+		b = q;
+		break;
+	}
+	return (r << 16) | (g << 8) | b;
+}
+
+void font_set_color(GNFONT *ft, int col) {
+	if (col >= ICOL_MAX)
+		col = 0;
+	ft->bmp = ft->cbmp[col];
+}
 
 GNFONT *load_font(char *file) {
-	GNFONT *ft = malloc(sizeof (GNFONT));
+	GNFONT *ft = malloc(sizeof(GNFONT));
+	Uint32 HSV;
+	Uint32 RGB;
 	int i;
 	int x = 0;
 	Uint32 *b;
-	if (!ft) return NULL;
-
-	ft->bmp = res_load_stbi(file);
+	if (!ft)
+		return NULL;
+	memset(ft, 0, sizeof(GNFONT));
+	for (i = 0; i < ICOL_MAX; i++)
+		ft->cbmp[i] = res_load_stbi(file);
+	ft->bmp = ft->cbmp[0];
 	if (!ft->bmp) {
 		free(ft);
 		return NULL;
@@ -383,18 +335,32 @@ GNFONT *load_font(char *file) {
 			x++;
 		}
 	}
+
 	//printf("NB char found:%d\n",x);
-	if (x <= 0 || x > 95) return NULL;
+	if (x <= 0 || x > 95)
+		return NULL;
 	/*	b=ft->bmp->pixels+ft->bmp->pitch*3;
-		for (i=0;i<ft->bmp->w;i++) {
-			//printf("%08x\n",b[i]);
-		}
+	 for (i=0;i<ft->bmp->w;i++) {
+	 //printf("%08x\n",b[i]);
+	 }
 	 */
 	ft->xsize[94] = ft->bmp->w - ft->xpos[94];
 	ft->ysize = ft->bmp->h;
 
 	/* Default y padding=0 */
 	ft->pad = 0;
+
+	for (x = 1; x < ICOL_MAX; x++) {
+		int j;
+		b = ft->cbmp[x]->pixels;
+		for (i = 0; i < ft->bmp->w; i++) {
+			for (j = 0; j < ft->bmp->h; j++) {
+				b[i * ft->bmp->h + j] &= 0xFF000000;
+				b[i * ft->bmp->h + j] |= font_color[x];
+			}
+		}
+	}
+	//font_set_color(ft,ICOL_GREY_L);
 	return ft;
 }
 
@@ -404,15 +370,15 @@ static Uint32 string_len(GNFONT *f, char *str) {
 	if (str) {
 		for (i = 0; i < strlen(str); i++) {
 			switch (str[i]) {
-				case ' ':
-					size += f->xsize[0];
-					break;
-				case '\t':
-					size += (f->xsize[0]*8);
-					break;
-				default:
-					size += (f->xsize[(int) str[i] - 32] + f->pad);
-					break;
+			case ' ':
+				size += f->xsize[0];
+				break;
+			case '\t':
+				size += (f->xsize[0] * 8);
+				break;
+			default:
+				size += (f->xsize[(int) str[i] - 32] + f->pad);
+				break;
 			}
 		}
 		return size;
@@ -425,22 +391,39 @@ void draw_string(SDL_Surface *dst, GNFONT *f, int x, int y, char *str) {
 	int i;
 
 	if (!f) {
-		if (x == ALIGN_LEFT) x = MENU_TEXT_X;
-		if (x == ALIGN_RIGHT) x = (MENU_TEXT_X_END - strlen(str)*8);
-		if (x == ALIGN_CENTER) x = (MENU_TEXT_X + (MENU_TEXT_X_END - MENU_TEXT_X - strlen(str)*8) / 2);
-		if (y == ALIGN_UP) y = MENU_TEXT_Y;
-		if (y == ALIGN_DOWN) y = (MENU_TEXT_Y_END - 8);
-		if (y == ALIGN_CENTER) y = (MENU_TEXT_Y + (MENU_TEXT_Y_END - MENU_TEXT_Y - 8) / 2);
-		SDL_textout(dst,x,y,str);
+		if ((x&0xff0000) == ALIGN_LEFT)
+			x += MENU_TEXT_X;
+		if ((x&0xff0000) == ALIGN_RIGHT)
+			x += (MENU_TEXT_X_END - strlen(str) * 8);
+		if ((x&0xff0000) == ALIGN_CENTER)
+			x += (MENU_TEXT_X
+					+ (MENU_TEXT_X_END - MENU_TEXT_X - strlen(str) * 8) / 2);
+		if ((y&0xff0000) == ALIGN_UP)
+			y += MENU_TEXT_Y;
+		if ((y&0xff0000) == ALIGN_DOWN)
+			y += (MENU_TEXT_Y_END - 8);
+		if ((y&0xff0000) == ALIGN_CENTER)
+			y += (MENU_TEXT_Y + (MENU_TEXT_Y_END - MENU_TEXT_Y - 8) / 2);
+		SDL_textout(dst, x&0xffff, y&0xffff, str);
 		return;
 	}
 
-	if (x == ALIGN_LEFT) x = MENU_TEXT_X;
-	if (x == ALIGN_RIGHT) x = (MENU_TEXT_X_END - string_len(f, str));
-	if (x == ALIGN_CENTER) x = (MENU_TEXT_X + (MENU_TEXT_X_END - MENU_TEXT_X - string_len(f, str)) / 2);
-	if (y == ALIGN_UP) y = MENU_TEXT_Y;
-	if (y == ALIGN_DOWN) y = (MENU_TEXT_Y_END - f->ysize);
-	if (y == ALIGN_CENTER) y = (MENU_TEXT_Y + (MENU_TEXT_Y_END - MENU_TEXT_Y - f->ysize) / 2);
+	if ((x&0xff0000) == ALIGN_LEFT)
+		x += MENU_TEXT_X;
+	if ((x&0xff0000) == ALIGN_RIGHT)
+		x += (MENU_TEXT_X_END - string_len(f, str));
+	if ((x&0xff0000) == ALIGN_CENTER)
+		x += (MENU_TEXT_X
+				+ (MENU_TEXT_X_END - MENU_TEXT_X - string_len(f, str)) / 2);
+	if ((y&0xff0000) == ALIGN_UP)
+		y += MENU_TEXT_Y;
+	if ((y&0xff0000) == ALIGN_DOWN)
+		y += (MENU_TEXT_Y_END - f->ysize);
+	if ((y&0xff0000) == ALIGN_CENTER)
+		y += (MENU_TEXT_Y + (MENU_TEXT_Y_END - MENU_TEXT_Y - f->ysize) / 2);
+
+	x&=0xffff;
+	y&=0xffff;
 
 	drect.x = x;
 	drect.y = y;
@@ -450,46 +433,45 @@ void draw_string(SDL_Surface *dst, GNFONT *f, int x, int y, char *str) {
 	srect.y = 0;
 	for (i = 0; i < strlen(str); i++) {
 		switch (str[i]) {
-			case ' ': /* Optimize space */
-				drect.x += f->xsize[0];
-				break;
-			case '\t':
-				drect.x += (f->xsize[0]*8);
-				break;
-			case '\n':
-				drect.x = x;
-				drect.y += f->bmp->h;
-				break;
-			default:
-				srect.x = f->xpos[(int) str[i] - 32];
-				srect.w = f->xsize[(int) str[i] - 32];
+		case ' ': /* Optimize space */
+			drect.x += f->xsize[0];
+			break;
+		case '\t':
+			drect.x += (f->xsize[0] * 8);
+			break;
+		case '\n':
+			drect.x = x;
+			drect.y += f->bmp->h;
+			break;
+		default:
+			srect.x = f->xpos[(int) str[i] - 32];
+			srect.w = f->xsize[(int) str[i] - 32];
 
-
-				SDL_BlitSurface(f->bmp, &srect, dst, &drect);
-				drect.x += (f->xsize[(int) str[i] - 32] + f->pad);
-				break;
+			SDL_BlitSurface(f->bmp, &srect, dst, &drect);
+			drect.x += (f->xsize[(int) str[i] - 32] + f->pad);
+			break;
 		}
 	}
 }
 
 static void init_back(void) {
-	SDL_Rect dst_r = {24, 16, 304, 224};
-	static SDL_Rect screen_rect = {0, 0, 304, 224};
+	SDL_Rect dst_r = { 24, 16, 304, 224 };
+	static SDL_Rect screen_rect = { 0, 0, 304, 224 };
 	SDL_BlitSurface(state_img, &screen_rect, menu_back, &dst_r);
 	SDL_BlitSurface(back, NULL, menu_back, &dst_r);
 }
 
 static void draw_back(void) {
-	SDL_Rect dst_r = {24, 16, 304, 224};
-	static SDL_Rect screen_rect = {0, 0, 304, 224};
+	SDL_Rect dst_r = { 24, 16, 304, 224 };
+	static SDL_Rect screen_rect = { 0, 0, 304, 224 };
 	if (back) {
 		//		SDL_BlitSurface(state_img, &screen_rect, menu_buf, &dst_r);
 		//		SDL_BlitSurface(back, NULL, menu_buf, &dst_r);
 		SDL_BlitSurface(menu_back, NULL, menu_buf, NULL);
 	} else {
-		SDL_Rect r1 = {24 + 16, 16 + 16, 271, 191};
-		SDL_Rect r2 = {24 + 22, 16 + 35, 259, 166};
-		SDL_Rect r3 = {24 + 24, 16 + 24, 271, 191};
+		SDL_Rect r1 = { 24 + 16, 16 + 16, 271, 191 };
+		SDL_Rect r2 = { 24 + 22, 16 + 35, 259, 166 };
+		SDL_Rect r3 = { 24 + 24, 16 + 24, 271, 191 };
 
 		SDL_FillRect(menu_buf, &r3, COL32_TO_16(0x111111));
 		SDL_FillRect(menu_buf, &r1, COL32_TO_16(0xE8E8E8));
@@ -504,30 +486,33 @@ static void draw_back(void) {
 #define AUP    3
 
 static void draw_arrow(int type, int x, int y) {
-	SDL_Rect dst_r = {x, y - 13, 32, 32};
+	SDL_Rect dst_r = { x, y - 13, 32, 32 };
 	switch (type) {
-		case ARIGHT:
-			SDL_BlitSurface(arrow_r, NULL, menu_buf, &dst_r);
-			break;
-		case ALEFT:
-			SDL_BlitSurface(arrow_l, NULL, menu_buf, &dst_r);
-			break;
-		case AUP:
-			SDL_BlitSurface(arrow_u, NULL, menu_buf, &dst_r);
-			break;
-		case ADOWN:
-			SDL_BlitSurface(arrow_d, NULL, menu_buf, &dst_r);
-			break;
+	case ARIGHT:
+		SDL_BlitSurface(arrow_r, NULL, menu_buf, &dst_r);
+		break;
+	case ALEFT:
+		SDL_BlitSurface(arrow_l, NULL, menu_buf, &dst_r);
+		break;
+	case AUP:
+		SDL_BlitSurface(arrow_u, NULL, menu_buf, &dst_r);
+		break;
+	case ADOWN:
+		SDL_BlitSurface(arrow_d, NULL, menu_buf, &dst_r);
+		break;
 	}
 }
 
 int gn_init_skin(void) {
 	//menu_buf = SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 32, 0xFF0000, 0xFF00, 0xFF, 0x0);
-	menu_buf = SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 16, 0xF800, 0x7E0, 0x1F, 0);
+	menu_buf = SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 16, 0xF800, 0x7E0,
+			0x1F, 0);
 	//	menu_back= SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 32, 0xFF0000, 0xFF00, 0xFF, 0x0);
-	menu_back = SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 16, 0xF800, 0x7E0, 0x1F, 0);
-	if (res_verify_datafile(NULL)==GN_FALSE) {
-		gn_popup_error("Datafile Not Found!","Gngeo could not find his \n datafile :( \n\n%s",gnerror);
+	menu_back = SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 16, 0xF800, 0x7E0,
+			0x1F, 0);
+	if (res_verify_datafile(NULL) == GN_FALSE) {
+		gn_popup_error("Datafile Not Found!",
+				"Gngeo could not find his \n datafile :( \n\n%s", gnerror);
 		return GN_FALSE;
 	}
 	back = res_load_stbi("skin/back.tga");
@@ -540,13 +525,15 @@ int gn_init_skin(void) {
 	gngeo_logo = res_load_stbi("skin/gngeo.tga");
 	gngeo_mask = res_load_stbi("skin/gngeo_mask.tga");
 
-	pbar_logo = SDL_CreateRGBSurface(SDL_SWSURFACE, gngeo_logo->w, gngeo_logo->h, 32, 0xFF, 0xFF00, 0xFF0000, 0xFF000000);
+	pbar_logo = SDL_CreateRGBSurface(SDL_SWSURFACE, gngeo_logo->w,
+			gngeo_logo->h, 32, 0xFF, 0xFF00, 0xFF0000, 0xFF000000);
 	SDL_SetAlpha(gngeo_logo, 0, 0);
 	//SDL_SetAlpha(gngeo_mask,0,0);
 	init_back();
 
-	if (!back || !sfont || !mfont || !arrow_r || !arrow_l || !arrow_u || !arrow_d ||
-			!gngeo_logo || !menu_buf) return GN_FALSE;
+	if (!back || !sfont || !mfont || !arrow_r || !arrow_l || !arrow_u
+			|| !arrow_d || !gngeo_logo || !menu_buf)
+		return GN_FALSE;
 	return GN_TRUE;
 }
 
@@ -569,19 +556,18 @@ static volatile pbar_data pbar;
 
 int pbar_anim_thread(void *data) {
 	pbar_data *p = (pbar_data*) data;
-	SDL_Rect src_r = {2, 0, gngeo_logo->w, gngeo_logo->h};
-	SDL_Rect dst_r = {219 + 26, 146 + 16, gngeo_logo->w, gngeo_logo->h};
-	SDL_Rect dst2_r = {0, 0, gngeo_logo->w, gngeo_logo->h};
+	SDL_Rect src_r = { 2, 0, gngeo_logo->w, gngeo_logo->h };
+	SDL_Rect dst_r = { 219 + 26, 146 + 16, gngeo_logo->w, gngeo_logo->h };
+	SDL_Rect dst2_r = { 0, 0, gngeo_logo->w, gngeo_logo->h };
 	int x = 0;
-
 
 	while (p->running) {
 		draw_back();
 		draw_string(menu_buf, mfont, MENU_TITLE_X, MENU_TITLE_Y + 150, p->name);
-		draw_string(menu_buf, sfont, MENU_TITLE_X, MENU_TITLE_Y + 165, "Please wait!");
+		draw_string(menu_buf, sfont, MENU_TITLE_X, MENU_TITLE_Y + 165,
+				"Please wait!");
 
 		SDL_BlitSurface(gngeo_logo, NULL, pbar_logo, NULL);
-
 
 		dst2_r.y = -22 - (p->pos * 64.0) / p->size;
 		x += 3;
@@ -594,8 +580,6 @@ int pbar_anim_thread(void *data) {
 		dst2_r.x = x - gngeo_logo->w;
 		dst2_r.y = -22 - (p->pos * 64.0) / p->size;
 		SDL_BlitSurface(gngeo_mask, NULL, pbar_logo, &dst2_r);
-
-
 
 		SDL_BlitSurface(pbar_logo, &src_r, menu_buf, &dst_r);
 
@@ -646,7 +630,8 @@ void gn_popup_error(char *name, char *fmt, ...) {
 	SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
 	screen_update();
 
-	while (wait_event() == 0);
+	while (wait_event() == 0)
+		;
 }
 
 static int yes_action(GN_MENU_ITEM *self, void *param) {
@@ -675,15 +660,17 @@ int gn_popup_question(char *name, char *fmt, ...) {
 		draw_string(menu_buf, sfont, MENU_TEXT_X, MENU_TEXT_Y, buf);
 		//draw_string(menu_buf, sfont, ALIGN_RIGHT, ALIGN_DOWN, "   Yes     No");
 		if (yesno_menu->current == 0)
-			draw_string(menu_buf, sfont, ALIGN_RIGHT, ALIGN_DOWN, " > Yes     No");
+			draw_string(menu_buf, sfont, ALIGN_RIGHT, ALIGN_DOWN,
+					" > Yes     No");
 		else
-			draw_string(menu_buf, sfont, ALIGN_RIGHT, ALIGN_DOWN, "   Yes  >  No");
+			draw_string(menu_buf, sfont, ALIGN_RIGHT, ALIGN_DOWN,
+					"   Yes  >  No");
 		SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
 		screen_update();
 
-			//effect_menu->draw(effect_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
+		//effect_menu->draw(effect_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
 		if ((a = yesno_menu->event_handling(yesno_menu)) >= 0) {
-			printf("return %d\n",a);
+			printf("return %d\n", a);
 			return a;
 		}
 	}
@@ -697,7 +684,8 @@ static void draw_menu(GN_MENU *m) {
 	static int cx = 0;
 	static int cy = 0;
 	//static int cx_val[]={0,1,1,2,2,2,1,1,0,-1,-1,-2,-2,-2,-1,-1};
-	static int cx_val[] = {0, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 0, 0, -1, -1, -1, -2, -2, -2, -2, -2, -1, -1, -1, 0};
+	static int cx_val[] = { 0, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 0, 0, -1, -1,
+			-1, -2, -2, -2, -2, -2, -1, -1, -1, 0 };
 	int nb_item;
 	int ypos, cpos;
 	GNFONT *fnt;
@@ -711,9 +699,8 @@ static void draw_menu(GN_MENU *m) {
 
 	/* Arrow moving cursor */
 	cx++;
-	if (cx > 25) cx = 0;
-
-
+	if (cx > 25)
+		cx = 0;
 
 	nb_item = (MENU_TEXT_Y_END - MENU_TEXT_Y) / fnt->ysize - 1;
 
@@ -723,12 +710,13 @@ static void draw_menu(GN_MENU *m) {
 		draw_string(menu_buf, mfont, MENU_TITLE_X, MENU_TITLE_Y, m->title);
 	}
 	/*
-		start = (m->current - nb_item >= 0 ? m->current - nb_item : 0);
-		end = (start + nb_item < m->nb_elem ? start + nb_item : m->nb_elem - 1);
+	 start = (m->current - nb_item >= 0 ? m->current - nb_item : 0);
+	 end = (start + nb_item < m->nb_elem ? start + nb_item : m->nb_elem - 1);
 	 */
 	start = m->current - nb_item / 2;
 	end = m->current + nb_item / 2;
-	if (start < 0) start = 0;
+	if (start < 0)
+		start = 0;
 	if (end >= m->nb_elem - 1) {
 		end = m->nb_elem - 1;
 	} else {
@@ -758,24 +746,37 @@ static void draw_menu(GN_MENU *m) {
 		//int j = (i + nb_item / 2) - start;
 		//if (start<nb_item) j+=nb_item/2;
 		if (m->draw_type == MENU_BIG) {
-			draw_string(menu_buf, fnt, ALIGN_CENTER, MENU_TEXT_Y + (j * fnt->ysize + 2), mi->name);
+			font_set_color(fnt,ICOL_GREY_L);
+			draw_string(menu_buf, fnt, ALIGN_CENTER+2,
+					MENU_TEXT_Y +2 + (j * fnt->ysize + 2), mi->name);
+			font_set_color(fnt,ICOL_BLACK);
+			draw_string(menu_buf, fnt, ALIGN_CENTER,
+					MENU_TEXT_Y + (j * fnt->ysize + 2), mi->name);
 			if (i == m->current) {
 				int len = string_len(fnt, mi->name) / 2;
-				draw_arrow(ARIGHT, 176 - len - 32 + cx_val[cx], MENU_TEXT_Y + (j * fnt->ysize + 2) + fnt->ysize / 2);
-				draw_arrow(ALEFT, 176 + len - cx_val[cx], MENU_TEXT_Y + (j * fnt->ysize + 2) + fnt->ysize / 2);
+				draw_arrow(ARIGHT, 176 - len - 32 + cx_val[cx],
+						MENU_TEXT_Y + (j * fnt->ysize + 2) + fnt->ysize / 2);
+				draw_arrow(ALEFT, 176 + len - cx_val[cx],
+						MENU_TEXT_Y + (j * fnt->ysize + 2) + fnt->ysize / 2);
 			}
 
 		} else {
-			draw_string(menu_buf, fnt, MENU_TEXT_X + 10, MENU_TEXT_Y + (j * fnt->ysize + 2), mi->name);
-			if (i == m->current) draw_string(menu_buf, fnt, MENU_TEXT_X, MENU_TEXT_Y + (j * fnt->ysize + 2), ">");
+			draw_string(menu_buf, fnt, MENU_TEXT_X + 10,
+					MENU_TEXT_Y + (j * fnt->ysize + 2), mi->name);
+			if (i == m->current)
+				draw_string(menu_buf, fnt, MENU_TEXT_X,
+						MENU_TEXT_Y + (j * fnt->ysize + 2), ">");
 			if (mi->type == MENU_CHECK) {
 				if (mi->val)
-					draw_string(menu_buf, fnt, MENU_TEXT_X + 210, MENU_TEXT_Y + (j * fnt->ysize + 2), "true");
+					draw_string(menu_buf, fnt, MENU_TEXT_X + 210,
+							MENU_TEXT_Y + (j * fnt->ysize + 2), "true");
 				else
-					draw_string(menu_buf, fnt, MENU_TEXT_X + 210, MENU_TEXT_Y + (j * fnt->ysize + 2), "false");
+					draw_string(menu_buf, fnt, MENU_TEXT_X + 210,
+							MENU_TEXT_Y + (j * fnt->ysize + 2), "false");
 			}
 			if (mi->type == MENU_LIST) {
-				draw_string(menu_buf, fnt, MENU_TEXT_X + 210, MENU_TEXT_Y + (j * fnt->ysize + 2), mi->str);
+				draw_string(menu_buf, fnt, MENU_TEXT_X + 210,
+						MENU_TEXT_Y + (j * fnt->ysize + 2), mi->str);
 			}
 		}
 		j++;
@@ -788,8 +789,8 @@ static void draw_menu(GN_MENU *m) {
 //#undef NB_ITEM_2
 
 GN_MENU_ITEM *gn_menu_create_item(char *name, Uint32 type,
-		int (*action)(GN_MENU_ITEM *self, void *param), void *param) {
-	GN_MENU_ITEM *t = malloc(sizeof (GN_MENU_ITEM));
+		int(*action)(GN_MENU_ITEM *self, void *param), void *param) {
+	GN_MENU_ITEM *t = malloc(sizeof(GN_MENU_ITEM));
 	t->name = strdup(name);
 	//t->name=name;
 	t->type = type;
@@ -806,7 +807,8 @@ GN_MENU_ITEM *gn_menu_get_item_by_index(GN_MENU *gmenu, int index) {
 	for (l = gmenu->item; l; l = l->next) {
 		gitem = (GN_MENU_ITEM *) l->data;
 		if (gitem->enabled) {
-			if (i == index) return gitem;
+			if (i == index)
+				return gitem;
 			i++;
 		}
 
@@ -821,8 +823,8 @@ int test_action(GN_MENU_ITEM *self, void *param) {
 
 static int load_state_action(GN_MENU_ITEM *self, void *param) {
 	static Uint32 slot = 0;
-	SDL_Rect dstrect = {24 + 75, 16 + 66, 304 / 2, 224 / 2};
-	SDL_Rect dstrect_binding = {24 + 73, 16 + 64, 304 / 2 + 4, 224 / 2 + 4};
+	SDL_Rect dstrect = { 24 + 75, 16 + 66, 304 / 2, 224 / 2 };
+	SDL_Rect dstrect_binding = { 24 + 73, 16 + 64, 304 / 2 + 4, 224 / 2 + 4 };
 	//SDL_Rect dst_r={24,16,304,224};
 	//SDL_Event event;
 	SDL_Surface *tmps, *slot_img;
@@ -830,11 +832,12 @@ static int load_state_action(GN_MENU_ITEM *self, void *param) {
 
 	Uint32 nb_slot = how_many_slot(conf.game);
 
-	if (slot>nb_slot-1)
-		slot = nb_slot-1;
+	if (slot > nb_slot - 1)
+		slot = nb_slot - 1;
 
 	if (nb_slot == 0) {
-		gn_popup_info("Load State", "There is currently no save state available");
+		gn_popup_info("Load State",
+				"There is currently no save state available");
 		return 0; // nothing to do
 	}
 
@@ -854,33 +857,39 @@ static int load_state_action(GN_MENU_ITEM *self, void *param) {
 		//draw_string(menu_buf,sfont,24+102,16+40,slot_str);
 		draw_string(menu_buf, sfont, ALIGN_CENTER, ALIGN_UP, slot_str);
 
-		if (slot > 0) draw_arrow(ALEFT, 44 + 16, 224 / 2 + 16);
-		if (slot < nb_slot - 1) draw_arrow(ARIGHT, 304 - 43, 224 / 2 + 16);
+		if (slot > 0)
+			draw_arrow(ALEFT, 44 + 16, 224 / 2 + 16);
+		if (slot < nb_slot - 1)
+			draw_arrow(ARIGHT, 304 - 43, 224 / 2 + 16);
 
 		SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
 		screen_update();
 		frame_skip(0);
 		switch (wait_event()) {
-			case GN_LEFT:
-				if (slot > 0) slot--;
-				slot_img = SDL_ConvertSurface(load_state_img(conf.game, slot), menu_buf->format, SDL_SWSURFACE);
-				break;
-			case GN_RIGHT:
-				if (slot < nb_slot - 1) slot++;
-				slot_img = SDL_ConvertSurface(load_state_img(conf.game, slot), menu_buf->format, SDL_SWSURFACE);
-				break;
-			case GN_A:
-				return MENU_STAY;
-				break;
-			case GN_B:
-			case GN_C:
-				printf("Loading state %p!!\n",buffer);
-				load_state(conf.game, slot);
-				printf("Loaded state %p!!\n",buffer);
-				return MENU_RETURNTOGAME;
-				break;
-			default:
-				break;
+		case GN_LEFT:
+			if (slot > 0)
+				slot--;
+			slot_img = SDL_ConvertSurface(load_state_img(conf.game, slot),
+					menu_buf->format, SDL_SWSURFACE);
+			break;
+		case GN_RIGHT:
+			if (slot < nb_slot - 1)
+				slot++;
+			slot_img = SDL_ConvertSurface(load_state_img(conf.game, slot),
+					menu_buf->format, SDL_SWSURFACE);
+			break;
+		case GN_A:
+			return MENU_STAY;
+			break;
+		case GN_B:
+		case GN_C:
+			printf("Loading state %p!!\n", buffer);
+			load_state(conf.game, slot);
+			printf("Loaded state %p!!\n", buffer);
+			return MENU_RETURNTOGAME;
+			break;
+		default:
+			break;
 		}
 	}
 	return 0;
@@ -888,8 +897,8 @@ static int load_state_action(GN_MENU_ITEM *self, void *param) {
 
 static int save_state_action(GN_MENU_ITEM *self, void *param) {
 	static Uint32 slot = 0;
-	SDL_Rect dstrect = {24 + 75, 16 + 66, 304 / 2, 224 / 2};
-	SDL_Rect dstrect_binding = {24 + 73, 16 + 64, 304 / 2 + 4, 224 / 2 + 4};
+	SDL_Rect dstrect = { 24 + 75, 16 + 66, 304 / 2, 224 / 2 };
+	SDL_Rect dstrect_binding = { 24 + 73, 16 + 64, 304 / 2 + 4, 224 / 2 + 4 };
 	SDL_Surface *tmps, *slot_img = NULL;
 	char slot_str[32];
 	Uint32 nb_slot = how_many_slot(conf.game);
@@ -910,43 +919,50 @@ static int save_state_action(GN_MENU_ITEM *self, void *param) {
 		} else {
 			SDL_FillRect(menu_buf, &dstrect_binding, COL32_TO_16(0xFEFEFE));
 			SDL_FillRect(menu_buf, &dstrect, COL32_TO_16(0xA0B0B0));
-			draw_string(menu_buf, sfont, ALIGN_CENTER, ALIGN_CENTER, "Create a new Slot");
+			draw_string(menu_buf, sfont, ALIGN_CENTER, ALIGN_CENTER,
+					"Create a new Slot");
 		}
 
 		draw_string(menu_buf, mfont, MENU_TITLE_X, MENU_TITLE_Y, "Save State");
 		sprintf(slot_str, "Slot Number %03d", slot);
 		draw_string(menu_buf, sfont, ALIGN_CENTER, ALIGN_UP, slot_str);
 
-		if (slot > 0) draw_arrow(ALEFT, 44 + 16, 224 / 2 + 16);
-		if (slot < nb_slot) draw_arrow(ARIGHT, 304 - 43, 224 / 2 + 16);
+		if (slot > 0)
+			draw_arrow(ALEFT, 44 + 16, 224 / 2 + 16);
+		if (slot < nb_slot)
+			draw_arrow(ARIGHT, 304 - 43, 224 / 2 + 16);
 
 		SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
 		screen_update();
 		frame_skip(0);
 
 		switch (wait_event()) {
-			case GN_LEFT:
-				if (slot > 0) slot--;
-				if (slot != nb_slot) slot_img = SDL_ConvertSurface(load_state_img(conf.game, slot),
+		case GN_LEFT:
+			if (slot > 0)
+				slot--;
+			if (slot != nb_slot)
+				slot_img = SDL_ConvertSurface(load_state_img(conf.game, slot),
 						menu_buf->format, SDL_SWSURFACE);
-				break;
-			case GN_RIGHT:
-				if (slot < nb_slot) slot++;
-				if (slot != nb_slot) slot_img = SDL_ConvertSurface(load_state_img(conf.game, slot),
+			break;
+		case GN_RIGHT:
+			if (slot < nb_slot)
+				slot++;
+			if (slot != nb_slot)
+				slot_img = SDL_ConvertSurface(load_state_img(conf.game, slot),
 						menu_buf->format, SDL_SWSURFACE);
-				break;
-			case GN_A:
-				return MENU_STAY;
-				break;
-			case GN_B:
-			case GN_C:
+			break;
+		case GN_A:
+			return MENU_STAY;
+			break;
+		case GN_B:
+		case GN_C:
 
-				save_state(conf.game, slot);
-				printf("Save state!!\n");
-				return MENU_RETURNTOGAME;
-				break;
-			default:
-				break;
+			save_state(conf.game, slot);
+			printf("Save state!!\n");
+			return MENU_RETURNTOGAME;
+			break;
+		default:
+			break;
 		}
 	}
 	return 0;
@@ -970,56 +986,57 @@ int menu_event_handling(struct GN_MENU *self) {
 	int a;
 	LIST *l;
 	switch (wait_event()) {
-		case GN_UP:
-			if (self->current > 0)
-				self->current--;
-			else
-				self->current = self->nb_elem - 1;
-			break;
-		case GN_DOWN:
-			if (self->current < self->nb_elem - 1)
-				self->current++;
-			else
-				self->current = 0;
-			break;
+	case GN_UP:
+		if (self->current > 0)
+			self->current--;
+		else
+			self->current = self->nb_elem - 1;
+		break;
+	case GN_DOWN:
+		if (self->current < self->nb_elem - 1)
+			self->current++;
+		else
+			self->current = 0;
+		break;
 
-		case GN_LEFT:
-			self->current -= 10;
-			if (self->current < 0) self->current = 0;
-			break;
-		case GN_RIGHT:
-			self->current += 10;
-			if (self->current >= self->nb_elem) self->current = self->nb_elem - 1;
-			break;
-		case GN_A:
-			return MENU_CLOSE;
-			break;
-		case GN_B:
-		case GN_C:
-			//l = list_get_item_by_index(self->item, self->current);
-			mi = gn_menu_get_item_by_index(self, self->current);
-			if (mi && mi->action) {
-				reset_event();
-				if ((a = mi->action(mi, NULL))>0)
-/*
-					if (a == MENU_CLOSE) return MENU_STAY;
-					else
-*/
-						return a;
-			}
-			break;
-		default:
-			break;
+	case GN_LEFT:
+		self->current -= 10;
+		if (self->current < 0)
+			self->current = 0;
+		break;
+	case GN_RIGHT:
+		self->current += 10;
+		if (self->current >= self->nb_elem)
+			self->current = self->nb_elem - 1;
+		break;
+	case GN_A:
+		return MENU_CLOSE;
+		break;
+	case GN_B:
+	case GN_C:
+		//l = list_get_item_by_index(self->item, self->current);
+		mi = gn_menu_get_item_by_index(self, self->current);
+		if (mi && mi->action) {
+			reset_event();
+			if ((a = mi->action(mi, NULL)) > 0)
+				/*
+				 if (a == MENU_CLOSE) return MENU_STAY;
+				 else
+				 */
+				return a;
+		}
+		break;
+	default:
+		break;
 
 	}
 	return -1;
 }
 
-GN_MENU *create_menu(char *name, int type,
-		int (*action)(struct GN_MENU *self),
-		void (*draw)(struct GN_MENU *self)) {
+GN_MENU *create_menu(char *name, int type, int(*action)(struct GN_MENU *self),
+		void(*draw)(struct GN_MENU *self)) {
 	GN_MENU *gmenu;
-	gmenu = malloc(sizeof (GN_MENU));
+	gmenu = malloc(sizeof(GN_MENU));
 	gmenu->title = name;
 	gmenu->nb_elem = 0;
 	gmenu->current = 0;
@@ -1037,7 +1054,7 @@ GN_MENU *create_menu(char *name, int type,
 }
 
 GN_MENU_ITEM *gn_menu_add_item(GN_MENU *gmenu, char *name, int type,
-		int (*action)(struct GN_MENU_ITEM *self, void *param), void *param) {
+		int(*action)(struct GN_MENU_ITEM *self, void *param), void *param) {
 	GN_MENU_ITEM *gitem;
 	gitem = gn_menu_create_item(name, type, action, param);
 	gmenu->item = list_append(gmenu->item, (void*) gitem);
@@ -1110,8 +1127,7 @@ static int loadrom_action(GN_MENU_ITEM *self, void *param) {
 	if (init_game(game) != GN_TRUE) {
 		printf("Can't init %s...\n", game);
 		gn_popup_error("Error! :", "Gngeo Couldn't init %s: \n\n%s\n"
-				"Maybe the romset you're using is too old"
-				, game,gnerror);
+				"Maybe the romset you're using is too old", game, gnerror);
 		return MENU_STAY;
 	}
 
@@ -1129,18 +1145,18 @@ void init_rom_browser_menu(void) {
 	int nb_roms = 0;
 	rbrowser_menu = create_menu("Load Game", MENU_SMALL, NULL, NULL);
 
-
 	i = 0;
 	while (romlist[i]) {
-		sprintf(filename, "%s/%s.zip", CF_STR(cf_get_item_by_name("rompath")), romlist[i]);
+		sprintf(filename, "%s/%s.zip", CF_STR(cf_get_item_by_name("rompath")),
+				romlist[i]);
 		if (stat(filename, &filestat) == 0 && S_ISREG(filestat.st_mode)) {
 			if ((drv = dr_check_zip(filename)) != NULL) {
-				rbrowser_menu->item = list_insert_sort(rbrowser_menu->item,
-						(void*) gn_menu_create_item(drv->longname, MENU_ACTION, loadrom_action, strdup(drv->name)),
-						romnamesort
-						);
+				rbrowser_menu->item = list_insert_sort(
+						rbrowser_menu->item,
+						(void*) gn_menu_create_item(drv->longname, MENU_ACTION,
+								loadrom_action, strdup(drv->name)),
+						romnamesort);
 				rbrowser_menu->nb_elem++;
-
 
 				//printf("Parent=%s\n",drv->parent);
 				//if (strcmp(drv->parent,"neogeo")!=0)
@@ -1150,25 +1166,28 @@ void init_rom_browser_menu(void) {
 				nb_roms++;
 			}
 		}
-		sprintf(filename, "%s/%s.gno", CF_STR(cf_get_item_by_name("rompath")), romlist[i]);
+		sprintf(filename, "%s/%s.gno", CF_STR(cf_get_item_by_name("rompath")),
+				romlist[i]);
 		if (stat(filename, &filestat) == 0 && S_ISREG(filestat.st_mode)) {
 			char *gnoname = dr_gno_romname(filename);
 			if (gnoname != NULL) {
-				rbrowser_menu->item = list_insert_sort(rbrowser_menu->item,
-						(void*) gn_menu_create_item(filename, MENU_ACTION, loadrom_action, strdup(filename)),
-						romnamesort);
+				rbrowser_menu->item = list_insert_sort(
+						rbrowser_menu->item,
+						(void*) gn_menu_create_item(filename, MENU_ACTION,
+								loadrom_action, strdup(filename)), romnamesort);
 				rbrowser_menu->nb_elem++;
 				nb_roms++;
 			}
 		}
 
-
 		i++;
 	}
 
 	if (nb_roms == 0) {
-		rbrowser_menu->item = list_append(rbrowser_menu->item,
-				(void*) gn_menu_create_item("No Games Found...", MENU_ACTION, NULL, NULL));
+		rbrowser_menu->item = list_append(
+				rbrowser_menu->item,
+				(void*) gn_menu_create_item("No Games Found...", MENU_ACTION,
+						NULL, NULL));
 		rbrowser_menu->nb_elem++;
 	}
 }
@@ -1179,14 +1198,17 @@ int rom_browser_scanning_anim(void *data) {
 	while (scaning) {
 		draw_back();
 		if (i > 20)
-			draw_string(menu_buf, sfont, MENU_TITLE_X, MENU_TITLE_Y, "Scanning ...");
+			draw_string(menu_buf, sfont, MENU_TITLE_X, MENU_TITLE_Y,
+					"Scanning ...");
 		else
-			draw_string(menu_buf, sfont, MENU_TITLE_X, MENU_TITLE_Y, "Scanning");
+			draw_string(menu_buf, sfont, MENU_TITLE_X, MENU_TITLE_Y,
+					"Scanning");
 		SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
 		screen_update();
 		frame_skip(0);
 		i++;
-		if (i > 40) i = 0;
+		if (i > 40)
+			i = 0;
 	}
 	return 0;
 }
@@ -1300,8 +1322,10 @@ static int change_effect(GN_MENU_ITEM *self, void *param) {
 
 		i = 0;
 		while (effect[i].name != NULL) {
-			effect_menu->item = list_append(effect_menu->item,
-					(void*) gn_menu_create_item(effect[i].desc, MENU_ACTION, change_effect_action, (void*) effect[i].name));
+			effect_menu->item = list_append(
+					effect_menu->item,
+					(void*) gn_menu_create_item(effect[i].desc, MENU_ACTION,
+							change_effect_action, (void*) effect[i].name));
 			effect_menu->nb_elem++;
 			i++;
 		}
@@ -1337,13 +1361,13 @@ static int change_samplerate_action(GN_MENU_ITEM *self, void *param) {
 			YM2610ChangeSamplerate(conf.sample_rate);
 		}
 
-
 	} else {
 		if (conf.sound)
 			cf_item_has_been_changed(cf_get_item_by_name("sound"));
 		conf.sound = 0;
 		conf.sample_rate = 0;
-		if (conf.game) close_sdl_audio();
+		if (conf.game)
+			close_sdl_audio();
 		CF_BOOL(cf_get_item_by_name("sound")) = 0;
 	}
 
@@ -1356,14 +1380,15 @@ static int change_samplerate(GN_MENU_ITEM *self, void *param) {
 	GN_MENU_ITEM *gitem;
 	if (init == 0) {
 		init = 1;
-		srate_menu = create_menu("Choose a sample rate", MENU_SMALL, NULL, NULL);
+		srate_menu = create_menu("Choose a sample rate", MENU_SMALL, NULL,
+				NULL);
 		gitem = gn_menu_create_item("No sound", MENU_ACTION,
 				change_samplerate_action, (void*) 0);
 		srate_menu->item = list_append(srate_menu->item, (void*) gitem);
 		srate_menu->nb_elem++;
 
-		gitem = gn_menu_create_item("11025 (Fast but poor quality)", MENU_ACTION,
-				change_samplerate_action, (void*) 11025);
+		gitem = gn_menu_create_item("11025 (Fast but poor quality)",
+				MENU_ACTION, change_samplerate_action, (void*) 11025);
 		srate_menu->item = list_append(srate_menu->item, (void*) gitem);
 		srate_menu->nb_elem++;
 
@@ -1421,18 +1446,18 @@ static void reset_menu_option(void) {
 	GN_MENU_ITEM *gitem;
 	//gitem=gn_menu_get_item_by_name(option_menu,"Fullscreen");
 	//if (gitem) gitem->val = CF_BOOL(cf_get_item_by_name("fullscreen"));
-	RESET_BOOL("Fullscreen","fullscreen");
-	RESET_BOOL("Vsync","vsync");
-	RESET_BOOL("Auto Frame Skip","autoframeskip");
-	RESET_BOOL("Sleep while idle","sleepidle");
-	RESET_BOOL("Show FPS","showfps");
+	RESET_BOOL("Fullscreen", "fullscreen");
+	RESET_BOOL("Vsync", "vsync");
+	RESET_BOOL("Auto Frame Skip", "autoframeskip");
+	RESET_BOOL("Sleep while idle", "sleepidle");
+	RESET_BOOL("Show FPS", "showfps");
 #ifdef PANDORA
 	RESET_BOOL("16/9","wide");
 #endif
-	gitem=gn_menu_get_item_by_name(option_menu,"Effect");
+	gitem = gn_menu_get_item_by_name(option_menu, "Effect");
 	gitem->str = CF_STR(cf_get_item_by_name("effect"));
 
-	gitem=gn_menu_get_item_by_name(option_menu,"Sample Rate");
+	gitem = gn_menu_get_item_by_name(option_menu, "Sample Rate");
 	if (conf.sound)
 		sprintf(gitem->str, "%d", conf.sample_rate);
 	else
@@ -1456,36 +1481,45 @@ void gn_init_menu(void) {
 	GN_MENU_ITEM *gitem;
 	main_menu = create_menu(NULL, MENU_BIG, NULL, NULL);
 
-	main_menu->item = list_append(main_menu->item,
-			(void*) gn_menu_create_item("Load game", MENU_ACTION, rbrowser_action, NULL));
+	main_menu->item = list_append(
+			main_menu->item,
+			(void*) gn_menu_create_item("Load game", MENU_ACTION,
+					rbrowser_action, NULL));
 	main_menu->nb_elem++;
 
-
-	main_menu->item = list_append(main_menu->item,
-			(void*) gn_menu_create_item("Load state", MENU_ACTION, load_state_action, NULL));
+	main_menu->item = list_append(
+			main_menu->item,
+			(void*) gn_menu_create_item("Load state", MENU_ACTION,
+					load_state_action, NULL));
 	main_menu->nb_elem++;
-	main_menu->item = list_append(main_menu->item,
-			(void*) gn_menu_create_item("Save state", MENU_ACTION, save_state_action, NULL));
+	main_menu->item = list_append(
+			main_menu->item,
+			(void*) gn_menu_create_item("Save state", MENU_ACTION,
+					save_state_action, NULL));
 	main_menu->nb_elem++;
 
-	main_menu->item = list_append(main_menu->item,
-			(void*) gn_menu_create_item("Option", MENU_ACTION, option_action, NULL));
+	main_menu->item = list_append(
+			main_menu->item,
+			(void*) gn_menu_create_item("Option", MENU_ACTION, option_action,
+					NULL));
 	main_menu->nb_elem++;
 
-/*
-	main_menu->item = list_append(main_menu->item,
-			(void*) gn_menu_create_item("Credit", MENU_ACTION, credit_action, NULL));
-	main_menu->nb_elem++;
-*/
+	/*
+	 main_menu->item = list_append(main_menu->item,
+	 (void*) gn_menu_create_item("Credit", MENU_ACTION, credit_action, NULL));
+	 main_menu->nb_elem++;
+	 */
 
-	main_menu->item = list_append(main_menu->item,
-			(void*) gn_menu_create_item("Exit", MENU_ACTION, exit_action, NULL));
+	main_menu->item = list_append(
+			main_menu->item,
+			(void*) gn_menu_create_item("Exit", MENU_ACTION, exit_action,
+					NULL));
 	main_menu->nb_elem++;
 
 	option_menu = create_menu("Options", MENU_SMALL, NULL, NULL);
 
-
-	gitem = gn_menu_create_item("Fullscreen", MENU_CHECK, toggle_fullscreen, NULL);
+	gitem = gn_menu_create_item("Fullscreen", MENU_CHECK, toggle_fullscreen,
+			NULL);
 	gitem->val = CF_BOOL(cf_get_item_by_name("fullscreen"));
 	option_menu->item = list_append(option_menu->item, (void*) gitem);
 	option_menu->nb_elem++;
@@ -1500,12 +1534,14 @@ void gn_init_menu(void) {
 	option_menu->item = list_append(option_menu->item, (void*) gitem);
 	option_menu->nb_elem++;
 
-	gitem = gn_menu_create_item("Auto Frame Skip", MENU_CHECK, toggle_autoframeskip, NULL);
+	gitem = gn_menu_create_item("Auto Frame Skip", MENU_CHECK,
+			toggle_autoframeskip, NULL);
 	gitem->val = CF_BOOL(cf_get_item_by_name("autoframeskip"));
 	option_menu->item = list_append(option_menu->item, (void*) gitem);
 	option_menu->nb_elem++;
 
-	gitem = gn_menu_create_item("Sleep while idle", MENU_CHECK, toggle_sleepidle, NULL);
+	gitem = gn_menu_create_item("Sleep while idle", MENU_CHECK,
+			toggle_sleepidle, NULL);
 	gitem->val = CF_BOOL(cf_get_item_by_name("sleepidle"));
 	option_menu->item = list_append(option_menu->item, (void*) gitem);
 	option_menu->nb_elem++;
@@ -1520,7 +1556,8 @@ void gn_init_menu(void) {
 	option_menu->item = list_append(option_menu->item, (void*) gitem);
 	option_menu->nb_elem++;
 
-	gitem = gn_menu_create_item("Sample Rate", MENU_LIST, change_samplerate, NULL);
+	gitem = gn_menu_create_item("Sample Rate", MENU_LIST, change_samplerate,
+			NULL);
 	gitem->str = malloc(32);
 	if (conf.sound)
 		sprintf(gitem->str, "%d", conf.sample_rate);
@@ -1529,11 +1566,13 @@ void gn_init_menu(void) {
 	option_menu->item = list_append(option_menu->item, (void*) gitem);
 	option_menu->nb_elem++;
 
-	gitem = gn_menu_create_item("Save conf for every game", MENU_ACTION, save_conf_action, (void*) 0);
+	gitem = gn_menu_create_item("Save conf for every game", MENU_ACTION,
+			save_conf_action, (void*) 0);
 	option_menu->item = list_append(option_menu->item, (void*) gitem);
 	option_menu->nb_elem++;
 
-	gitem = gn_menu_create_item("Save conf for this game", MENU_ACTION, save_conf_action, (void*) 1);
+	gitem = gn_menu_create_item("Save conf for this game", MENU_ACTION,
+			save_conf_action, (void*) 1);
 	option_menu->item = list_append(option_menu->item, (void*) gitem);
 	option_menu->nb_elem++;
 
@@ -1545,7 +1584,6 @@ void gn_init_menu(void) {
 	yesno_menu->item = list_append(yesno_menu->item, (void*) gitem);
 	yesno_menu->nb_elem++;
 }
-
 
 Uint32 run_menu(void) {
 	static Uint32 init = 0;
@@ -1581,7 +1619,8 @@ Uint32 run_menu(void) {
 			return a;
 	}
 	//reset_event();
-	if (conf.game == NULL) return 2; /* Exit */
+	if (conf.game == NULL)
+		return 2; /* Exit */
 	return 0;
 }
 

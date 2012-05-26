@@ -13,6 +13,21 @@ char *file_basename(char *filename);
 int check_dir(char *dir_name);
 void gn_set_error_msg(char *fmt,...);
 
+#if defined (__AMIGA__)
+#ifdef DATA_DIRECTORY
+#undef DATA_DIRECTORY
+#define DATA_DIRECTORY "/PROGDIR/data/"
+#endif
+#endif
+#if defined (WII)
+#define ROOTPATH "sd:/apps/gngeo/"
+#elif defined (__AMIGA__)
+#define ROOTPATH "/PROGDIR/data/"
+#else
+#define ROOTPATH ""
+#endif
+
+
 /* LOG generation */
 #define GNGEO_LOG(...)
 #define DEBUG_LOG printf
