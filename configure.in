@@ -285,6 +285,7 @@ AC_DEFINE(ALIGNLONGS, ALIGNLONGS,
 
 AC_CONFIG_FILES([Makefile
 	 gngeo.dat/Makefile
+	 pnd/Makefile
 	 src/Makefile
 	 src/raze/Makefile
          src/star/Makefile

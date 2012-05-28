@@ -6155,7 +6155,7 @@ $as_echo "#define ALIGNLONGS ALIGNLONGS" >>confdefs.h
 
 
 
-ac_config_files="$ac_config_files Makefile gngeo.dat/Makefile src/Makefile src/raze/Makefile src/star/Makefile src/mamez80/Makefile src/generator68k/Makefile src/cyclone/Makefile src/drz80/Makefile src/effect/Makefile src/blitter/Makefile src/ym2610/Makefile"
+ac_config_files="$ac_config_files Makefile gngeo.dat/Makefile pnd/Makefile src/Makefile src/raze/Makefile src/star/Makefile src/mamez80/Makefile src/generator68k/Makefile src/cyclone/Makefile src/drz80/Makefile src/effect/Makefile src/blitter/Makefile src/ym2610/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -6939,6 +6939,7 @@ do
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "gngeo.dat/Makefile") CONFIG_FILES="$CONFIG_FILES gngeo.dat/Makefile" ;;
+    "pnd/Makefile") CONFIG_FILES="$CONFIG_FILES pnd/Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/raze/Makefile") CONFIG_FILES="$CONFIG_FILES src/raze/Makefile" ;;
     "src/star/Makefile") CONFIG_FILES="$CONFIG_FILES src/star/Makefile" ;;

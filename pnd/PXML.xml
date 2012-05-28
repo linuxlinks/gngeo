@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PXML xmlns="http://openpandora.org/namespaces/PXML">
+  <application id="gngeopnd-pepone" appdata="gngeo_pepone">
+    <title lang="en_US">Gngeo emulator</title>
+    <description lang="en_US">A NeoGeo MVS emulator.</description>
+    <version major="0" minor="8" release="4" build="1"/>
+    <exec command="./runme.sh" background="false" standalone="true"/>
+    <author name="Mathieu PEPONAS" website="http://code.google.com/p/gngeo/" email="m.peponas@gmail.com"/>
+    <icon src="./gngeo.png"/>
+    <categories>
+      <category name="Game">
+		<subcategory name="Emulator"/>
+		
+		</category>
+    </categories>
+  </application>
+</PXML>
