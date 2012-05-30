@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "SDL.h"
-//#include "streams.h"
+#include "sound.h"
 #include "emu.h"
 #include "memory.h"
 #include "profiler.h"
@@ -49,7 +49,7 @@ SDL_AudioSpec * desired, *obtain;
 //#define CPU_FPS 60
 #define BUFFER_LEN 16384
 //#define BUFFER_LEN 
-extern int throttle;
+//extern int throttle;
 static int audio_sample_rate;
 Uint16 play_buffer[BUFFER_LEN];
 

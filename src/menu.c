@@ -19,6 +19,7 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include <errno.h>
 
 #include "SDL.h"
 #include "SDL_thread.h"
@@ -48,6 +49,7 @@
 #include "sound.h"
 #include "effect.h"
 #include "gnutil.h"
+#include "roms.h"
 
 #if defined (WII)
 #define ROOTPATH "sd:/apps/gngeo/"
@@ -72,14 +74,8 @@
 #define COL_GREY_M 0x808080
 #define COL_GREY_D 0x404040
 
-Uint32 font_color[]={
-		COL_BLACK,
-		COL_RED,
-		COL_GREEN,
-		COL_GREY_L,
-		COL_GREY_M,
-		COL_GREY_D
-};
+Uint32 font_color[] = { COL_BLACK, COL_RED, COL_GREEN, COL_GREY_L, COL_GREY_M,
+		COL_GREY_D };
 
 typedef struct GNFONT {
 	SDL_Surface *bmp;
@@ -98,7 +94,7 @@ static GNFONT *mfont;
 static SDL_Surface *gngeo_logo, *gngeo_mask, *pbar_logo;
 
 static SDL_Surface *arrow_l, *arrow_r, *arrow_u, *arrow_d;
-static int interp;
+//static int interp;
 
 #define MENU_BIG   0
 #define MENU_SMALL 1
@@ -130,45 +126,65 @@ static GN_MENU *effect_menu;
 static GN_MENU *srate_menu;
 static GN_MENU *yesno_menu;
 
-static char *romlist[] = { "2020bb", "2020bba", "2020bbh", "3countb", "alpham2",
-		"androdun", "aodk", "aof", "aof2", "aof2a", "aof3", "aof3k", "bakatono",
-		"bangbead", "bjourney", "blazstar", "breakers", "breakrev", "bstars",
-		"bstars2", "burningf", "burningfh", "crsword", "ct2k3sa", "ct2k3sp",
-		"cthd2003", "ctomaday", "cyberlip", "diggerma", "doubledr", "eightman",
-		"fatfursa", "fatfursp", "fatfury1", "fatfury2", "fatfury3", "fbfrenzy",
-		"fightfev", "fightfeva", "flipshot", "fswords", "galaxyfg", "ganryu",
-		"garou", "garoubl", "garouo", "garoup", "ghostlop", "goalx3",
-		"gowcaizr", "gpilots", "gpilotsh", "gururin", "irrmaze", "janshin",
-		"jockeygp", "joyjoy", "kabukikl", "karnovr", "kf10thep", "kf2k2mp",
-		"kf2k2mp2", "kf2k2pla", "kf2k2pls", "kf2k3bl", "kf2k3bla", "kf2k3pcb",
-		"kf2k3pl", "kf2k3upl", "kf2k5uni", "kizuna", "kof10th", "kof2000",
-		"kof2000n", "kof2001", "kof2001h", "kof2002", "kof2002b", "kof2003",
-		"kof2003h", "kof2k4se", "kof94", "kof95", "kof95h", "kof96", "kof96h",
-		"kof97", "kof97a", "kof97pls", "kof98", "kof98k", "kof98n", "kof99",
-		"kof99a", "kof99e", "kof99n", "kof99p", "kog", "kotm", "kotm2", "kotmh",
-		"lans2004", "lastblad", "lastbladh", "lastbld2", "lastsold", "lbowling",
-		"legendos", "lresort", "magdrop2", "magdrop3", "maglord", "maglordh",
-		"mahretsu", "marukodq", "matrim", "matrimbl", "miexchng", "minasan",
-		"mosyougi", "ms4plus", "ms5pcb", "ms5plus", "mslug", "mslug2", "mslug3",
-		"mslug3b6", "mslug3h", "mslug3n", /* Driver don't have the good name */
-		"mslug4", "mslug5", "mslug5h", "mslugx", "mutnat", "nam1975", "ncombat",
-		"ncombath", "ncommand", "neobombe", "neocup98", "neodrift", "neomrdo",
-		"ninjamas", "nitd", "nitdbl", "overtop", "panicbom", "pbobbl2n",
-		"pbobblen", "pbobblena", "pgoal", "pnyaa", "popbounc", "preisle2",
-		"pspikes2", "pulstar", "puzzldpr", "puzzledp", "quizdai2", "quizdais",
-		"quizkof", "ragnagrd", "rbff1", "rbff1a", "rbff2", "rbff2h", "rbff2k",
-		"rbffspec", "ridhero", "ridheroh", "roboarmy", "rotd", "s1945p",
-		"samsh5sp", "samsh5sph", "samsh5spn", /* Driver don't have the good name */
-		"samsho", "samsho2", "samsho3", "samsho3h", "samsho4", "samsho5",
-		"samsho5b", "samsho5h", "samshoh", "savagere", "sdodgeb", "sengokh",
-		"sengoku", "sengoku2", "sengoku3", "shocktr2", "shocktra", "shocktro",
-		"socbrawl", "socbrawla", "sonicwi2", "sonicwi3", "spinmast", "ssideki",
-		"ssideki2", "ssideki3", "ssideki4", "stakwin", "stakwin2", "strhoop",
-		"superspy", "svc", "svcboot", "svcpcb", "svcpcba", "svcplus",
-		"svcplusa", "svcsplus", "tophuntr", "tophuntra", "tpgolf", "trally",
-		"turfmast", "twinspri", "tws96", "viewpoin", "vliner", "vlinero",
-		"wakuwak7", "wh1", "wh1h", "wh1ha", "wh2", "wh2j", "wh2jh", "whp",
-		"wjammers", "zedblade", "zintrckb", "zupapa", NULL };
+static char *romlist[] = { "/2020bb.zip", "/2020bba.zip", "/2020bbh.zip",
+		"/3countb.zip", "/alpham2.zip", "/androdun.zip", "/aodk.zip",
+		"/aof.zip", "/aof2.zip", "/aof2a.zip", "/aof3.zip", "/aof3k.zip",
+		"/bakatono.zip", "/bangbead.zip", "/bjourney.zip", "/blazstar.zip",
+		"/breakers.zip", "/breakrev.zip", "/bstars.zip", "/bstars2.zip",
+		"/burningf.zip", "/burningfh.zip", "/crsword.zip", "/ct2k3sa.zip",
+		"/ct2k3sp.zip", "/cthd2003.zip", "/ctomaday.zip", "/cyberlip.zip",
+		"/diggerma.zip", "/doubledr.zip", "/eightman.zip", "/fatfursa.zip",
+		"/fatfursp.zip", "/fatfury1.zip", "/fatfury2.zip", "/fatfury3.zip",
+		"/fbfrenzy.zip", "/fightfev.zip", "/fightfeva.zip", "/flipshot.zip",
+		"/fswords.zip", "/galaxyfg.zip", "/ganryu.zip", "/garou.zip",
+		"/garoubl.zip", "/garouo.zip", "/garoup.zip", "/ghostlop.zip",
+		"/goalx3.zip", "/gowcaizr.zip", "/gpilots.zip", "/gpilotsh.zip",
+		"/gururin.zip", "/irrmaze.zip", "/janshin.zip", "/jockeygp.zip",
+		"/joyjoy.zip", "/kabukikl.zip", "/karnovr.zip", "/kf10thep.zip",
+		"/kf2k2mp.zip", "/kf2k2mp2.zip", "/kf2k2pla.zip", "/kf2k2pls.zip",
+		"/kf2k3bl.zip", "/kf2k3bla.zip", "/kf2k3pcb.zip", "/kf2k3pl.zip",
+		"/kf2k3upl.zip", "/kf2k5uni.zip", "/kizuna.zip", "/kof10th.zip",
+		"/kof2000.zip", "/kof2000n.zip", "/kof2001.zip", "/kof2001h.zip",
+		"/kof2002.zip", "/kof2002b.zip", "/kof2003.zip", "/kof2003h.zip",
+		"/kof2k4se.zip", "/kof94.zip", "/kof95.zip", "/kof95h.zip",
+		"/kof96.zip", "/kof96h.zip", "/kof97.zip", "/kof97a.zip",
+		"/kof97pls.zip", "/kof98.zip", "/kof98k.zip", "/kof98n.zip",
+		"/kof99.zip", "/kof99a.zip", "/kof99e.zip", "/kof99n.zip",
+		"/kof99p.zip", "/kog.zip", "/kotm.zip", "/kotm2.zip", "/kotmh.zip",
+		"/lans2004.zip", "/lastblad.zip", "/lastbladh.zip", "/lastbld2.zip",
+		"/lastsold.zip", "/lbowling.zip", "/legendos.zip", "/lresort.zip",
+		"/magdrop2.zip", "/magdrop3.zip", "/maglord.zip", "/maglordh.zip",
+		"/mahretsu.zip", "/marukodq.zip", "/matrim.zip", "/matrimbl.zip",
+		"/miexchng.zip", "/minasan.zip", "/mosyougi.zip", "/ms4plus.zip",
+		"/ms5pcb.zip", "/ms5plus.zip", "/mslug.zip", "/mslug2.zip",
+		"/mslug3.zip", "/mslug3b6.zip", "/mslug3h.zip", "/mslug3n.zip", /* Driver don't have the good name */
+		"/mslug4.zip", "/mslug5.zip", "/mslug5h.zip", "/mslugx.zip",
+		"/mutnat.zip", "/nam1975.zip", "/ncombat.zip", "/ncombath.zip",
+		"/ncommand.zip", "/neobombe.zip", "/neocup98.zip", "/neodrift.zip",
+		"/neomrdo.zip", "/ninjamas.zip", "/nitd.zip", "/nitdbl.zip",
+		"/overtop.zip", "/panicbom.zip", "/pbobbl2n.zip", "/pbobblen.zip",
+		"/pbobblena.zip", "/pgoal.zip", "/pnyaa.zip", "/popbounc.zip",
+		"/preisle2.zip", "/pspikes2.zip", "/pulstar.zip", "/puzzldpr.zip",
+		"/puzzledp.zip", "/quizdai2.zip", "/quizdais.zip", "/quizkof.zip",
+		"/ragnagrd.zip", "/rbff1.zip", "/rbff1a.zip", "/rbff2.zip",
+		"/rbff2h.zip", "/rbff2k.zip", "/rbffspec.zip", "/ridhero.zip",
+		"/ridheroh.zip", "/roboarmy.zip", "/rotd.zip", "/s1945p.zip",
+		"/samsh5sp.zip", "/samsh5sph.zip", "/samsh5spn.zip", /* Driver don't have the good name */
+		"/samsho.zip", "/samsho2.zip", "/samsho3.zip", "/samsho3h.zip",
+		"/samsho4.zip", "/samsho5.zip", "/samsho5b.zip", "/samsho5h.zip",
+		"/samshoh.zip", "/savagere.zip", "/sdodgeb.zip", "/sengokh.zip",
+		"/sengoku.zip", "/sengoku2.zip", "/sengoku3.zip", "/shocktr2.zip",
+		"/shocktra.zip", "/shocktro.zip", "/socbrawl.zip", "/socbrawla.zip",
+		"/sonicwi2.zip", "/sonicwi3.zip", "/spinmast.zip", "/ssideki.zip",
+		"/ssideki2.zip", "/ssideki3.zip", "/ssideki4.zip", "/stakwin.zip",
+		"/stakwin2.zip", "/strhoop.zip", "/superspy.zip", "/svc.zip",
+		"/svcboot.zip", "/svcpcb.zip", "/svcpcba.zip", "/svcplus.zip",
+		"/svcplusa.zip", "/svcsplus.zip", "/tophuntr.zip", "/tophuntra.zip",
+		"/tpgolf.zip", "/trally.zip", "/turfmast.zip", "/twinspri.zip",
+		"/tws96.zip", "/viewpoin.zip", "/vliner.zip", "/vlinero.zip",
+		"/wakuwak7.zip", "/wh1.zip", "/wh1h.zip", "/wh1ha.zip", "/wh2.zip",
+		"/wh2j.zip", "/wh2jh.zip", "/whp.zip", "/wjammers.zip", "/zedblade.zip",
+		"/zintrckb.zip", "/zupapa.zip", NULL };
 
 #define COL32_TO_16(col) ((((col&0xff0000)>>19)<<11)|(((col&0xFF00)>>10)<<5)|((col&0xFF)>>3))
 struct RGB_set {
@@ -388,42 +404,42 @@ static Uint32 string_len(GNFONT *f, char *str) {
 
 void draw_string(SDL_Surface *dst, GNFONT *f, int x, int y, char *str) {
 	SDL_Rect srect, drect;
-	int i;
+	int i, s;
 
 	if (!f) {
-		if ((x&0xff0000) == ALIGN_LEFT)
+		if ((x & 0xff0000) == ALIGN_LEFT)
 			x += MENU_TEXT_X;
-		if ((x&0xff0000) == ALIGN_RIGHT)
+		if ((x & 0xff0000) == ALIGN_RIGHT)
 			x += (MENU_TEXT_X_END - strlen(str) * 8);
-		if ((x&0xff0000) == ALIGN_CENTER)
+		if ((x & 0xff0000) == ALIGN_CENTER)
 			x += (MENU_TEXT_X
 					+ (MENU_TEXT_X_END - MENU_TEXT_X - strlen(str) * 8) / 2);
-		if ((y&0xff0000) == ALIGN_UP)
+		if ((y & 0xff0000) == ALIGN_UP)
 			y += MENU_TEXT_Y;
-		if ((y&0xff0000) == ALIGN_DOWN)
+		if ((y & 0xff0000) == ALIGN_DOWN)
 			y += (MENU_TEXT_Y_END - 8);
-		if ((y&0xff0000) == ALIGN_CENTER)
+		if ((y & 0xff0000) == ALIGN_CENTER)
 			y += (MENU_TEXT_Y + (MENU_TEXT_Y_END - MENU_TEXT_Y - 8) / 2);
-		SDL_textout(dst, x&0xffff, y&0xffff, str);
+		SDL_textout(dst, x & 0xffff, y & 0xffff, str);
 		return;
 	}
 
-	if ((x&0xff0000) == ALIGN_LEFT)
+	if ((x & 0xff0000) == ALIGN_LEFT)
 		x += MENU_TEXT_X;
-	if ((x&0xff0000) == ALIGN_RIGHT)
+	if ((x & 0xff0000) == ALIGN_RIGHT)
 		x += (MENU_TEXT_X_END - string_len(f, str));
-	if ((x&0xff0000) == ALIGN_CENTER)
+	if ((x & 0xff0000) == ALIGN_CENTER)
 		x += (MENU_TEXT_X
 				+ (MENU_TEXT_X_END - MENU_TEXT_X - string_len(f, str)) / 2);
-	if ((y&0xff0000) == ALIGN_UP)
+	if ((y & 0xff0000) == ALIGN_UP)
 		y += MENU_TEXT_Y;
-	if ((y&0xff0000) == ALIGN_DOWN)
+	if ((y & 0xff0000) == ALIGN_DOWN)
 		y += (MENU_TEXT_Y_END - f->ysize);
-	if ((y&0xff0000) == ALIGN_CENTER)
+	if ((y & 0xff0000) == ALIGN_CENTER)
 		y += (MENU_TEXT_Y + (MENU_TEXT_Y_END - MENU_TEXT_Y - f->ysize) / 2);
 
-	x&=0xffff;
-	y&=0xffff;
+	x &= 0xffff;
+	y &= 0xffff;
 
 	drect.x = x;
 	drect.y = y;
@@ -444,11 +460,17 @@ void draw_string(SDL_Surface *dst, GNFONT *f, int x, int y, char *str) {
 			drect.y += f->bmp->h;
 			break;
 		default:
-			srect.x = f->xpos[(int) str[i] - 32];
-			srect.w = f->xsize[(int) str[i] - 32];
+			s = (unsigned char) (str[i]);
+			if (s >= 96 + 32) {
+				s = (unsigned char) '.';
+			}
+
+			srect.x = f->xpos[s - 32];
+			srect.w = f->xsize[s - 32];
 
 			SDL_BlitSurface(f->bmp, &srect, dst, &drect);
-			drect.x += (f->xsize[(int) str[i] - 32] + f->pad);
+			drect.x += (f->xsize[s - 32] + f->pad);
+
 			break;
 		}
 	}
@@ -642,7 +664,6 @@ static int no_action(GN_MENU_ITEM *self, void *param) {
 	return 0;
 }
 
-/* TODO: use a mini yes/no menu instead of B/X */
 int gn_popup_question(char *name, char *fmt, ...) {
 	char buf[512];
 	va_list pvar;
@@ -746,10 +767,10 @@ static void draw_menu(GN_MENU *m) {
 		//int j = (i + nb_item / 2) - start;
 		//if (start<nb_item) j+=nb_item/2;
 		if (m->draw_type == MENU_BIG) {
-			font_set_color(fnt,ICOL_GREY_L);
-			draw_string(menu_buf, fnt, ALIGN_CENTER+2,
-					MENU_TEXT_Y +2 + (j * fnt->ysize + 2), mi->name);
-			font_set_color(fnt,ICOL_BLACK);
+			font_set_color(fnt, ICOL_GREY_L);
+			draw_string(menu_buf, fnt, ALIGN_CENTER + 2,
+					MENU_TEXT_Y + 2 + (j * fnt->ysize + 2), mi->name);
+			font_set_color(fnt, ICOL_BLACK);
 			draw_string(menu_buf, fnt, ALIGN_CENTER,
 					MENU_TEXT_Y + (j * fnt->ysize + 2), mi->name);
 			if (i == m->current) {
@@ -977,6 +998,11 @@ static int exit_action(GN_MENU_ITEM *self, void *param) {
 	//exit(0);
 //	if (gn_popup_question("Quit?","Do you really want to quit gngeo?")==0)
 //		return 0;
+	printf("Save all\n");
+//	/* Save the last rom path used */
+//	cf_reset_all_changed_flag();
+//	cf_item_has_been_changed(cf_get_item_by_name("rompath"));
+//	cf_save_file(NULL, 0);
 	return MENU_EXIT;
 }
 
@@ -1115,7 +1141,6 @@ static int romnamesort(void *a, void *b) {
 
 	return strcmp(ga->name, gb->name);
 }
-extern char romerror[1024];
 
 static int loadrom_action(GN_MENU_ITEM *self, void *param) {
 	char *game = (char*) self->arg;
@@ -1134,63 +1159,6 @@ static int loadrom_action(GN_MENU_ITEM *self, void *param) {
 	return MENU_RETURNTOGAME;
 }
 
-void init_rom_browser_menu(void) {
-	int i;
-	int nbf;
-	char filename[strlen(CF_STR(cf_get_item_by_name("rompath"))) + 256];
-	struct stat filestat;
-	struct dirent **namelist;
-	ROM_DEF *drv = NULL;
-	//char name[32];
-	int nb_roms = 0;
-	rbrowser_menu = create_menu("Load Game", MENU_SMALL, NULL, NULL);
-
-	i = 0;
-	while (romlist[i]) {
-		sprintf(filename, "%s/%s.zip", CF_STR(cf_get_item_by_name("rompath")),
-				romlist[i]);
-		if (stat(filename, &filestat) == 0 && S_ISREG(filestat.st_mode)) {
-			if ((drv = dr_check_zip(filename)) != NULL) {
-				rbrowser_menu->item = list_insert_sort(
-						rbrowser_menu->item,
-						(void*) gn_menu_create_item(drv->longname, MENU_ACTION,
-								loadrom_action, strdup(drv->name)),
-						romnamesort);
-				rbrowser_menu->nb_elem++;
-
-				//printf("Parent=%s\n",drv->parent);
-				//if (strcmp(drv->parent,"neogeo")!=0)
-				//	gn_menu_disable_item(rbrowser_menu,drv->longname);
-
-				free(drv);
-				nb_roms++;
-			}
-		}
-		sprintf(filename, "%s/%s.gno", CF_STR(cf_get_item_by_name("rompath")),
-				romlist[i]);
-		if (stat(filename, &filestat) == 0 && S_ISREG(filestat.st_mode)) {
-			char *gnoname = dr_gno_romname(filename);
-			if (gnoname != NULL) {
-				rbrowser_menu->item = list_insert_sort(
-						rbrowser_menu->item,
-						(void*) gn_menu_create_item(filename, MENU_ACTION,
-								loadrom_action, strdup(filename)), romnamesort);
-				rbrowser_menu->nb_elem++;
-				nb_roms++;
-			}
-		}
-
-		i++;
-	}
-
-	if (nb_roms == 0) {
-		rbrowser_menu->item = list_append(
-				rbrowser_menu->item,
-				(void*) gn_menu_create_item("No Games Found...", MENU_ACTION,
-						NULL, NULL));
-		rbrowser_menu->nb_elem++;
-	}
-}
 static volatile int scaning = 0;
 
 int rom_browser_scanning_anim(void *data) {
@@ -1212,431 +1180,612 @@ int rom_browser_scanning_anim(void *data) {
 	}
 	return 0;
 }
-
-int rom_browser_menu(void) {
-	static Uint32 init = 0;
-	int a;
+static void free_rom_browser_menu(void);
+void init_rom_browser_menu(void);
+static int changedir_action(GN_MENU_ITEM *self, void *param) {
+	char *dir = (char*) self->arg;
 	SDL_Thread *anim_th;
 
-	if (init == 0) {
-		init = 1;
+//	char *rpath = strdup(CF_STR(cf_get_item_by_name("rompath")));
+//	char *apath;
+//	printf("change to dir %s\n", dir);
+//	apath = realpath(rpath, NULL);
+//	printf("%p\n", apath);
+//	printf("%s\n", apath);
+//	snprintf(CF_STR(cf_get_item_by_name("rompath")), CF_MAXSTRLEN, "%s", apath);
+//	printf("Old dir %s\n", CF_STR(cf_get_item_by_name("rompath")));
+	gn_strncat_dir(CF_STR(cf_get_item_by_name("rompath")), dir, CF_MAXSTRLEN);
+	//printf("New path %s\n", CF_STR(cf_get_item_by_name("rompath")));
+	cf_save_option(NULL, "rompath", 0);
 
-		scaning = 1;
-		anim_th = SDL_CreateThread(rom_browser_scanning_anim, NULL);
-		init_rom_browser_menu();
-		scaning = 0;
-		SDL_WaitThread(anim_th, NULL);
+	scaning = 1;
+	anim_th = SDL_CreateThread(rom_browser_scanning_anim, NULL);
+	free_rom_browser_menu();
+	init_rom_browser_menu();
+	scaning = 0;
+	SDL_WaitThread(anim_th, NULL);
+
+	return MENU_STAY;
+}
+static void free_rom_browser_menu(void) {
+	LIST *i, *t;
+	if (rbrowser_menu == NULL)
+		return;
+
+	for (i = rbrowser_menu->item; i; i = i->next) {
+		GN_MENU_ITEM *gitem;
+		gitem = (GN_MENU_ITEM*) i->data;
+		if (gitem->name)
+			free(gitem->name);
+		if (gitem->arg)
+			free(gitem->arg);
+		free(gitem);
 	}
+	i = rbrowser_menu->item;
+	while (i) {
+		t = i;
+		i = i->next;
+		free(t);
+	}
+}
 
-	while (1) {
-		rbrowser_menu->draw(rbrowser_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
-		if ((a = rbrowser_menu->event_handling(rbrowser_menu)) > 0) {
-			if (a == MENU_CLOSE)
-				return MENU_STAY;
-			else
-				return a;
+void init_rom_browser_menu(void) {
+	int i;
+	int nbf;
+	char filename[strlen(CF_STR(cf_get_item_by_name("rompath"))) + 256];
+	struct stat filestat;
+	struct dirent **namelist;
+	ROM_DEF *drv = NULL;
+	//char name[32];
+	int nb_roms = 0;
+	DIR *dh;
+	struct dirent *file;
+
+	rbrowser_menu = create_menu("Load Game", MENU_SMALL, NULL, NULL);
+
+	if ((dh = opendir(CF_STR(cf_get_item_by_name("rompath")))) != NULL) {
+		while ((file = readdir(dh)) != NULL) {
+			sprintf(filename, "%s/%s", CF_STR(cf_get_item_by_name("rompath")),
+					file->d_name);
+			if (stat(filename, &filestat) == 0) {
+				/* Directory */
+				if (S_ISDIR(filestat.st_mode)
+						|| (strcmp(file->d_name, ".") == 0
+								&& strcmp(file->d_name, "..") == 0)) {
+					rbrowser_menu->item = list_insert_sort(
+							rbrowser_menu->item,
+							(void*) gn_menu_create_item(file->d_name,
+									MENU_ACTION, changedir_action,
+									strdup(file->d_name)), romnamesort);
+					rbrowser_menu->nb_elem++;
+					continue;
+				}
+				if (S_ISREG(filestat.st_mode)) {
+					/* GNO files */
+					if (strstr(filename, ".gno") != NULL) {
+						printf("GNO %s\n",filename);
+						char *gnoname = dr_gno_romname(filename);
+						printf("gnoname %s\n",gnoname);
+						if (gnoname != NULL && (drv = res_load_drv(gnoname))!=NULL) {
+							rbrowser_menu->item = list_insert_sort(
+									rbrowser_menu->item,
+									(void*) gn_menu_create_item(drv->longname,
+											MENU_ACTION, loadrom_action,
+											strdup(filename)), romnamesort);
+							rbrowser_menu->nb_elem++;
+							nb_roms++;
+							free(drv);
+						}
+						continue;
+					}
+					if (strstr(filename, ".zip") == NULL)
+						continue;
+					i = 0;
+					/* Standard .zip roms */
+					while (romlist[i]) {
+						if (strstr(filename, romlist[i]) != NULL) {
+							if ((drv = dr_check_zip(filename)) != NULL) {
+								rbrowser_menu->item = list_insert_sort(
+										rbrowser_menu->item,
+										(void*) gn_menu_create_item(
+												drv->longname, MENU_ACTION,
+												loadrom_action,
+												strdup(drv->name)),
+										romnamesort);
+								rbrowser_menu->nb_elem++;
+
+								free(drv);
+								nb_roms++;
+							}
+						}
+						i++;
+					}
+
+				}
+			}
 		}
+		closedir(dh);
 	}
+//
+//	i = 0;
+//	while (romlist[i]) {
+//		sprintf(filename, "%s/%s.zip", CF_STR(cf_get_item_by_name("rompath")),
+//				romlist[i]);
+//		if (stat(filename, &filestat) == 0 && S_ISREG(filestat.st_mode)) {
+//			if ((drv = dr_check_zip(filename)) != NULL) {
+//				rbrowser_menu->item = list_insert_sort(
+//						rbrowser_menu->item,
+//						(void*) gn_menu_create_item(drv->longname, MENU_ACTION,
+//								loadrom_action, strdup(drv->name)),
+//						romnamesort);
+//				rbrowser_menu->nb_elem++;
+//
+//				free(drv);
+//				nb_roms++;
+//			}
+//		}
+//		sprintf(filename, "%s/%s.gno", CF_STR(cf_get_item_by_name("rompath")),
+//				romlist[i]);
+//		if (stat(filename, &filestat) == 0 && S_ISREG(filestat.st_mode)) {
+//			char *gnoname = dr_gno_romname(filename);
+//			if (gnoname != NULL) {
+//				rbrowser_menu->item = list_insert_sort(
+//						rbrowser_menu->item,
+//						(void*) gn_menu_create_item(filename, MENU_ACTION,
+//								loadrom_action, strdup(filename)), romnamesort);
+//				rbrowser_menu->nb_elem++;
+//				nb_roms++;
+//			}
+//}
+//
+//		i++;
+//	}
+
+if (nb_roms == 0) {
+	rbrowser_menu->item = list_append(
+			rbrowser_menu->item,
+			(void*) gn_menu_create_item("No Games Found...", MENU_ACTION,
+					NULL, NULL));
+	rbrowser_menu->nb_elem++;
+}
+}
+
+int rom_browser_menu(void) {
+static Uint32 init = 0;
+int a;
+SDL_Thread *anim_th;
+
+if (init == 0) {
+	char *rpath = strdup(CF_STR(cf_get_item_by_name("rompath")));
+	char *apath;
+	init = 1;
+
+	/* in case the user  */
+	apath = realpath(rpath, NULL);
+	if (apath == NULL)
+#ifdef EMBEDDED_FS
+		apath=realpath(ROOTPATH"roms/", NULL);
+#else
+		apath = realpath(".", NULL);
+#endif
+	snprintf(CF_STR(cf_get_item_by_name("rompath")), CF_MAXSTRLEN, "%s", apath);
+	free(apath);
+	free(rpath);
+
+	scaning = 1;
+	anim_th = SDL_CreateThread(rom_browser_scanning_anim, NULL);
+	init_rom_browser_menu();
+	scaning = 0;
+	SDL_WaitThread(anim_th, NULL);
+}
+
+while (1) {
+	rbrowser_menu->draw(rbrowser_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
+	if ((a = rbrowser_menu->event_handling(rbrowser_menu)) > 0) {
+		if (a == MENU_CLOSE)
+			return MENU_STAY;
+		else
+			return a;
+	}
+}
+/* Should never go to this place */
+return MENU_STAY;
 }
 
 static int rbrowser_action(GN_MENU_ITEM *self, void *param) {
-	//exit(0);
-	return rom_browser_menu();
+//exit(0);
+return rom_browser_menu();
 }
 
 static int toggle_fullscreen(GN_MENU_ITEM *self, void *param) {
-	screen_fullscreen();
-	self->val = 1 - self->val;
-	cf_item_has_been_changed(cf_get_item_by_name("fullscreen"));
-	CF_BOOL(cf_get_item_by_name("fullscreen")) = self->val;
-	return MENU_STAY;
+screen_fullscreen();
+self->val = 1 - self->val;
+cf_item_has_been_changed(cf_get_item_by_name("fullscreen"));
+CF_BOOL(cf_get_item_by_name("fullscreen")) = self->val;
+return MENU_STAY;
 }
-
+#ifdef PANDORA
 static int toggle_wide(GN_MENU_ITEM *self, void *param) {
-	self->val = 1 - self->val;
+self->val = 1 - self->val;
 
-	cf_item_has_been_changed(cf_get_item_by_name("wide"));
-	CF_BOOL(cf_get_item_by_name("wide")) = self->val;
-	screen_reinit();
-	return MENU_STAY;
+cf_item_has_been_changed(cf_get_item_by_name("wide"));
+CF_BOOL(cf_get_item_by_name("wide")) = self->val;
+screen_reinit();
+return MENU_STAY;
 }
-
+#endif
 static int toggle_vsync(GN_MENU_ITEM *self, void *param) {
 
-	self->val = 1 - self->val;
-	conf.vsync = self->val;
-	cf_item_has_been_changed(cf_get_item_by_name("vsync"));
-	CF_BOOL(cf_get_item_by_name("vsync")) = self->val;
-	screen_reinit();
-	return MENU_STAY;
+self->val = 1 - self->val;
+conf.vsync = self->val;
+cf_item_has_been_changed(cf_get_item_by_name("vsync"));
+CF_BOOL(cf_get_item_by_name("vsync")) = self->val;
+screen_reinit();
+return MENU_STAY;
 }
 
 static int toggle_autoframeskip(GN_MENU_ITEM *self, void *param) {
-	self->val = 1 - self->val;
-	conf.autoframeskip = self->val;
-	cf_item_has_been_changed(cf_get_item_by_name("autoframeskip"));
-	CF_BOOL(cf_get_item_by_name("autoframeskip")) = self->val;
-	reset_frame_skip();
-	return MENU_STAY;
+self->val = 1 - self->val;
+conf.autoframeskip = self->val;
+cf_item_has_been_changed(cf_get_item_by_name("autoframeskip"));
+CF_BOOL(cf_get_item_by_name("autoframeskip")) = self->val;
+reset_frame_skip();
+return MENU_STAY;
 }
 
 static int toggle_sleepidle(GN_MENU_ITEM *self, void *param) {
-	self->val = 1 - self->val;
-	conf.sleep_idle = self->val;
-	cf_item_has_been_changed(cf_get_item_by_name("sleepidle"));
-	CF_BOOL(cf_get_item_by_name("sleepidle")) = self->val;
+self->val = 1 - self->val;
+conf.sleep_idle = self->val;
+cf_item_has_been_changed(cf_get_item_by_name("sleepidle"));
+CF_BOOL(cf_get_item_by_name("sleepidle")) = self->val;
 
-	return MENU_STAY;
+return MENU_STAY;
 }
 
 static int toggle_raster(GN_MENU_ITEM *self, void *param) {
-	self->val = 1 - self->val;
-	conf.raster = self->val;
-	cf_item_has_been_changed(cf_get_item_by_name("raster"));
-	CF_BOOL(cf_get_item_by_name("raster")) = self->val;
+self->val = 1 - self->val;
+conf.raster = self->val;
+cf_item_has_been_changed(cf_get_item_by_name("raster"));
+CF_BOOL(cf_get_item_by_name("raster")) = self->val;
 
-	return MENU_STAY;
+return MENU_STAY;
 }
 
 static int toggle_showfps(GN_MENU_ITEM *self, void *param) {
-	self->val = 1 - self->val;
-	conf.show_fps = self->val;
-	cf_item_has_been_changed(cf_get_item_by_name("showfps"));
-	CF_BOOL(cf_get_item_by_name("showfps")) = self->val;
+self->val = 1 - self->val;
+conf.show_fps = self->val;
+cf_item_has_been_changed(cf_get_item_by_name("showfps"));
+CF_BOOL(cf_get_item_by_name("showfps")) = self->val;
 
-	return MENU_STAY;
+return MENU_STAY;
 }
 
 static int change_effect_action(GN_MENU_ITEM *self, void *param) {
-	char *ename = (char *) self->arg;
-	printf("Toggle to effect %s\n", self->name);
-	if (strcmp(ename, "none") != 0 || strcmp(ename, "soft") != 0) {
-		scale = 1;
-	}
-	strncpy(CF_STR(cf_get_item_by_name("effect")), ename, 254);
-	cf_item_has_been_changed(cf_get_item_by_name("effect"));
-	screen_reinit();
-	return MENU_STAY;
+char *ename = (char *) self->arg;
+printf("Toggle to effect %s\n", self->name);
+if (strcmp(ename, "none") != 0 || strcmp(ename, "soft") != 0) {
+	scale = 1;
+}
+strncpy(CF_STR(cf_get_item_by_name("effect")), ename, 254);
+cf_item_has_been_changed(cf_get_item_by_name("effect"));
+screen_reinit();
+return MENU_STAY;
 }
 extern effect_func effect[];
 
 static int change_effect(GN_MENU_ITEM *self, void *param) {
-	static int init = 0;
-	int a;
-	int i;
-	if (init == 0) {
+static int init = 0;
+int a;
+int i;
+if (init == 0) {
 
-		init = 1;
-		effect_menu = create_menu("Choose an Effect", MENU_SMALL, NULL, NULL);
+	init = 1;
+	effect_menu = create_menu("Choose an Effect", MENU_SMALL, NULL, NULL);
 
-		i = 0;
-		while (effect[i].name != NULL) {
-			effect_menu->item = list_append(
-					effect_menu->item,
-					(void*) gn_menu_create_item(effect[i].desc, MENU_ACTION,
-							change_effect_action, (void*) effect[i].name));
-			effect_menu->nb_elem++;
-			i++;
-		}
+	i = 0;
+	while (effect[i].name != NULL) {
+		effect_menu->item = list_append(
+				effect_menu->item,
+				(void*) gn_menu_create_item(effect[i].desc, MENU_ACTION,
+						change_effect_action, (void*) effect[i].name));
+		effect_menu->nb_elem++;
+		i++;
 	}
-	while (1) {
-		effect_menu->draw(effect_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
-		if ((a = effect_menu->event_handling(effect_menu)) > 0) {
-			self->str = CF_STR(cf_get_item_by_name("effect"));
-			return MENU_STAY;
-		}
+}
+while (1) {
+	effect_menu->draw(effect_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
+	if ((a = effect_menu->event_handling(effect_menu)) > 0) {
+		self->str = CF_STR(cf_get_item_by_name("effect"));
+		return MENU_STAY;
 	}
-	return 0;
+}
+return 0;
 }
 
 static int change_samplerate_action(GN_MENU_ITEM *self, void *param) {
-	int rate = (int) self->arg;
+int rate = (int) self->arg;
 
-	if (rate != 0) {
+if (rate != 0) {
 
-		CF_VAL(cf_get_item_by_name("samplerate")) = rate;
-		cf_item_has_been_changed(cf_get_item_by_name("samplerate"));
-		if (conf.sound && conf.game)
-			close_sdl_audio();
-		else
-			cf_item_has_been_changed(cf_get_item_by_name("sound"));
-		conf.sound = 1;
-		CF_BOOL(cf_get_item_by_name("sound")) = 1;
-		conf.sample_rate = rate;
-		//init_sdl_audio();
-		//YM2610ChangeSamplerate(conf.sample_rate);
-		if (conf.game) {
-			init_sdl_audio();
-			YM2610ChangeSamplerate(conf.sample_rate);
-		}
-
-	} else {
-		if (conf.sound)
-			cf_item_has_been_changed(cf_get_item_by_name("sound"));
-		conf.sound = 0;
-		conf.sample_rate = 0;
-		if (conf.game)
-			close_sdl_audio();
-		CF_BOOL(cf_get_item_by_name("sound")) = 0;
+	CF_VAL(cf_get_item_by_name("samplerate")) = rate;
+	cf_item_has_been_changed(cf_get_item_by_name("samplerate"));
+	if (conf.sound && conf.game)
+		close_sdl_audio();
+	else
+		cf_item_has_been_changed(cf_get_item_by_name("sound"));
+	conf.sound = 1;
+	CF_BOOL(cf_get_item_by_name("sound")) = 1;
+	conf.sample_rate = rate;
+	//init_sdl_audio();
+	//YM2610ChangeSamplerate(conf.sample_rate);
+	if (conf.game) {
+		init_sdl_audio();
+		YM2610ChangeSamplerate(conf.sample_rate);
 	}
 
-	return MENU_CLOSE;
+} else {
+	if (conf.sound)
+		cf_item_has_been_changed(cf_get_item_by_name("sound"));
+	conf.sound = 0;
+	conf.sample_rate = 0;
+	if (conf.game)
+		close_sdl_audio();
+	CF_BOOL(cf_get_item_by_name("sound")) = 0;
+}
+
+return MENU_CLOSE;
 }
 
 static int change_samplerate(GN_MENU_ITEM *self, void *param) {
-	static int init = 0;
-	int a;
-	GN_MENU_ITEM *gitem;
-	if (init == 0) {
-		init = 1;
-		srate_menu = create_menu("Choose a sample rate", MENU_SMALL, NULL,
-				NULL);
-		gitem = gn_menu_create_item("No sound", MENU_ACTION,
-				change_samplerate_action, (void*) 0);
-		srate_menu->item = list_append(srate_menu->item, (void*) gitem);
-		srate_menu->nb_elem++;
+static int init = 0;
+int a;
+GN_MENU_ITEM *gitem;
+if (init == 0) {
+	init = 1;
+	srate_menu = create_menu("Choose a sample rate", MENU_SMALL, NULL, NULL);
+	gitem = gn_menu_create_item("No sound", MENU_ACTION,
+			change_samplerate_action, (void*) 0);
+	srate_menu->item = list_append(srate_menu->item, (void*) gitem);
+	srate_menu->nb_elem++;
 
-		gitem = gn_menu_create_item("11025 (Fast but poor quality)",
-				MENU_ACTION, change_samplerate_action, (void*) 11025);
-		srate_menu->item = list_append(srate_menu->item, (void*) gitem);
-		srate_menu->nb_elem++;
+	gitem = gn_menu_create_item("11025 (Fast but poor quality)", MENU_ACTION,
+			change_samplerate_action, (void*) 11025);
+	srate_menu->item = list_append(srate_menu->item, (void*) gitem);
+	srate_menu->nb_elem++;
 
-		gitem = gn_menu_create_item("22050 (Good compromise)", MENU_ACTION,
-				change_samplerate_action, (void*) 22050);
-		srate_menu->item = list_append(srate_menu->item, (void*) gitem);
-		srate_menu->nb_elem++;
+	gitem = gn_menu_create_item("22050 (Good compromise)", MENU_ACTION,
+			change_samplerate_action, (void*) 22050);
+	srate_menu->item = list_append(srate_menu->item, (void*) gitem);
+	srate_menu->nb_elem++;
 
-		gitem = gn_menu_create_item("44100 (Best quality)", MENU_ACTION,
-				change_samplerate_action, (void*) 44100);
-		srate_menu->item = list_append(srate_menu->item, (void*) gitem);
-		srate_menu->nb_elem++;
-	}
-
-	//	gn_menu_disable_item(srate_menu,"No sound");
-
-	while (1) {
-		srate_menu->draw(srate_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
-		if ((a = srate_menu->event_handling(srate_menu)) > 0) {
-			if (conf.sound)
-				sprintf(self->str, "%d", conf.sample_rate);
-			else
-				sprintf(self->str, "No sound");
-
-			return MENU_STAY;
-		}
-	}
-	return 0;
+	gitem = gn_menu_create_item("44100 (Best quality)", MENU_ACTION,
+			change_samplerate_action, (void*) 44100);
+	srate_menu->item = list_append(srate_menu->item, (void*) gitem);
+	srate_menu->nb_elem++;
 }
 
+//	gn_menu_disable_item(srate_menu,"No sound");
 
+while (1) {
+	srate_menu->draw(srate_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
+	if ((a = srate_menu->event_handling(srate_menu)) > 0) {
+		if (conf.sound)
+			sprintf(self->str, "%d", conf.sample_rate);
+		else
+			sprintf(self->str, "No sound");
+
+		return MENU_STAY;
+	}
+}
+return 0;
+}
 
 static int save_conf_action(GN_MENU_ITEM *self, void *param) {
-	int type = (int) self->arg;
-	if (type == 0)
-		cf_save_file(NULL, 0);
-	else {
-		char *gpath;
-		char *drconf;
-		char *name = memory.rom.info.name;
+int type = (int) self->arg;
+if (type == 0)
+	cf_save_file(NULL, 0);
+else {
+	char *gpath;
+	char *drconf;
+	char *name = memory.rom.info.name;
 #ifdef EMBEDDED_FS
-		gpath = ROOTPATH"conf/";
+	gpath = ROOTPATH"conf/";
 #else
-		gpath = get_gngeo_dir();
+	gpath = get_gngeo_dir();
 #endif
-		drconf = alloca(strlen(gpath) + strlen(name) + strlen(".cf") + 1);
-		sprintf(drconf, "%s%s.cf", gpath, name);
-		cf_save_file(drconf, 0);
-	}
-	return GN_TRUE;
+	drconf = alloca(strlen(gpath) + strlen(name) + strlen(".cf") + 1);
+	sprintf(drconf, "%s%s.cf", gpath, name);
+	cf_save_file(drconf, 0);
+}
+return GN_TRUE;
 }
 
 #define RESET_BOOL(name,id) gitem=gn_menu_get_item_by_name(option_menu,name);\
 if (gitem) gitem->val = CF_BOOL(cf_get_item_by_name(id));
 
 static void reset_menu_option(void) {
-	GN_MENU_ITEM *gitem;
-	//gitem=gn_menu_get_item_by_name(option_menu,"Fullscreen");
-	//if (gitem) gitem->val = CF_BOOL(cf_get_item_by_name("fullscreen"));
-	RESET_BOOL("Fullscreen", "fullscreen");
-	RESET_BOOL("Vsync", "vsync");
-	RESET_BOOL("Auto Frame Skip", "autoframeskip");
-	RESET_BOOL("Sleep while idle", "sleepidle");
-	RESET_BOOL("Show FPS", "showfps");
+GN_MENU_ITEM *gitem;
+//gitem=gn_menu_get_item_by_name(option_menu,"Fullscreen");
+//if (gitem) gitem->val = CF_BOOL(cf_get_item_by_name("fullscreen"));
+RESET_BOOL("Fullscreen", "fullscreen");
+RESET_BOOL("Vsync", "vsync");
+RESET_BOOL("Auto Frame Skip", "autoframeskip");
+RESET_BOOL("Sleep while idle", "sleepidle");
+RESET_BOOL("Show FPS", "showfps");
 #ifdef PANDORA
-	RESET_BOOL("16/9","wide");
+RESET_BOOL("16/9","wide");
 #endif
-	gitem = gn_menu_get_item_by_name(option_menu, "Effect");
-	gitem->str = CF_STR(cf_get_item_by_name("effect"));
+gitem = gn_menu_get_item_by_name(option_menu, "Effect");
+gitem->str = CF_STR(cf_get_item_by_name("effect"));
 
-	gitem = gn_menu_get_item_by_name(option_menu, "Sample Rate");
-	if (conf.sound)
-		sprintf(gitem->str, "%d", conf.sample_rate);
-	else
-		sprintf(gitem->str, "No sound");
+gitem = gn_menu_get_item_by_name(option_menu, "Sample Rate");
+if (conf.sound)
+	sprintf(gitem->str, "%d", conf.sample_rate);
+else
+	sprintf(gitem->str, "No sound");
 }
 
 static int option_action(GN_MENU_ITEM *self, void *param) {
-	//exit(0);
-	int a;
-	reset_menu_option();
-	while (1) {
-		option_menu->draw(option_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
-		if ((a = option_menu->event_handling(option_menu)) > 0) {
-			reset_menu_option();
-			return MENU_STAY;
-		}
+//exit(0);
+int a;
+reset_menu_option();
+while (1) {
+	option_menu->draw(option_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
+	if ((a = option_menu->event_handling(option_menu)) > 0) {
+		reset_menu_option();
+		return MENU_STAY;
 	}
+}
+/* should never go here */
+return 0;
 }
 
 void gn_init_menu(void) {
-	GN_MENU_ITEM *gitem;
-	main_menu = create_menu(NULL, MENU_BIG, NULL, NULL);
+GN_MENU_ITEM *gitem;
+main_menu = create_menu(NULL, MENU_BIG, NULL, NULL);
 
-	main_menu->item = list_append(
-			main_menu->item,
-			(void*) gn_menu_create_item("Load game", MENU_ACTION,
-					rbrowser_action, NULL));
-	main_menu->nb_elem++;
+main_menu->item = list_append(
+		main_menu->item,
+		(void*) gn_menu_create_item("Load game", MENU_ACTION, rbrowser_action,
+				NULL));
+main_menu->nb_elem++;
 
-	main_menu->item = list_append(
-			main_menu->item,
-			(void*) gn_menu_create_item("Load state", MENU_ACTION,
-					load_state_action, NULL));
-	main_menu->nb_elem++;
-	main_menu->item = list_append(
-			main_menu->item,
-			(void*) gn_menu_create_item("Save state", MENU_ACTION,
-					save_state_action, NULL));
-	main_menu->nb_elem++;
+main_menu->item = list_append(
+		main_menu->item,
+		(void*) gn_menu_create_item("Load state", MENU_ACTION,
+				load_state_action, NULL));
+main_menu->nb_elem++;
+main_menu->item = list_append(
+		main_menu->item,
+		(void*) gn_menu_create_item("Save state", MENU_ACTION,
+				save_state_action, NULL));
+main_menu->nb_elem++;
 
-	main_menu->item = list_append(
-			main_menu->item,
-			(void*) gn_menu_create_item("Option", MENU_ACTION, option_action,
-					NULL));
-	main_menu->nb_elem++;
+main_menu->item = list_append(
+		main_menu->item,
+		(void*) gn_menu_create_item("Option", MENU_ACTION, option_action,
+				NULL));
+main_menu->nb_elem++;
 
-	/*
-	 main_menu->item = list_append(main_menu->item,
-	 (void*) gn_menu_create_item("Credit", MENU_ACTION, credit_action, NULL));
-	 main_menu->nb_elem++;
-	 */
+/*
+ main_menu->item = list_append(main_menu->item,
+ (void*) gn_menu_create_item("Credit", MENU_ACTION, credit_action, NULL));
+ main_menu->nb_elem++;
+ */
 
-	main_menu->item = list_append(
-			main_menu->item,
-			(void*) gn_menu_create_item("Exit", MENU_ACTION, exit_action,
-					NULL));
-	main_menu->nb_elem++;
+main_menu->item = list_append(main_menu->item,
+		(void*) gn_menu_create_item("Exit", MENU_ACTION, exit_action, NULL));
+main_menu->nb_elem++;
 
-	option_menu = create_menu("Options", MENU_SMALL, NULL, NULL);
+option_menu = create_menu("Options", MENU_SMALL, NULL, NULL);
 
-	gitem = gn_menu_create_item("Fullscreen", MENU_CHECK, toggle_fullscreen,
-			NULL);
-	gitem->val = CF_BOOL(cf_get_item_by_name("fullscreen"));
-	option_menu->item = list_append(option_menu->item, (void*) gitem);
-	option_menu->nb_elem++;
+gitem = gn_menu_create_item("Fullscreen", MENU_CHECK, toggle_fullscreen, NULL);
+gitem->val = CF_BOOL(cf_get_item_by_name("fullscreen"));
+option_menu->item = list_append(option_menu->item, (void*) gitem);
+option_menu->nb_elem++;
 #ifdef PANDORA
-	gitem = gn_menu_create_item("16/9", MENU_CHECK, toggle_wide, NULL);
-	gitem->val = CF_BOOL(cf_get_item_by_name("wide"));
-	option_menu->item = list_append(option_menu->item, (void*) gitem);
-	option_menu->nb_elem++;
+gitem = gn_menu_create_item("16/9", MENU_CHECK, toggle_wide, NULL);
+gitem->val = CF_BOOL(cf_get_item_by_name("wide"));
+option_menu->item = list_append(option_menu->item, (void*) gitem);
+option_menu->nb_elem++;
 #endif
-	gitem = gn_menu_create_item("Vsync", MENU_CHECK, toggle_vsync, NULL);
-	gitem->val = CF_BOOL(cf_get_item_by_name("vsync"));
-	option_menu->item = list_append(option_menu->item, (void*) gitem);
-	option_menu->nb_elem++;
+gitem = gn_menu_create_item("Vsync", MENU_CHECK, toggle_vsync, NULL);
+gitem->val = CF_BOOL(cf_get_item_by_name("vsync"));
+option_menu->item = list_append(option_menu->item, (void*) gitem);
+option_menu->nb_elem++;
 
-	gitem = gn_menu_create_item("Auto Frame Skip", MENU_CHECK,
-			toggle_autoframeskip, NULL);
-	gitem->val = CF_BOOL(cf_get_item_by_name("autoframeskip"));
-	option_menu->item = list_append(option_menu->item, (void*) gitem);
-	option_menu->nb_elem++;
+gitem = gn_menu_create_item("Auto Frame Skip", MENU_CHECK, toggle_autoframeskip,
+		NULL);
+gitem->val = CF_BOOL(cf_get_item_by_name("autoframeskip"));
+option_menu->item = list_append(option_menu->item, (void*) gitem);
+option_menu->nb_elem++;
 
-	gitem = gn_menu_create_item("Sleep while idle", MENU_CHECK,
-			toggle_sleepidle, NULL);
-	gitem->val = CF_BOOL(cf_get_item_by_name("sleepidle"));
-	option_menu->item = list_append(option_menu->item, (void*) gitem);
-	option_menu->nb_elem++;
+gitem = gn_menu_create_item("Sleep while idle", MENU_CHECK, toggle_sleepidle,
+		NULL);
+gitem->val = CF_BOOL(cf_get_item_by_name("sleepidle"));
+option_menu->item = list_append(option_menu->item, (void*) gitem);
+option_menu->nb_elem++;
 
-	gitem = gn_menu_create_item("Show FPS", MENU_CHECK, toggle_showfps, NULL);
-	gitem->val = CF_BOOL(cf_get_item_by_name("showfps"));
-	option_menu->item = list_append(option_menu->item, (void*) gitem);
-	option_menu->nb_elem++;
+gitem = gn_menu_create_item("Show FPS", MENU_CHECK, toggle_showfps, NULL);
+gitem->val = CF_BOOL(cf_get_item_by_name("showfps"));
+option_menu->item = list_append(option_menu->item, (void*) gitem);
+option_menu->nb_elem++;
 
-	gitem = gn_menu_create_item("Enable Raster effect", MENU_CHECK, toggle_raster, NULL);
-	gitem->val = CF_BOOL(cf_get_item_by_name("raster"));
-	option_menu->item = list_append(option_menu->item, (void*) gitem);
-	option_menu->nb_elem++;
+gitem = gn_menu_create_item("Enable Raster effect", MENU_CHECK, toggle_raster,
+		NULL);
+gitem->val = CF_BOOL(cf_get_item_by_name("raster"));
+option_menu->item = list_append(option_menu->item, (void*) gitem);
+option_menu->nb_elem++;
 
-	gitem = gn_menu_create_item("Effect", MENU_LIST, change_effect, NULL);
-	gitem->str = CF_STR(cf_get_item_by_name("effect"));
-	option_menu->item = list_append(option_menu->item, (void*) gitem);
-	option_menu->nb_elem++;
+gitem = gn_menu_create_item("Effect", MENU_LIST, change_effect, NULL);
+gitem->str = CF_STR(cf_get_item_by_name("effect"));
+option_menu->item = list_append(option_menu->item, (void*) gitem);
+option_menu->nb_elem++;
 
-	gitem = gn_menu_create_item("Sample Rate", MENU_LIST, change_samplerate,
-			NULL);
-	gitem->str = malloc(32);
-	if (conf.sound)
-		sprintf(gitem->str, "%d", conf.sample_rate);
-	else
-		sprintf(gitem->str, "No sound");
-	option_menu->item = list_append(option_menu->item, (void*) gitem);
-	option_menu->nb_elem++;
+gitem = gn_menu_create_item("Sample Rate", MENU_LIST, change_samplerate, NULL);
+gitem->str = malloc(32);
+if (conf.sound)
+	sprintf(gitem->str, "%d", conf.sample_rate);
+else
+	sprintf(gitem->str, "No sound");
+option_menu->item = list_append(option_menu->item, (void*) gitem);
+option_menu->nb_elem++;
 
-	gitem = gn_menu_create_item("Save conf for every game", MENU_ACTION,
-			save_conf_action, (void*) 0);
-	option_menu->item = list_append(option_menu->item, (void*) gitem);
-	option_menu->nb_elem++;
+gitem = gn_menu_create_item("Save conf for every game", MENU_ACTION,
+		save_conf_action, (void*) 0);
+option_menu->item = list_append(option_menu->item, (void*) gitem);
+option_menu->nb_elem++;
 
-	gitem = gn_menu_create_item("Save conf for this game", MENU_ACTION,
-			save_conf_action, (void*) 1);
-	option_menu->item = list_append(option_menu->item, (void*) gitem);
-	option_menu->nb_elem++;
+gitem = gn_menu_create_item("Save conf for this game", MENU_ACTION,
+		save_conf_action, (void*) 1);
+option_menu->item = list_append(option_menu->item, (void*) gitem);
+option_menu->nb_elem++;
 
-	yesno_menu = create_menu(NULL, MENU_SMALL, NULL, NULL);
-	gitem = gn_menu_create_item("Yes", MENU_ACTION, yes_action, NULL);
-	yesno_menu->item = list_append(yesno_menu->item, (void*) gitem);
-	yesno_menu->nb_elem++;
-	gitem = gn_menu_create_item("no", MENU_ACTION, no_action, NULL);
-	yesno_menu->item = list_append(yesno_menu->item, (void*) gitem);
-	yesno_menu->nb_elem++;
+yesno_menu = create_menu(NULL, MENU_SMALL, NULL, NULL);
+gitem = gn_menu_create_item("Yes", MENU_ACTION, yes_action, NULL);
+yesno_menu->item = list_append(yesno_menu->item, (void*) gitem);
+yesno_menu->nb_elem++;
+gitem = gn_menu_create_item("no", MENU_ACTION, no_action, NULL);
+yesno_menu->item = list_append(yesno_menu->item, (void*) gitem);
+yesno_menu->nb_elem++;
 }
 
 Uint32 run_menu(void) {
-	static Uint32 init = 0;
-	int a;
+static Uint32 init = 0;
+int a;
 
-	if (init == 0) {
-		init = 1;
-		gn_init_menu();
-	}
+if (init == 0) {
+	init = 1;
+	gn_init_menu();
+}
 
-	init_back();
+init_back();
 
-	reset_event();
-	//	conf.autoframeskip = 1;
-	reset_frame_skip();
+reset_event();
+//	conf.autoframeskip = 1;
+reset_frame_skip();
 
-	gn_menu_disable_item(main_menu, "Load state");
-	if (conf.game == NULL) {
-		gn_menu_disable_item(main_menu, "Save state");
-		gn_menu_disable_item(option_menu, "Save conf for this game");
-	} else {
-		Uint32 nb_slot = how_many_slot(conf.game);
-		gn_menu_enable_item(main_menu, "Save state");
-		gn_menu_enable_item(option_menu, "Save conf for this game");
-		if (nb_slot > 0)
-			gn_menu_enable_item(main_menu, "Load state");
-	}
+gn_menu_disable_item(main_menu, "Load state");
+if (conf.game == NULL) {
+	gn_menu_disable_item(main_menu, "Save state");
+	gn_menu_disable_item(option_menu, "Save conf for this game");
+} else {
+	Uint32 nb_slot = how_many_slot(conf.game);
+	gn_menu_enable_item(main_menu, "Save state");
+	gn_menu_enable_item(option_menu, "Save conf for this game");
+	if (nb_slot > 0)
+		gn_menu_enable_item(main_menu, "Load state");
+}
 
-	while (1) {
-		main_menu->draw(main_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
-		if ((a = main_menu->event_handling(main_menu)) > 0)
-			//reset_event();
-			return a;
-	}
-	//reset_event();
-	if (conf.game == NULL)
-		return 2; /* Exit */
-	return 0;
+while (1) {
+	main_menu->draw(main_menu); //frame_skip(0);printf("fps: %s\n",fps_str);
+	if ((a = main_menu->event_handling(main_menu)) > 0)
+		//reset_event();
+		return a;
+}
+//reset_event();
+if (conf.game == NULL)
+	return 2; /* Exit */
+return 0;
 }
 

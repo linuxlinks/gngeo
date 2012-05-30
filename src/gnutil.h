@@ -12,6 +12,7 @@ char *my_fgets(char *s, int size, FILE *stream);
 char *file_basename(char *filename);
 int check_dir(char *dir_name);
 void gn_set_error_msg(char *fmt,...);
+void gn_strncat_dir(char *basedir,char *dir,size_t n);
 
 #if defined (__AMIGA__)
 #ifdef DATA_DIRECTORY

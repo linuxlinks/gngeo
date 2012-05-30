@@ -16,6 +16,8 @@
 
 #include "blitter.h"
 #include "effect.h"
+#include "font.h"
+#include "gngeo_icon.h"
 
 int effect_none_init(void);
 
@@ -401,4 +403,54 @@ void screen_close() {
 void screen_fullscreen() {
 	fullscreen ^= 1;
 	blitter[nblitter].fullscreen();
+}
+
+void sdl_set_title(char *name) {
+	char *title;
+	if (name) {
+		title = malloc(strlen("Gngeo : ") + strlen(name) + 1);
+		if (title) {
+			sprintf(title, "Gngeo : %s", name);
+			SDL_WM_SetCaption(title, NULL);
+		}
+	} else {
+		SDL_WM_SetCaption("Gngeo", NULL);
+	}
+}
+
+void init_sdl(void) {
+    int surface_type = (CF_BOOL(cf_get_item_by_name("hwsurface"))? SDL_HWSURFACE : SDL_SWSURFACE);
+
+
+    char *nomouse = getenv("SDL_NOMOUSE");
+    SDL_Surface *icon;
+
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_NOPARACHUTE);
+
+#ifdef GP2X
+    atexit(gp2x_quit);
+#else
+    atexit(SDL_Quit);
+#endif
+
+    if (screen_init() == GN_FALSE) {
+	printf("Screen initialization failed.\n");
+	exit(-1);
+    }
+
+    buffer = SDL_CreateRGBSurface(surface_type, 352, 256, 16, 0xF800, 0x7E0,
+				  0x1F, 0);
+    SDL_FillRect(buffer,NULL,SDL_MapRGB(buffer->format,0xE5,0xE5,0xE5));
+
+    fontbuf = SDL_CreateRGBSurfaceFrom(font_image.pixel_data, font_image.width, font_image.height
+				       , 24, font_image.width * 3, 0xFF0000, 0xFF00, 0xFF, 0);
+    SDL_SetColorKey(fontbuf,SDL_SRCCOLORKEY,SDL_MapRGB(fontbuf->format,0xFF,0,0xFF));
+    fontbuf=SDL_DisplayFormat(fontbuf);
+    icon = SDL_CreateRGBSurfaceFrom(gngeo_icon.pixel_data, gngeo_icon.width,
+				    gngeo_icon.height, gngeo_icon.bytes_per_pixel*8,
+				    gngeo_icon.width * gngeo_icon.bytes_per_pixel,
+				    0xFF, 0xFF00, 0xFF0000, 0);
+
+    SDL_WM_SetIcon(icon,NULL);
+
 }

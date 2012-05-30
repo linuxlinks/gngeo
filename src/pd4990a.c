@@ -83,30 +83,6 @@ void pd4990a_addretrace()
   pd4990a_increment_day();
 }
 
-void pd4990a_init_save_state(void) {
-    create_state_register(ST_PD4990A,"seconds",1,&pd4990a.seconds,sizeof(Sint32),REG_INT32);
-    create_state_register(ST_PD4990A,"minutes",1,&pd4990a.minutes,sizeof(Sint32),REG_INT32);
-    create_state_register(ST_PD4990A,"hours",1,&pd4990a.hours,sizeof(Sint32),REG_INT32);
-    create_state_register(ST_PD4990A,"days",1,&pd4990a.days,sizeof(Sint32),REG_INT32);
-    create_state_register(ST_PD4990A,"month",1,&pd4990a.month,sizeof(Sint32),REG_INT32);
-    create_state_register(ST_PD4990A,"year",1,&pd4990a.year,sizeof(Sint32),REG_INT32);
-    create_state_register(ST_PD4990A,"weekday",1,&pd4990a.weekday,sizeof(Sint32),REG_INT32);
-
-    create_state_register(ST_PD4990A,"retraces",1,&retraces,sizeof(Sint32),REG_INT32);
-    create_state_register(ST_PD4990A,"testbit",1,&testbit,sizeof(Sint32),REG_INT32);
-    
-    create_state_register(ST_PD4990A,"testwaits",1,&testwaits,sizeof(Sint32),REG_INT32);
-    create_state_register(ST_PD4990A,"maxwaits",1,&maxwaits,sizeof(Sint32),REG_INT32);
-    create_state_register(ST_PD4990A,"shiftlo",1,&shiftlo,sizeof(Uint32),REG_INT32);
-    create_state_register(ST_PD4990A,"shifthi",1,&shifthi,sizeof(Uint32),REG_INT32);
-    create_state_register(ST_PD4990A,"reading",1,&reading,sizeof(Sint8),REG_INT8);
-    create_state_register(ST_PD4990A,"writing",1,&writing,sizeof(Sint8),REG_INT8);
-
-    create_state_register(ST_PD4990A,"outputbit",1,&outputbit,sizeof(Sint32),REG_INT32);
-    create_state_register(ST_PD4990A,"bitno",1,&bitno,sizeof(Sint32),REG_INT32);
-
-}
-
 void pd4990a_init(void) {
     time_t ltime;
     struct tm *today;

@@ -46,5 +46,7 @@ void screen_update();
 void screen_close();
 
 void screen_fullscreen();
+void sdl_set_title(char *name);
+void init_sdl(void);
 
 #endif

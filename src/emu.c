@@ -292,24 +292,7 @@ static inline int update_scanline(void) {
 	return memory.vid.irq2taken;
 }
 
-static Uint16 pending_save_state = 0, pending_load_state = 0;
 static int slow_motion = 0;
-
-static inline void state_handling(int save,int load) {
-	if (save) {
-		//if (conf.sound) SDL_LockAudio();
-		save_state(conf.game, save - 1);
-		//if (conf.sound) SDL_UnlockAudio();
-		reset_frame_skip();
-	}
-	if (load) {
-		//if (conf.sound) SDL_LockAudio();
-		load_state(conf.game, load - 1);
-		//if (conf.sound) SDL_UnlockAudio();
-		reset_frame_skip();
-	}
-	pending_load_state = pending_save_state = 0;
-}
 
 void main_loop(void) {
 	int neo_emu_done = 0;

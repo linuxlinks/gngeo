@@ -154,8 +154,6 @@ void cpu_68k_disassemble(int pc, int nb_instr);
 void cpu_68k_dumpreg(void);
 int cpu_68k_run_step(void);
 Uint32 cpu_68k_getpc(void);
-void cpu_68k_fill_state(M68K_STATE *st);
-void cpu_68k_set_state(M68K_STATE *st);
 int cpu_68k_debuger(void (*execstep)(void),void (*dump)(void));
 
 
@@ -168,8 +166,6 @@ void cpu_z80_init(void);
 void cpu_z80_switchbank(Uint8 bank, Uint16 PortNo);
 Uint8 z80_port_read(Uint16 PortNo);
 void z80_port_write(Uint16 PortNb, Uint8 Value);
-void cpu_z80_set_state(Z80_STATE *st);
-void cpu_z80_fill_state(Z80_STATE *st);
 
 /* memory handler prototype */
 void neogeo_sound_irq(int irq);

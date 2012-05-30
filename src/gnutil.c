@@ -100,3 +100,30 @@ void gn_set_error_msg(char *fmt,...) {
 	vsnprintf(gnerror,GNERROR_SIZE,fmt,pvar);
 }
 
+/*
+ * replace any ending / with a 0
+ */
+void gn_rtrim_slash(char *dir) {
+	if (dir[strlen(dir)-1]=='/' && strlen(dir)!=1)
+		dir[strlen(dir)-1]=0;
+}
+
+void gn_strncat_dir(char *basedir,char *dir,size_t n) {
+	gn_rtrim_slash(basedir);
+
+	if (strcmp(dir,".")==0)
+			return;
+	if (strcmp(dir,"..")==0 ) {
+		if (strlen(basedir)!=1) {
+			char *slash=strrchr(basedir,'/');
+			if (slash==basedir)
+				slash[1]=0;
+			else if (slash!=NULL)
+				slash[0]=0;
+		} else
+			return;
+	} else {
+		if (strlen(basedir)!=1) strncat(basedir,"/",n);
+		strncat(basedir,dir,n);
+	}
+}

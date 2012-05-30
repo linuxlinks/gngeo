@@ -134,33 +134,6 @@ int cpu_68k_getcycle(void)
     return s68000readOdometer();
 }
 
-static void cpu_68k_post_load_state(void) {
-    struct S68000CONTEXT star_context;
-    int i;
-    s68000GetContext(&star_context);
-    for (i=0;i<8;i++) {
-	star_context.dreg[i]=s68000context.dreg[i];
-	star_context.areg[i]=s68000context.areg[i];
-    }
-    star_context.pc=s68000context.pc;
-    star_context.asp=s68000context.asp;
-    star_context.sr=s68000context.sr;
-    s68000SetContext(&star_context);
-    cpu_68k_bankswitch(bankaddress);
-}
-
-static void cpu_68k_init_save_state(void) {
-    create_state_register(ST_68k,"dreg",1,(void *)s68000context.dreg,sizeof(Uint32)*8,REG_UINT32);
-    create_state_register(ST_68k,"areg",1,(void *)s68000context.areg,sizeof(Uint32)*8,REG_UINT32);
-    create_state_register(ST_68k,"pc",1,(void *)&s68000context.pc,sizeof(Uint32),REG_UINT32);
-    create_state_register(ST_68k,"asp",1,(void *)&s68000context.asp,sizeof(Uint32),REG_UINT32);
-    create_state_register(ST_68k,"sr",1,(void *)&s68000context.sr,sizeof(Uint32),REG_UINT32);
-    create_state_register(ST_68k,"bank",1,(void *)&bankaddress,sizeof(Uint32),REG_UINT32);
-    create_state_register(ST_68k,"ram",1,(void *)memory.ram,0x10000,REG_UINT8);
-    //    create_state_register(ST_68k,"kof2003_bksw",1,(void *)memory.kof2003_bksw,0x1000,REG_UINT8);
-    create_state_register(ST_68k,"current_vector",1,(void *)memory.rom.cpu_m68k.p,0x80,REG_UINT8);
-    set_post_load_function(ST_68k,cpu_68k_post_load_state);
-}
 
 void bankswitcher_init() {
     pretend_readbyte[1].memorycall=mem68k_fetch_bk_normal_byte;

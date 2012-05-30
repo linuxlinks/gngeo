@@ -293,6 +293,14 @@ CONF_ITEM* cf_get_item_by_val(int val) {
 	return NULL;
 }
 
+void cf_reset_all_changed_flag() {
+	int i, j;
+
+	for (i = 0; i < 128; i++)
+		for (j = 0; j < cf_hash[i].nb_item; j++)
+			cf_hash[i].conf[j]->modified=0;
+}
+
 void cf_item_has_been_changed(CONF_ITEM * item) {
 	if (item)
 		item->modified = 1;
@@ -469,7 +477,10 @@ void cf_init(void) {
 	cf_create_int_item("cpu_speed", "Overclock the GP2X cpu to x Mhz", "x", 0, 0);
 	cf_create_string_item("frontend", "Execute CMD when exit. Usefull to return to Selector or Rage2x", "CMD", 0, "/usr/gp2x/gp2xmenu");
 #endif
-
+	//CF_SYSTEMOPT
+	cf_get_item_by_name("rompath")->flags|=CF_SYSTEMOPT;
+	cf_get_item_by_name("libglpath")->flags|=CF_SYSTEMOPT;
+	cf_get_item_by_name("datafile")->flags|=CF_SYSTEMOPT;
 }
 
 /* TODO: lame, do it better */
@@ -501,7 +512,9 @@ char *my_fgets(char *s, int size, FILE *stream) {
 	return s;
 }
 
-int cf_save_file(char *filename, int flags) {
+
+
+int cf_save_option(char *filename, char *optname,int flags) {
 	char *conf_file = filename;
 	char *conf_file_dst;
 	FILE *f;
@@ -511,6 +524,7 @@ int cf_save_file(char *filename, int flags) {
 	char name[32];
 	char val[255];
 	CONF_ITEM *cf;
+	CONF_ITEM *tosave; //cf_get_item_by_name(optname);
 
 	if (!conf_file) {
 #ifdef EMBEDDED_FS
@@ -534,6 +548,10 @@ int cf_save_file(char *filename, int flags) {
 		//printf("Unable to open %s\n",conf_file);
 		return GN_FALSE;
 	}
+	if (optname!=NULL) {
+		tosave=cf_get_item_by_name(optname);
+		if (tosave) cf_item_has_been_changed(tosave);
+	} else tosave=NULL;
 
 	if ((f = fopen(conf_file, "rb"))) {
 
@@ -552,7 +570,7 @@ int cf_save_file(char *filename, int flags) {
 			strncpy(val, buf + strlen(name) + 1, 254);
 
 			cf = cf_get_item_by_name(name);
-			if (cf) {
+			if (cf && (cf==tosave || tosave==NULL)) {
 				if (cf->modified) {
 					cf->modified = 0;
 					switch (cf->type) {
@@ -593,7 +611,7 @@ int cf_save_file(char *filename, int flags) {
 		for (j = 0; j < cf_hash[i].nb_item; j++) {
 			cf = cf_hash[i].conf[j];
 			//printf("Option %s %d\n",cf->name,cf->modified);
-			if (cf->modified!=0) {
+			if (cf->modified!=0  && (cf==tosave || tosave==NULL)) {
 				cf->modified=0;
 				switch (cf->type) {
 					case CFT_INT:
@@ -633,13 +651,17 @@ int cf_save_file(char *filename, int flags) {
 	return GN_TRUE;
 }
 
+int cf_save_file(char *filename, int flags) {
+	return cf_save_option(filename,NULL,flags);
+}
+
 void cf_reset_to_default(void) {
 	int i,j;
 	CONF_ITEM *cf;
 	for (i = 0; i < 128; i++) {
 		for (j = 0; j < cf_hash[i].nb_item; j++) {
 			cf = cf_hash[i].conf[j];
-			if (!cf->modified && !(cf->flags & CF_SETBYCMD)) {
+			if (!cf->modified && !(cf->flags & CF_SETBYCMD) &&!(cf->flags & CF_SYSTEMOPT)) {
 				switch (cf->type) {
 					case CFT_INT:
 						CF_VAL(cf) = cf->data.dt_int.default_val;

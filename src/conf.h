@@ -13,9 +13,12 @@ typedef enum CF_TYPE{
     CFT_STR_ARRAY,
 }CF_TYPE;
 
-#define CF_MODIFIED  0x1
-#define CF_SETBYCMD  0x2
-#define CF_CACHED    0x4
+#define CF_MODIFIED  			0x1
+#define CF_SETBYCMD  			0x2
+#define CF_CACHED    			0x4
+#define CF_SYSTEMOPT		  	0x8
+
+#define CF_MAXSTRLEN 255
 
 typedef struct CONF_ITEM {
 	char *name;
@@ -37,7 +40,7 @@ typedef struct CONF_ITEM {
 			int default_bool;
 		}dt_bool;
 		struct {
-			char str[255];
+			char str[CF_MAXSTRLEN];
 			char *default_str;
 		}dt_str;
 		struct {
@@ -70,6 +73,7 @@ void cf_create_int_item(const char *name,const char *help,const char *hlp_arg,ch
 void cf_create_array_item(const char *name,const char *help,const char *hlp_arg,char short_opt,int size,int *def);
 void cf_create_str_array_item(const char *name,const char *help,const char *hlp_arg,char short_opt,char *def);
 void cf_init(void);
+int cf_save_option(char *filename, char *optname,int flags);
 int cf_save_file(char *filename,int flags);
 int cf_open_file(char *filename);
 void cf_init_cmd_line(void);

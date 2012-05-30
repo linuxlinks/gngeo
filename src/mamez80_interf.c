@@ -31,7 +31,15 @@
 static Uint8 *z80map1, *z80map2, *z80map3, *z80map4;
 
 Uint8 mame_z80mem[0x10000];
-static Z80_STATE z80_st;
+//typedef struct Z80_STATE {
+//    Uint16 PC,SP,AF,BC,DE,HL,IX,IY;
+//    Uint16 AF2,BC2,DE2,HL2;
+//    Uint8  R,R2,IFF1,IFF2,IM,I;
+//    Uint8  IRQV,IRQL;
+//    Uint16 bank[4];
+//    Uint8  ram[0x800];
+//}Z80_STATE;
+//static Z80_STATE z80_st;
 
 #if 0
 /* Memory and port IO handler */
@@ -136,7 +144,15 @@ int mame_z80_irq_callback(int a)
 
 
 void cpu_z80_mkstate(gzFile gzf,int mode) {
-	mkstate_data(gzf, &z80_st, sizeof (z80_st), mode);
+
+/* Old save state version was completly buggy, tried to load it anyway
+ * the size of the old struct was 2088
+ * */
+	if (state_version==ST_VER2 && mode==STREAD) {
+		Uint8 z80_st_dummy[2088];
+		mkstate_data(gzf, &z80_st_dummy, 2088, mode);
+	} else
+		mkstate_data(gzf, z80_stateData(), z80_stateDataSize, mode);
 	mkstate_data(gzf, mame_z80mem, 0x10000, mode);
 	if (mode==STREAD) {
 		int i;
@@ -151,7 +167,7 @@ void cpu_z80_init(void)
 {
     //  init_mamez80_mem();
     z80_init();
-
+    //printf("Sizeof Z80_STATE %d\n",sizeof(z80_st));
     /* bank initalisation */
     z80map1 = memory.rom.cpu_z80.p + 0x8000;
     z80map2 = memory.rom.cpu_z80.p + 0xc000;

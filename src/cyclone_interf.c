@@ -380,45 +380,7 @@ static void MyWrite32(unsigned int a,unsigned int   d) {
 	//printf("Unhandled write32 @ %08x = %08x\n",a,d);
 }
 
-static void cpu_68k_post_load_state(void) {
-	
-	MyCyclone.read8=MyRead8;
-	MyCyclone.read16=MyRead16;
-	MyCyclone.read32=MyRead32;
 
-	MyCyclone.write8=MyWrite8;
-	MyCyclone.write16=MyWrite16;
-	MyCyclone.write32=MyWrite32;
-
-	MyCyclone.checkpc=MyCheckPc;
-
-	MyCyclone.fetch8  =MyRead8;
-        MyCyclone.fetch16 =MyRead16;
-        MyCyclone.fetch32 =MyRead32;
-
-	cpu_68k_bankswitch(bankaddress);
-	MyCyclone.membase=0;
-	MyCyclone.pc=MyCheckPc(cyclone_pc);
-	//printf("Loaded PC=%08x\n",cyclone_pc);
-}
-
-static void cpu_68k_pre_save_state(void) {
-	cyclone_pc=MyCyclone.pc-MyCyclone.membase;
-	//printf("Saved PC=%08x\n",cyclone_pc);
-}
-
-static void cpu_68k_init_save_state(void) {
-	
-	create_state_register(ST_68k,"cyclone68k",1,(void *)&MyCyclone,sizeof(MyCyclone),REG_UINT8);
-	create_state_register(ST_68k,"pc",1,(void *)&cyclone_pc,sizeof(Uint32),REG_UINT32);
-	create_state_register(ST_68k,"bank",1,(void *)&bankaddress,sizeof(Uint32),REG_UINT32);
-	create_state_register(ST_68k,"ram",1,(void *)memory.ram,0x10000,REG_UINT8);
-	//create_state_register(ST_68k,"kof2003_bksw",1,(void *)memory.kof2003_bksw,0x1000,REG_UINT8);
-	create_state_register(ST_68k,"current_vector",1,(void *)memory.rom.cpu_m68k.p,0x80,REG_UINT8);
-	set_post_load_function(ST_68k,cpu_68k_post_load_state);
-	set_pre_save_function(ST_68k,cpu_68k_pre_save_state);
-	
-}
 void cpu_68k_mkstate(gzFile gzf,int mode) {
 	printf("Save state mode %s PC=%08x\n",(mode==STREAD?"READ":"WRITE"),MyCyclone.pc-MyCyclone.membase);
 	if (mode==STWRITE) CyclonePack(&MyCyclone, save_buffer);
@@ -554,12 +516,6 @@ Uint32 cpu_68k_getpc(void) {
 	return MyCyclone.pc-MyCyclone.membase;
 }
 
-void cpu_68k_fill_state(M68K_STATE *st) {
-}
-
-
-void cpu_68k_set_state(M68K_STATE *st) {
-}
 
 int cpu_68k_debuger(void (*execstep)(void),void (*dump)(void)) {
 	/* TODO */

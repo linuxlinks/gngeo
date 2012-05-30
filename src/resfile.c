@@ -82,14 +82,15 @@ ROM_DEF *res_load_drv(char *name) {
 	pz = gn_open_zip(gngeo_dat);
 	if (pz == NULL) {
 		free(drv);
-		fprintf(stderr, "Can't open the %s\n", gngeo_dat);
+		//fprintf(stderr, "Can't open the %s\n", gngeo_dat);
 		return NULL;
 	}
 	sprintf(drvfname, "rom/%s.drv", name);
 
 	if ((z=gn_unzip_fopen(pz,drvfname,0x0)) == NULL) {
 		free(drv);
-		fprintf(stderr, "Can't open rom driver for %s\n", name);
+		gn_close_zip(pz);
+		//fprintf(stderr, "Can't open rom driver for %s %s\n", name,drvfname);
 		return NULL;
 	}
 

@@ -22,6 +22,8 @@
 #include "resfile.h"
 #include "menu.h"
 #include "gnutil.h"
+#include "frame_skip.h"
+#include "screen.h"
 #ifdef GP2X
 #include "gp2x.h"
 #include "ym2610-940/940shared.h"
@@ -1227,14 +1229,14 @@ int dr_load_bios(GAME_ROMS *r) {
 
 	pz = gn_open_zip(fpath);
 	if (pz == NULL) {
-		fprintf(stderr, "Can't open BIOS (%s)\n", fpath);
+		gn_set_error_msg( "Can't open BIOS\n%s\n", fpath);
 		free(fpath);
 		return GN_FALSE;
 	}
 
 	memory.ng_lo = gn_unzip_file_malloc(pz, "000-lo.lo", 0x0, &size);
 	if (memory.ng_lo == NULL) {
-		printf("Couldn't find 000-lo.lo, please check your bios\n");
+		gn_set_error_msg("Couldn't find 000-lo.lo\nPlease check your bios\n");
 		return GN_FALSE;
 	}
 
@@ -1247,7 +1249,7 @@ int dr_load_bios(GAME_ROMS *r) {
 			r->bios_sfix.p = gn_unzip_file_malloc(pz, "sfix.sfix", 0x0,
 					&r->bios_sfix.size);
 			if (r->bios_sfix.p == NULL) {
-				printf("Couldn't find sfix.sfx nor sfix.sfix, please check your bios\n");
+				gn_set_error_msg("Couldn't find sfix.sfx nor sfix.sfix\nPlease check your bios\n");
 				return GN_FALSE;
 			}
 		}
@@ -1267,7 +1269,7 @@ int dr_load_bios(GAME_ROMS *r) {
 				sprintf(unipath, "%s/uni-bios.rom", rpath);
 				f = fopen(unipath, "rb");
 				if (!f) { /* TODO: Fallback to arcade mode */
-					fprintf(stderr, "Can't open Universal BIOS (%s)\n", unipath);
+					gn_set_error_msg( "Can't open Universal BIOS\n%s\n", unipath);
 					free(fpath);
 					free(unipath);
 					return GN_FALSE;
@@ -1301,7 +1303,7 @@ int dr_load_bios(GAME_ROMS *r) {
 			r->bios_m68k.p = gn_unzip_file_malloc(pz, romfile, 0x0,
 					&r->bios_m68k.size);
 			if (r->bios_m68k.p == NULL) {
-				printf("Couldn't loas bios %s\n", romfile);
+				gn_set_error_msg("Couldn't load bios\n%s\n", romfile);
 				goto error;
 			}
 		}
@@ -1503,7 +1505,7 @@ error1:
 	return GN_FALSE;
 }
 
-int dr_load_game(const char *name) {
+int dr_load_game(char *name) {
 	//GAME_ROMS rom;
 	char *rpath = CF_STR(cf_get_item_by_name("rompath"));
 	int rc;
@@ -1812,7 +1814,8 @@ int dr_open_gno(char *filename) {
 	/* Init rom and bios */
 	init_roms(r);
 	//convert_all_tile(r);
-	dr_load_bios(r);
+	if (dr_load_bios(r)==GN_FALSE)
+		return GN_FALSE;
 
 	conf.game = memory.rom.info.name;
 
@@ -1827,6 +1830,7 @@ char *dr_gno_romname(char *filename) {
 	FILE *gno;
 	char fid[9]; // = "gnodmpv1";
 	char name[9] = {0,};
+	char *space;
 	size_t totread = 0;
 
 	gno = fopen(filename, "rb");
@@ -1840,6 +1844,10 @@ char *dr_gno_romname(char *filename) {
 	}
 
 	totread += fread(name, 8, 1, gno);
+
+	space=strchr(name,' ');
+	if (space!=NULL) space[0]=0;
+
 	fclose(gno);
 	return strdup(name);
 }
@@ -2048,8 +2056,8 @@ int init_game(char *rom_name) {
     trans_pack_open(CF_STR(cf_get_item_by_name("transpack")));
 
     if (strstr(rom_name, ".gno") != NULL) {
-        dr_open_gno(rom_name);
-
+        if (dr_open_gno(rom_name)==GN_FALSE)
+        	return GN_FALSE;
     } else {
 
         //open_rom(rom_name);
@@ -2067,7 +2075,7 @@ int init_game(char *rom_name) {
 
     open_nvram(conf.game);
     open_memcard(conf.game);
-#ifndef GP2X
+#ifndef GP2X /* crash on the gp2x */
     sdl_set_title(conf.game);
 #endif
     init_neo();

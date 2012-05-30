@@ -247,40 +247,8 @@ void cpu_68k_reset(void)
     cpu68k_reset();
 }
 
+static Uint32 pc;
 
-/* Save State */
-static Uint32 sr,pc,mregs[16],asp;
-void cpu_68k_post_load_state(void)
-{
-    regs.pc=pc;
-    regs.sr.sr_int=sr;
-    regs.sp=asp;
-    memcpy(regs.regs,mregs,16*sizeof(Uint32));
-    cpu_68k_bankswitch(bankaddress);
-    printf("POSTLOAD %08x %08x %08x\n",pc,sr,mregs[15]);
-}
-void cpu_68k_pre_save_state(void)
-{
-//    sr=regs.sr.sr_int;
-    pc=regs.pc;
-    sr=regs.sr.sr_int;
-    asp=regs.sp;
-    memcpy(mregs,regs.regs,16*sizeof(Uint32));
-    printf("PRESAVE  %08x %08x %08x\n",pc,sr,mregs[15]);
-}
-static void cpu_68k_init_save_state(void) {
-    create_state_register(ST_68k,"dreg",1,(void *)mregs,sizeof(Uint32)*8,REG_UINT32);
-    create_state_register(ST_68k,"areg",1,(void *)(&mregs[8]),sizeof(Uint32)*8,REG_UINT32);
-    create_state_register(ST_68k,"pc",1,(void *)&pc,sizeof(Uint32),REG_UINT32);
-    create_state_register(ST_68k,"asp",1,(void *)&asp,sizeof(Uint32),REG_UINT32);
-    create_state_register(ST_68k,"sr",1,(void *)&sr,sizeof(Uint32),REG_UINT32);
-    create_state_register(ST_68k,"bank",1,(void *)&bankaddress,sizeof(Uint32),REG_UINT32);
-    create_state_register(ST_68k,"ram",1,(void *)memory.ram,0x10000,REG_UINT8);
- //  create_state_register(ST_68k,"kof2003_bksw",1,(void *)memory.kof2003_bksw,0x1000,REG_UINT8);
-    create_state_register(ST_68k,"current_vector",1,(void *)memory.rom.cpu_m68k.p,0x80,REG_UINT8);
-    set_post_load_function(ST_68k,cpu_68k_post_load_state);
-    set_pre_save_function(ST_68k,cpu_68k_pre_save_state);
-}
 
 void cpu_68k_mkstate(gzFile gzf,int mode) {
 

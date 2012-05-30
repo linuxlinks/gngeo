@@ -73,35 +73,6 @@ void timer_callback_2610(int param){}
 #else
 void timer_callback_2610(int param);
 #endif
-void timer_post_load_state(void) {
-    int i;
-    for (i = 0; i < MAX_TIMER; i++) {
-	if (timers[i].del_it) {
-	    timers[i].func=NULL;
-	} else {
-	    /* FIXME: Ugly.... */
-	    timers[i].func=timer_callback_2610;
-	}
-    }
-}
-
-void timer_pre_save_state(void)
-{
-
-}
-
-void timer_init_save_state(void) {
-    int i;
-    create_state_register(ST_TIMER,"timer_count",1,&timer_count,sizeof(double),REG_UINT32);
-
-    for(i=0;i<MAX_TIMER;i++) {
-	create_state_register(ST_TIMER,"t.del_it",i,&timers[i].del_it,sizeof(Uint32),REG_UINT32);
-	create_state_register(ST_TIMER,"t.time",i,&timers[i].time,sizeof(double),REG_UINT32);
-	create_state_register(ST_TIMER,"t.param",i,&timers[i].param,sizeof(Sint32),REG_INT32);
-    }
-    set_post_load_function(ST_TIMER,timer_post_load_state);
-    set_pre_save_function(ST_TIMER,timer_pre_save_state);
-}
 
 void del_timer(timer_struct * ts)
 {
@@ -117,7 +88,7 @@ void my_timer(void)
     int i;
 
     if (init) {
-	timer_init_save_state();
+	//timer_init_save_state();
 	init = 0;
 
 	if (conf.pal) {

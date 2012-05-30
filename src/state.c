@@ -16,6 +16,7 @@
 #include "sound.h"
 #include "emu.h"
 #include "gnutil.h"
+#include "menu.h"
 //#include "streams.h"
 
 #ifdef USE_STARSCREAM
@@ -59,16 +60,16 @@ static int endian_flag=0x0;
 
 #endif
 
-static ST_REG *reglist;
-static ST_MODULE st_mod[ST_MODULE_END];
-static SDL_Rect buf_rect    =	{24, 16, 304, 224};
-static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
+//static ST_REG *reglist;
+//static ST_MODULE st_mod[ST_MODULE_END];
+//static SDL_Rect buf_rect    =	{24, 16, 304, 224};
+//static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
 SDL_Surface *state_img_tmp;
 
 void cpu_68k_mkstate(gzFile gzf,int mode);
 void cpu_z80_mkstate(gzFile gzf,int mode);
 void ym2610_mkstate(gzFile gzf,int mode);
-
+#if 0
 void create_state_register(ST_MODULE_TYPE module,const char *reg_name,
 			   Uint8 num,void *data,int size,ST_DATA_TYPE type) {
     ST_REG *t=(ST_REG*)calloc(1,sizeof(ST_REG));
@@ -146,7 +147,7 @@ void swap_buf32_if_need(Uint8 src_endian,Uint32* buf,Uint32 size)
 	    buf[i]=SDL_Swap32(buf[i]);
     }
 }
-
+#endif
 Uint32 how_many_slot(char *game) {
 	char *st_name;
 	FILE *f;
@@ -166,6 +167,7 @@ Uint32 how_many_slot(char *game) {
 		} else
 		    return slot;
 	}
+	return 0;
 }
 
 static gzFile open_state(char *game,int slot,int mode) {
@@ -195,11 +197,15 @@ static gzFile open_state(char *game,int slot,int mode) {
 		memset(string, 0, 20);
 		gzread(gzf, string, 6);
 
-		if (strcmp(string, "GNGST2")) {
+		if (strcmp(string, "GNGST3")!=0 && strcmp(string, "GNGST2")!=0) {
 			printf("%s is not a valid gngeo st file\n", st_name);
 			gzclose(gzf);
 			return NULL;
 		}
+
+		if (strcmp(string, "GNGST2")==0) state_version=ST_VER2;
+		if (strcmp(string, "GNGST3")==0) state_version=ST_VER3;
+
 
 		gzread(gzf, &flags, sizeof (int));
 
@@ -211,7 +217,7 @@ static gzFile open_state(char *game,int slot,int mode) {
 		}
 	} else {
 		int flags=m68k_flag | z80_flag | endian_flag;
-		gzwrite(gzf, "GNGST2", 6);
+		gzwrite(gzf, "GNGST3", 6);
 		gzwrite(gzf, &flags, sizeof(int));
 	}
 	return gzf;
@@ -222,6 +228,7 @@ int mkstate_data(gzFile gzf,void *data,int size,int mode) {
 		return gzread(gzf,data,size);
 	return gzwrite(gzf,data,size);
 }
+
 
 SDL_Surface *load_state_img(char *game,int slot) {
 	gzFile gzf;
@@ -284,6 +291,8 @@ int load_state(char *game,int slot) {
 	if ((gzf = open_state(game, slot, STREAD))==NULL)
 		return GN_FALSE;
 
+	if (state_version==ST_VER2)
+		gn_popup_error("Warning!","You're trying to load an older gngeo save state\nIt may work or not, nobody knows! ;)");
 
 
 	gzread(gzf,state_img_tmp->pixels,304*224*2);
@@ -362,7 +371,7 @@ void clear_state_reg(void) {
 #endif
 void neogeo_init_save_state(void) {
     int i;
-    ST_REG *t,*s;
+
     if (!state_img)
 		state_img=SDL_CreateRGBSurface(SDL_SWSURFACE,304, 224, 16, 0xF800, 0x7E0, 0x1F, 0);
 	if (!state_img_tmp)

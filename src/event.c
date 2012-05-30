@@ -11,6 +11,7 @@
 #include "emu.h"
 #include "memory.h"
 #include "gnutil.h"
+#include "messages.h"
 
 static int get_mapid(char *butid) {
 	printf("Get mapid %s\n",butid);
@@ -107,10 +108,35 @@ int create_joymap_from_string(int player,char *jconf) {
 	return GN_TRUE;
 }
 
+static void calculate_hotkey_bitmasks()
+{
+    int *p;
+    int i, j, mask;
+    const char *p1_key_list[] = { "p1hotkey0", "p1hotkey1", "p1hotkey2", "p1hotkey3" };
+    const char *p2_key_list[] = { "p2hotkey0", "p2hotkey1", "p2hotkey2", "p2hotkey3" };
+
+
+    for ( i = 0; i < 4; i++ ) {
+	p=CF_ARRAY(cf_get_item_by_name(p1_key_list[i]));
+	for ( mask = 0, j = 0; j < 4; j++ ) mask |= p[j];
+	conf.p1_hotkey[i] = mask;
+    }
+
+    for ( i = 0; i < 4; i++ ) {
+	p=CF_ARRAY(cf_get_item_by_name(p2_key_list[i]));
+	for ( mask = 0, j = 0; j < 4; j++ ) mask |= p[j];
+	conf.p2_hotkey[i] = mask;
+    }
+
+}
+
+
 int init_event(void) {
 	int i;
 //	printf("sizeof joymap=%d nb_joy=%d\n",sizeof(JOYMAP),conf.nb_joy);
 	jmap=calloc(sizeof(JOYMAP),1);
+
+    calculate_hotkey_bitmasks();
 
 #ifdef WII
 	conf.nb_joy = 4;

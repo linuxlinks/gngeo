@@ -372,6 +372,7 @@ PKZIP *gn_open_zip(char *file) {
 	int size;
 	int e;
 	struct stat sb;
+//printf("CWR %s\n",get_current_dir_name());
 
 	if (lstat(file,&sb)==-1) {
 		printf("Couldn't open %s\n", file);
@@ -387,7 +388,7 @@ PKZIP *gn_open_zip(char *file) {
 
 	zf->file = fopen(file, "rb");
 	if (zf->file == NULL) {
-		printf("Couldn't open %s\n", file);
+		printf("Ho no! Couldn't open %s\n", file);
 		free(zf);
 		return NULL;
 	}
