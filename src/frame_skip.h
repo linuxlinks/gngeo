@@ -22,10 +22,10 @@
 
 extern char skip_next_frame;
 
-char fps_str[32];
+extern char fps_str[32];
 
-void reset_frame_skip(void);
-int frame_skip(int init);
+extern void reset_frame_skip(void);
+extern int frame_skip(int init);
 
 
 #endif

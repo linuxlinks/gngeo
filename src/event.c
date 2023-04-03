@@ -13,6 +13,10 @@
 #include "gnutil.h"
 #include "messages.h"
 
+JOYMAP *jmap;
+Uint8 joy_state[2][GN_MAX_KEY];
+
+
 static int get_mapid(char *butid) {
 	printf("Get mapid %s\n",butid);
 	if (!strcmp(butid,"A")) return GN_A;
@@ -48,24 +52,25 @@ int create_joymap_from_string(int player,char *jconf) {
 	char butid[32]={0,};
 	char jevt;
 	int code;
-	int jid;
+	char jid;
 	int rc;
 	char type;
 	//printf("Jconf=%s\n",jconf);
 	if (jconf==NULL) return 0;
 	v=strdup(jconf);
 	v=strtok(v,",");
-	//printf("V1=%s\n",v);
+	printf("V1=%s\n",v);
 	while(v) {
-		rc=sscanf(v,"%[A-Z1-4]=%c%d%c%d",butid,&type,&jid,&jevt,&code);
+		rc=sscanf(v,"%[A-Z1-4]=%c%c%c%d",butid,&type,&jid,&jevt,&code);
+		printf("rc:%d\n", rc);
 		if (rc==3 && type=='K') { /* Keyboard */
-			//printf("%s | keycode %d\n",butid,jid);
+			printf("%s | keycode %d\n",butid,jid);
 			code=jid;
 			if (code<SDLK_LAST) {
 				jmap->key[code].player=player;
 				jmap->key[code].map=get_mapid(butid);
 			}
-			//printf("%d\n",get_mapid(butid));
+			printf("%d\n",get_mapid(butid));
 		}
 		if (rc==5 && type=='J') {
 			printf("%d, %s | joy no %d | evt %c | %d\n",
