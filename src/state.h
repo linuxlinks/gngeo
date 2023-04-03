@@ -81,7 +81,7 @@ typedef struct NEOGEO_STATE {
 }NEOGEO_STATE;
 #endif
 
-SDL_Surface *state_img;
+extern SDL_Surface *state_img;
 
 #define STREAD  0
 #define STWRITE 1
@@ -90,20 +90,20 @@ SDL_Surface *state_img;
 #define ST_VER2 2
 #define ST_VER3 3
 
-Uint8 state_version;
+extern Uint8 state_version;
 
 #if 0
 void create_state_register(ST_MODULE_TYPE module,const char *reg_name,Uint8 num,void *data,int size,ST_DATA_TYPE type);
 void set_pre_save_function(ST_MODULE_TYPE module,void (*func)(void));
 void set_post_load_function(ST_MODULE_TYPE module,void (*func)(void));
 #endif
-SDL_Surface *load_state_img(char *game,int slot);
-int load_state(char *game,int slot);
-int save_state(char *game,int slot);
-Uint32 how_many_slot(char *game);
-int mkstate_data(gzFile gzf,void *data,int size,int mode);
+extern SDL_Surface *load_state_img(char *game,int slot);
+extern int load_state(char *game,int slot);
+extern int save_state(char *game,int slot);
+extern Uint32 how_many_slot(char *game);
+extern int mkstate_data(gzFile gzf,void *data,int size,int mode);
 
-void neogeo_init_save_state(void);
+extern void neogeo_init_save_state(void);
 
 #endif
 

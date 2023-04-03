@@ -58,6 +58,7 @@
 int frame;
 int nb_interlace = 256;
 int current_line;
+extern SDL_Surface *state_img;
 //static int arcade;
 //
 //extern int irq2enable, irq2start, irq2repeat, irq2control, irq2taken;

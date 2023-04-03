@@ -61,6 +61,8 @@ static struct {
 	int size, nb_item;
 } cf_hash[128];
 
+struct config conf;
+
 
 #ifdef GP2X
 static int default_tvoffset[] = {0, 0};

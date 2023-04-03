@@ -19,6 +19,9 @@
 #include "menu.h"
 //#include "streams.h"
 
+struct SDL_Surface *state_image;
+SDL_Surface *state_img;
+Uint8 state_version;
 #ifdef USE_STARSCREAM
 static int m68k_flag=0x1;
 #elif USE_GENERATOR68K
