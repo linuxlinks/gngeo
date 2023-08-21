@@ -89,7 +89,7 @@ struct config {
 
     int p1_hotkey[4];
     int p2_hotkey[4];
-}
+};
 
 extern struct config conf;
 
