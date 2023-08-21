@@ -38,6 +38,7 @@
 //#define CPU_FPS 60
 //static int CPU_FPS=60;
 static uclock_t F;
+char fps_str[32];
 
 #define MAX_FRAMESKIP 10
 
